@@ -19,7 +19,7 @@ then navigate into the folder and install it via
 ```
 pip install --upgrade .
 ```
-or run
+or
 ```
 python setup.py install
 ```
