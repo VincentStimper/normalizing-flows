@@ -22,8 +22,8 @@ setup(
     version=__version__,
     description='Pytorch implementation of normalizing flows',
     long_description=long_description,
-    url='https://github.com/VincentStimper/normflow',
-    download_url='https://github.com/VincentStimper/normflow/tarball/' + __version__,
+    url='https://github.com/VincentStimper/normalizing-flows',
+    download_url='https://github.com/VincentStimper/normalizing-flows/tarball/' + __version__,
     license='MIT',
     classifiers=[
       'Development Status :: 3 - Alpha',
