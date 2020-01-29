@@ -15,9 +15,12 @@ class ParametrizedConditionalDistribution(nn.Module):
 
 class Dirac(ParametrizedConditionalDistribution):
     def __init__(self):
-        super.__init__()
+        super().__init__()
 
     def forward(self, x):
         z = x
-        log_p = torch.zeros(x.size[0])
+        if x.size() == torch.Size([]):
+            log_p = torch.zeros(x.size())
+        else:
+            log_p = torch.zeros(x.size()[0])
         return z, log_p

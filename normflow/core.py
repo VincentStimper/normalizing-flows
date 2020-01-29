@@ -6,7 +6,7 @@ class NormalizingFlow(nn.Module):
     """
     Normalizing flow model
     """
-    def __init__(self, prior, decoder=None, q0=distributions.Dirac, flows=None):
+    def __init__(self, prior, decoder=None, q0=distributions.Dirac(), flows=None):
         """
         Constructor of normalizing flow model
         :param prior:
@@ -25,7 +25,7 @@ class NormalizingFlow(nn.Module):
         for flow in self.flows:
             z, log_det = flow(z)
             log_q -= log_det
-        log_p = self.prior(z)
+        log_p = self.prior.log_prob(z)
         if self.decoder is not None:
             log_p += self.decoder(x, z)
         return z, log_q, log_p

@@ -28,9 +28,9 @@ class Planar(Flow):
         :param h: nonlinear function h of the planar flow (see definition of f above)
         """
         super().__init__()
-        self.u = nn.Parameter(torch.randn(shape))
-        self.w = nn.Parameter(torch.randn(shape))
-        self.b = nn.Parameter(torch.randn(shape))
+        self.u = nn.Parameter(torch.randn(shape).unsqueeze(0))
+        self.w = nn.Parameter(torch.randn(shape).unsqueeze(0))
+        self.b = nn.Parameter(torch.randn(1))
         self.h = h
 
     def forward(self, z):
@@ -40,7 +40,7 @@ class Planar(Flow):
             h_ = lambda x: 1 / torch.cosh(x) ** 2
         else:
             raise NotImplementedError('Nonlinearity is not implemented.')
-        inner = torch.sum(self.w * z)
+        inner = torch.sum(self.w * z, list(range(1, self.w.dim())), keepdim=True)
         z_ = z + u * self.h(inner + self.b)
-        log_det = torch.abs(1 + torch.sum(self.w * u) * h_(inner + self.b))
+        log_det = torch.abs(1 + torch.sum(self.w * u) * h_(inner.squeeze() + self.b))
         return z_, log_det
