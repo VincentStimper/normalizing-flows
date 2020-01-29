@@ -19,5 +19,5 @@ class Dirac(ParametrizedConditionalDistribution):
 
     def forward(self, x):
         z = x
-        log_det = torch.zeros(x.size[0])
-        return z, log_det
+        log_p = torch.zeros(x.size[0])
+        return z, log_p
