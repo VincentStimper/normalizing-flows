@@ -14,6 +14,14 @@ class ParametrizedConditionalDistribution(nn.Module):
         """
         raise NotImplementedError
 
+    def log_prob(self, z, x):
+        """
+        :param z: Primary random variable, first dimension is batch size
+        :param x: Variable to condition on, first dimension is batch size
+        :return: log probability of z given x
+        """
+        raise NotImplementedError
+
 
 class Dirac(ParametrizedConditionalDistribution):
     def __init__(self):
@@ -23,6 +31,10 @@ class Dirac(ParametrizedConditionalDistribution):
         z = x.unsqueeze(1).repeat(1, num_samples, 1)
         log_p = torch.zeros(z.size()[0:2])
         return z, log_p
+
+    def log_prob(self, z, x):
+        log_p = torch.zeros(z.size()[0])
+        return log_p
 
 
 class ConstDiagGaussian(ParametrizedConditionalDistribution):
@@ -57,6 +69,19 @@ class ConstDiagGaussian(ParametrizedConditionalDistribution):
         z = self.loc + self.scale * eps
         log_p = - 0.5 * self.n * np.log(2 * np.pi) - 0.5 * torch.sum(torch.log(self.scale) + ((z - self.loc) / self.scale) ** 2, 2)
         return z, log_p
+
+    def log_prob(self, z, x):
+        """
+        :param z: Primary random variable, first dimension is batch size
+        :param x: Variable to condition on, first dimension is batch size
+        :return: log probability of z given x
+        """
+        if z.dim() == 1:
+            z = z.unsqueeze(0)
+        if z.dim() == 2:
+            z = z.unsqueeze(0)
+        log_p = - 0.5 * self.n * np.log(2 * np.pi) - 0.5 * torch.sum(torch.log(self.scale) + ((z - self.loc) / self.scale) ** 2, 2)
+        return log_p
 
 
 class PriorDistribution:
