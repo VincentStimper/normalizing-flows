@@ -17,7 +17,7 @@ class NormalizingFlow(nn.Module):
         super().__init__()
         self.prior = prior
         self.decoder = decoder
-        self.flows = flows
+        self.flows = nn.ModuleList(flows)
         self.q0 = q0
 
     def forward(self, x, num_samples=1):
