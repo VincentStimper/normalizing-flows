@@ -37,7 +37,7 @@ class ConstDiagGaussian(ParametrizedConditionalDistribution):
         if not torch.is_tensor(loc):
             loc = torch.tensor(loc)
         if not torch.is_tensor(scale):
-            scale = torch.is_tensor(scale)
+            scale = torch.tensor(scale)
         self.loc = nn.Parameter(loc.reshape((1, 1, self.n)))
         self.scale = nn.Parameter(scale.reshape((1, 1, self.n)))
         self.eps_dist = torch.distributions.normal.Normal(0, 1)
@@ -50,7 +50,7 @@ class ConstDiagGaussian(ParametrizedConditionalDistribution):
         :return: sample of z for x, log probability for sample
         """
         if x is not None:
-            batch_size = x.size()
+            batch_size = len(x)
         else:
             batch_size = 1
         eps = self.eps_dist.sample((batch_size, num_sample, self.n))
