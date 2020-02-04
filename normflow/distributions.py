@@ -33,7 +33,11 @@ class ConstDiagGaussian(ParametrizedConditionalDistribution):
         :param scale: vector of the standard deviations on the diagonal of the covariance matrix
         """
         super().__init__()
-        self.n = loc.size()[0]
+        self.n = len(loc)
+        if not torch.is_tensor(loc):
+            loc = torch.tensor(loc)
+        if not torch.is_tensor(scale):
+            scale = torch.is_tensor(scale)
         self.loc = nn.Parameter(loc.reshape((1, 1, self.n)))
         self.scale = nn.Parameter(scale.reshape((1, 1, self.n)))
         self.eps_dist = torch.distributions.normal.Normal(0, 1)
