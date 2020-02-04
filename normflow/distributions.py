@@ -6,10 +6,10 @@ class ParametrizedConditionalDistribution(nn.Module):
     def __init__(self):
         super().__init__()
 
-    def forward(self, x, num_sample=1):
+    def forward(self, x, num_samples=1):
         """
         :param x: Variable to condition on, first dimension is batch size
-        :param num_sample: number of samples to draw per element of mini-batch
+        :param num_samples: number of samples to draw per element of mini-batch
         :return: sample of z for x, log probability for sample
         """
         raise NotImplementedError
@@ -19,8 +19,8 @@ class Dirac(ParametrizedConditionalDistribution):
     def __init__(self):
         super().__init__()
 
-    def forward(self, x, num_sample=1):
-        z = x.unsqueeze(1).repeat(1, num_sample, 1)
+    def forward(self, x, num_samples=1):
+        z = x.unsqueeze(1).repeat(1, num_samples, 1)
         log_p = torch.zeros(z.size()[0:2])
         return z, log_p
 
@@ -43,17 +43,17 @@ class ConstDiagGaussian(ParametrizedConditionalDistribution):
         self.eps_dist = torch.distributions.normal.Normal(0, 1)
 
 
-    def forward(self, x=None, num_sample=1):
+    def forward(self, x=None, num_samples=1):
         """
         :param x: Variable to condition on, will only be used to determine the batch size
-        :param num_sample: number of samples to draw per element of mini-batch
+        :param num_samples: number of samples to draw per element of mini-batch
         :return: sample of z for x, log probability for sample
         """
         if x is not None:
             batch_size = len(x)
         else:
             batch_size = 1
-        eps = self.eps_dist.sample((batch_size, num_sample, self.n))
+        eps = self.eps_dist.sample((batch_size, num_samples, self.n))
         z = self.loc + self.scale * eps
         log_p = - 0.5 * self.n * np.log(2 * np.pi) - 0.5 * torch.sum(torch.log(self.scale) + ((z - self.loc) / self.scale) ** 2, 2)
         return z, log_p
