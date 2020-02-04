@@ -72,8 +72,8 @@ class ConstDiagGaussian(ParametrizedConditionalDistribution):
 
     def log_prob(self, z, x):
         """
-        :param z: Primary random variable, first dimension is batch size
-        :param x: Variable to condition on, first dimension is batch size
+        :param z: Primary random variable, first dimension is batch dimension
+        :param x: Variable to condition on, first dimension is batch dimension
         :return: log probability of z given x
         """
         if z.dim() == 1:

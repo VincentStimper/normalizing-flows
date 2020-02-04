@@ -29,3 +29,15 @@ class NormalizingFlow(nn.Module):
         if self.decoder is not None:
             log_p += self.decoder(x, z)
         return z, log_q, log_p
+
+    def log_q(self, z, x):
+        """
+        :param z: Latent variable, first dimension is batch dimension
+        :param x: Observable, first dimension is batch dimension
+        :return: Approximate posterior at z given x
+        """
+        log_q = self.q0.log_prob(z, x)
+        for flow in self.flows:
+            z, log_det = flow(z)
+            log_q -= log_det
+        return log_q
