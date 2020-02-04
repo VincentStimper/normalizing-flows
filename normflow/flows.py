@@ -28,8 +28,8 @@ class Planar(Flow):
         :param h: nonlinear function h of the planar flow (see definition of f above)
         """
         super().__init__()
-        self.u = nn.Parameter(torch.randn(shape).unsqueeze(0))
-        self.w = nn.Parameter(torch.randn(shape).unsqueeze(0))
+        self.u = nn.Parameter(torch.randn(shape)[(None,) * 2])
+        self.w = nn.Parameter(torch.randn(shape)[(None,) * 2])
         self.b = nn.Parameter(torch.randn(1))
         self.h = h
 

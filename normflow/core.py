@@ -20,8 +20,8 @@ class NormalizingFlow(nn.Module):
         self.flows = flows
         self.q0 = q0
 
-    def forward(self, x):
-        z, log_q = self.q0(x)
+    def forward(self, x, num_samples=1):
+        z, log_q = self.q0(x, num_samples=num_samples)
         for flow in self.flows:
             z, log_det = flow(z)
             log_q -= log_det
