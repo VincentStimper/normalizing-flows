@@ -67,7 +67,7 @@ class ConstDiagGaussian(ParametrizedConditionalDistribution):
             batch_size = 1
         eps = self.eps_dist.sample((batch_size, num_samples, self.n))
         z = self.loc + self.scale * eps
-        log_p = - 0.5 * self.n * np.log(2 * np.pi) - 0.5 * torch.sum(torch.log(self.scale) + ((z - self.loc) / self.scale) ** 2, 2)
+        log_p = - 0.5 * self.n * np.log(2 * np.pi) - 0.5 * torch.sum(torch.log(self.scale) + eps ** 2, 2)
         return z, log_p
 
     def log_prob(self, z, x):
