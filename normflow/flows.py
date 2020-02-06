@@ -40,7 +40,7 @@ class Planar(Flow):
             h_ = lambda x: 1 / torch.cosh(x) ** 2
         else:
             raise NotImplementedError('Nonlinearity is not implemented.')
-        inner = torch.sum(self.w * z, list(range(2, self.w.dim())), keepdim=True)
-        z_ = z + u * self.h(inner + self.b)
-        log_det = torch.abs(1 + torch.sum(self.w * u) * h_(inner.squeeze() + self.b))
+        lin = torch.sum(self.w * z, list(range(2, self.w.dim())), keepdim=True) + self.b
+        z_ = z + u * self.h(lin)
+        log_det = torch.log(torch.abs(1 + torch.sum(self.w * u) * h_(lin.squeeze())))
         return z_, log_det
