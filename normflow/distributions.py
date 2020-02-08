@@ -33,7 +33,7 @@ class Dirac(ParametrizedConditionalDistribution):
         return z, log_p
 
     def log_prob(self, z, x):
-        log_p = torch.zeros(z.size()[0])
+        log_p = torch.zeros(z.size()[0:2])
         return log_p
 
 
