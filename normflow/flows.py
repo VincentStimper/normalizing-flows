@@ -32,6 +32,9 @@ class Planar(Flow):
         self.w = nn.Parameter(torch.randn(shape)[(None,) * 2])
         self.b = nn.Parameter(torch.randn(1))
         self.h = h
+        lim = torch.sqrt(1. * torch.prod(torch.tensor(shape)))
+        nn.init.uniform_(self.u, -lim, lim)
+        nn.init.uniform_(self.w, -lim, lim)
 
     def forward(self, z):
         if self.h == torch.tanh:
