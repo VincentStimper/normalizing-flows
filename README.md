@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This is a Pytorch implementation of normalizing flows.
+This is a PyTorch implementation of normalizing flows.
 
 
 ## Installation
