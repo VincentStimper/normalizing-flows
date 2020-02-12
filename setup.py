@@ -33,7 +33,7 @@ setup(
     keywords='',
     packages=find_packages(exclude=['docs', 'tests*']),
     include_package_data=True,
-    author=['Vincent Stimper', 'Lukas Ryll', 'David'],
+    author=['Vincent Stimper', 'Lukas Ryll', 'David Liu'],
     install_requires=install_requires,
     dependency_links=dependency_links,
     author_email=''
