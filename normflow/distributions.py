@@ -38,7 +38,7 @@ class Dirac(ParametrizedConditionalDistribution):
 
 
 class ConstDiagGaussian(ParametrizedConditionalDistribution):
-    def __init__(self, loc, scale, dev):
+    def __init__(self, loc, scale):
         """
         Multivariate Gaussian distribution with diagonal covariance and parameters being constant wrt x
         :param loc: mean vector of the distribution
@@ -53,8 +53,6 @@ class ConstDiagGaussian(ParametrizedConditionalDistribution):
             scale = torch.tensor(scale)
         self.loc = nn.Parameter(loc.reshape((1, 1, self.n)))
         self.scale = nn.Parameter(scale.reshape((1, 1, self.n)))
-        #self.eps_dist = torch.distributions.normal.Normal(0, 1)
-        self.to(dev)
 
     def forward(self, x=None, num_samples=1):
         """
@@ -66,7 +64,7 @@ class ConstDiagGaussian(ParametrizedConditionalDistribution):
             batch_size = len(x)
         else:
             batch_size = 1
-        eps = torch.empty((batch_size, num_samples, self.n), device=self.dev).normal_(mean=0.0,std=1.0)
+        eps = torch.randn((batch_size, num_samples, self.n), device=x.device)
         z = self.loc + self.scale * eps
         log_p = - 0.5 * self.n * np.log(2 * np.pi) - torch.sum(torch.log(self.scale) + 0.5 * torch.pow(eps, 2), 2)
         return z, log_p
