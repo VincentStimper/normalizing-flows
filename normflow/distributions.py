@@ -38,13 +38,14 @@ class Dirac(ParametrizedConditionalDistribution):
 
 
 class ConstDiagGaussian(ParametrizedConditionalDistribution):
-    def __init__(self, loc, scale):
+    def __init__(self, loc, scale, dev):
         """
         Multivariate Gaussian distribution with diagonal covariance and parameters being constant wrt x
         :param loc: mean vector of the distribution
         :param scale: vector of the standard deviations on the diagonal of the covariance matrix
         """
         super().__init__()
+        self.dev = dev
         self.n = len(loc)
         if not torch.is_tensor(loc):
             loc = torch.tensor(loc)
@@ -52,8 +53,8 @@ class ConstDiagGaussian(ParametrizedConditionalDistribution):
             scale = torch.tensor(scale)
         self.loc = nn.Parameter(loc.reshape((1, 1, self.n)))
         self.scale = nn.Parameter(scale.reshape((1, 1, self.n)))
-        self.eps_dist = torch.distributions.normal.Normal(0, 1)
-
+        #self.eps_dist = torch.distributions.normal.Normal(0, 1)
+        self.to(dev)
 
     def forward(self, x=None, num_samples=1):
         """
@@ -65,9 +66,9 @@ class ConstDiagGaussian(ParametrizedConditionalDistribution):
             batch_size = len(x)
         else:
             batch_size = 1
-        eps = self.eps_dist.sample((batch_size, num_samples, self.n))
+        eps = torch.empty((batch_size, num_samples, self.n), device=self.dev).normal_(mean=0.0,std=1.0)
         z = self.loc + self.scale * eps
-        log_p = - 0.5 * self.n * np.log(2 * np.pi) - 0.5 * torch.sum(torch.log(self.scale) + eps ** 2, 2)
+        log_p = - 0.5 * self.n * np.log(2 * np.pi) - torch.sum(torch.log(self.scale) + 0.5 * torch.pow(eps, 2), 2)
         return z, log_p
 
     def log_prob(self, z, x):
@@ -80,7 +81,7 @@ class ConstDiagGaussian(ParametrizedConditionalDistribution):
             z = z.unsqueeze(0)
         if z.dim() == 2:
             z = z.unsqueeze(0)
-        log_p = - 0.5 * self.n * np.log(2 * np.pi) - 0.5 * torch.sum(torch.log(self.scale) + ((z - self.loc) / self.scale) ** 2, 2)
+        log_p = - 0.5 * self.n * np.log(2 * np.pi) - torch.sum(torch.log(self.scale) + 0.5 * ((z - self.loc) / self.scale) ** 2, 2)
         return log_p
 
 
@@ -120,4 +121,32 @@ class TwoModes(PriorDistribution):
         log_prob = - 0.5 * ((torch.norm(z_, dim=0) - self.loc) / (2 * self.scale)) ** 2\
                    + torch.log(torch.exp(-0.5 * ((z_[0] - self.loc) / (3 * self.scale)) ** 2)
                                + torch.exp(-0.5 * ((z_[0] + self.loc) / (3 * self.scale)) ** 2))
+        return log_prob
+    
+    
+class Sinusoidal(PriorDistribution):
+    def __init__(self, scale, period):
+        """
+        Distribution 2d with sinusoidal density
+        :param loc: distance of modes from the origin
+        :param scale: scale of modes
+        """
+        self.scale = scale
+        self.period = period
+
+    def log_prob(self, z):
+        """
+        log(p) = 1/2 * ((z[1] - w_1(z)) / (2 * scale)) ** 2
+        w_1(z) = sin(2*pi / period * z[0])
+        :param z: value or batch of latent variable
+        :return: log probability of the distribution for z
+        """
+        if z.dim() > 1:
+            z_ = z.permute((z.dim() - 1, ) + tuple(range(0, z.dim() - 1)))
+        else:
+            z_ = z
+            
+        w_1 = lambda x: torch.sin(2*np.pi / self.period * z_[0])
+        log_prob = - 0.5 * ((z_[1] - w_1(z_)) / (2 * self.scale)) ** 2
+        
         return log_prob
