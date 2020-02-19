@@ -48,7 +48,6 @@ class FlowVAE(nn.Module):
         std = torch.exp(0.5 * log_var)
         norm_scale = torch.randn_like(std)
         z_0 = mu + norm_scale * std
-        self.test_z_0 = z_0
 
         # Flow transforms
         flow_model = SimpleFlowModel(self.flows)
