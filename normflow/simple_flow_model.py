@@ -1,6 +1,5 @@
 import torch.nn as nn
 
-
 class SimpleFlowModel(nn.Module):
     def __init__(self, flows):
         super().__init__()
