@@ -5,7 +5,7 @@ from torch.distributions.normal import Normal
 from torch.nn import functional as F
 from torchvision import datasets, transforms
 from tqdm import tqdm
-import normflow as nf
+from flows import *
 from simple_flow_model import SimpleFlowModel
 import matplotlib.pyplot as plt
 import argparse
@@ -102,8 +102,7 @@ def flow_vae_datasets(id, download=True, batch_size=args.batch_size, shuffle=Tru
     return train_loader, test_loader
 
 
-flows = [nf.flows.Radial((50,)) for k in range(args.K)]
-print('Radial')
+flows = [Planar((50,)) for k in range(args.K)]
 model = FlowVAE(flows)
 
 optimizer = optim.Adam(model.parameters(), lr=0.001)
