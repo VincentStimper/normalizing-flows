@@ -37,7 +37,6 @@ class FlowVAE(nn.Module):
         self.decode = nn.Sequential(nn.Linear(50, 256), nn.ReLU(True), nn.Linear(256, 512), nn.ReLU(True),
                                     nn.Linear(512, 784))
         self.flows = flows
-        self.test_z_0 = None
 
     def forward(self, x):
         # Encode
