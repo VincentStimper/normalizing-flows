@@ -30,6 +30,7 @@ parser.add_argument('--runs', type=int, default=10, metavar='N',
                     help='Number of runs in experiment_mode (experiment_mode has to be turned to True to use) (default: 10)')
 args = parser.parse_args()
 
+torch.manual_seed(args.seed)
 
 if args.dataset == 'mnist':
     img_dim = 28
