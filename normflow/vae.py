@@ -180,3 +180,4 @@ if __name__ == '__main__':
             train(model,e)
             tl = test(model, e)
             test_losses.append(tl)
+        print('====> Lowest test set loss: {:.4f}'.format(min(test_losses)))
