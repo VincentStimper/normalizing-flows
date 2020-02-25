@@ -54,9 +54,9 @@ class FlowVAE(nn.Module):
     def __init__(self, flows):
         super().__init__()
         self.encode = nn.Sequential(nn.Linear(img_dim ** 2, 512), nn.ReLU(True), nn.Linear(512, 256), nn.ReLU(True))
-        self.f1 = nn.Linear(256, 50)
-        self.f2 = nn.Linear(256, 50)
-        self.decode = nn.Sequential(nn.Linear(50, 256), nn.ReLU(True), nn.Linear(256, 512), nn.ReLU(True),
+        self.f1 = nn.Linear(256, 40)
+        self.f2 = nn.Linear(256, 40)
+        self.decode = nn.Sequential(nn.Linear(40, 256), nn.ReLU(True), nn.Linear(256, 512), nn.ReLU(True),
                                     nn.Linear(512, img_dim ** 2))
         self.flows = flows
 
@@ -83,7 +83,7 @@ class FlowVAE(nn.Module):
         kld = - torch.sum(p.log_prob(z_), -1) + torch.sum(q0.log_prob(z_0), -1) + log_det.view(-1)
 
         # Decode
-        z_ = z_.view(z_.size(0), 50)
+        z_ = z_.view(z_.size(0), 40)
         zD = self.decode(z_)
         out = torch.sigmoid(zD)
 
@@ -122,12 +122,12 @@ def flow_vae_datasets(id, download=True, batch_size=args.batch_size, shuffle=Tru
 
 
 if args.flow == 'Planar':
-    transform = Planar((50,))
+    transform = Planar((40,))
     if args.cuda:
         transform.cuda()
     flows = [transform for k in range(args.K)]
 elif args.flow == 'Radial':
-    transform = Radial((50,))
+    transform = Radial((40,))
     if args.cuda:
         transform.cuda()
     flows = [transform for k in range(args.K)]
