@@ -29,7 +29,7 @@ class Planar(Flow):
         :param u,w,b: optional initialization for parameters
         """
         super().__init__()
-        lim = 0.01#torch.sqrt(1.0 * torch.prod(torch.tensor(shape)))
+        lim = torch.sqrt(1.0 * torch.prod(torch.tensor(shape)))
         
         if u is not None:
             self.u = nn.Parameter(u)
