@@ -1,3 +1,4 @@
+from __future__ import print_function
 import torch
 import torch.utils.data
 from torch import nn, optim
@@ -7,7 +8,6 @@ from torchvision import datasets, transforms
 from tqdm import tqdm
 from flows import *
 from simple_flow_model import SimpleFlowModel
-import matplotlib.pyplot as plt
 import argparse
 from datetime import datetime
 import os
@@ -24,8 +24,8 @@ parser.add_argument('--epochs', type=int, default=15, metavar='N',
                     help='Nr of training epochs (default: 15)')
 parser.add_argument('--dataset', type=str, default='mnist', metavar='N',
                     help='Dataset to train and test on (mnist, cifar10 or cifar100) (default: mnist)')
-# parser.add_argument('--no-cuda', action='store_true', default=False,
-#                    help='enables CUDA training')
+parser.add_argument('--no-cuda', action='store_true', default=False,
+                    help='enables CUDA training')
 parser.add_argument('--seed', type=int, default=21, metavar='S',
                     help='Random Seed (default: 21)')
 parser.add_argument('--log-intv', type=int, default=20, metavar='N',
@@ -36,8 +36,11 @@ parser.add_argument('--runs', type=int, default=10, metavar='N',
                     help='Number of runs in experiment_mode (experiment_mode has to be turned to True to use) (default: 10)')
 
 args = parser.parse_args()
+args.cuda = not args.no_cuda and torch.cuda.is_available()
 
 torch.manual_seed(args.seed)
+
+device = torch.device("cuda" if args.cuda else "cpu")
 
 if args.dataset == 'mnist':
     img_dim = 28
@@ -46,20 +49,21 @@ elif args.dataset == 'cifar10' or args.dataset == 'cifar100':
 else:
     raise ValueError('The only dataset calls supported are: mnist, cifar10, cifar100')
 
+
 class FlowVAE(nn.Module):
     def __init__(self, flows):
         super().__init__()
-        self.encode = nn.Sequential(nn.Linear(img_dim**2, 512), nn.ReLU(True), nn.Linear(512, 256), nn.ReLU(True))
+        self.encode = nn.Sequential(nn.Linear(img_dim ** 2, 512), nn.ReLU(True), nn.Linear(512, 256), nn.ReLU(True))
         self.f1 = nn.Linear(256, 50)
         self.f2 = nn.Linear(256, 50)
         self.decode = nn.Sequential(nn.Linear(50, 256), nn.ReLU(True), nn.Linear(256, 512), nn.ReLU(True),
-                                    nn.Linear(512, img_dim**2))
+                                    nn.Linear(512, img_dim ** 2))
         self.flows = flows
 
     def forward(self, x):
         # Encode
-        mu, log_var = self.f1(self.encode(x.view(x.size(0)*x.size(1), img_dim**2))), \
-                      self.f2(self.encode(x.view(x.size(0)*x.size(1), img_dim**2)))
+        mu, log_var = self.f1(self.encode(x.view(x.size(0) * x.size(1), img_dim ** 2))), \
+                      self.f2(self.encode(x.view(x.size(0) * x.size(1), img_dim ** 2)))
 
         # Reparametrize variables
         std = torch.exp(0.5 * log_var)
@@ -87,7 +91,7 @@ class FlowVAE(nn.Module):
 
 
 def bound(rce, x, kld):
-    return F.binary_cross_entropy(rce, x.view(-1, img_dim**2), reduction='sum') + kld
+    return F.binary_cross_entropy(rce, x.view(-1, img_dim ** 2), reduction='sum') + kld
 
 
 class BinaryTransform():
@@ -96,7 +100,6 @@ class BinaryTransform():
 
     def __call__(self, x):
         return (x > self.thresh).type(x.type())
-
 
 
 # Training
@@ -119,11 +122,17 @@ def flow_vae_datasets(id, download=True, batch_size=args.batch_size, shuffle=Tru
 
 
 if args.flow == 'Planar':
-    flows = [Planar((50,)) for k in range(args.K)]
+    transform = Planar((50,))
+    if args.cuda:
+        transform.cuda()
+    flows = [transform for k in range(args.K)]
 elif args.flow == 'Radial':
-    flows = [Radial((50,)) for k in range(args.K)]
+    transform = Radial((50,))
+    if args.cuda:
+        transform.cuda()
+    flows = [transform for k in range(args.K)]
 
-model = FlowVAE(flows)
+model = FlowVAE(flows).to(device)
 
 optimizer = optim.Adam(model.parameters(), lr=0.001)
 # train_losses = []
@@ -131,14 +140,15 @@ train_loader, test_loader = flow_vae_datasets(args.dataset)
 
 
 # Train
-def train(model,epoch):
+def train(model, epoch):
     model.train()
     tr_loss = 0
     progressbar = tqdm(enumerate(train_loader), total=len(train_loader))
     for batch_n, (x, n) in progressbar:
+        x = x.to(device)
         optimizer.zero_grad()
         rc_batch, kld = model(x)
-        loss = bound(rc_batch, x.view(x.size(0)*x.size(1), img_dim**2), kld.sum())
+        loss = bound(rc_batch, x.view(x.size(0) * x.size(1), img_dim ** 2), kld.sum())
         avg_loss = loss / len(x)
         avg_loss.backward()
         tr_loss += loss.item()
@@ -153,11 +163,13 @@ def train(model,epoch):
     print('====> Epoch: {} Average loss: {:.4f}'.format(
         epoch, tr_loss / len(train_loader.dataset)))
 
-def test(model,epoch):
+
+def test(model, epoch):
     model.eval()
     test_loss = 0
     with torch.no_grad():
         for i, (x, _) in enumerate(test_loader):
+            x = x.to(device)
             rc_batch, kld = model(x)
             test_loss += bound(rc_batch, x, kld.sum()).item()
 
@@ -165,18 +177,21 @@ def test(model,epoch):
     print('====> Test set loss: {:.4f}'.format(test_loss))
     return test_loss
 
+
 test_losses = []
 if __name__ == '__main__':
     if args.experiment_mode:
         min_test_losses = []
         min_test_losses.append(str(args))
         for i in range(args.runs):
+            test_losses = []
             model.__init__(flows)
+            model = model.to(device)
             optimizer = optim.Adam(model.parameters(), lr=0.001)
             if i == 0:
                 seed = args.seed
             else:
-                seed+=1
+                seed += 1
             torch.manual_seed(seed)
             for e in range(args.epochs):
                 train(model, e)
@@ -196,6 +211,6 @@ if __name__ == '__main__':
         Series.to_excel(file_name, index=False, header=None)
     else:
         for e in range(args.epochs):
-            train(model,e)
+            train(model, e)
             tl = test(model, e)
             test_losses.append(tl)
