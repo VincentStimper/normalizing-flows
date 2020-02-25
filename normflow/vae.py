@@ -1,15 +1,14 @@
 import torch
 import torch.utils.data
 from torch import nn, optim
-from torch.distributions.normal import Normal
 from torch.nn import functional as F
 from torchvision import datasets, transforms
 from tqdm import tqdm
-import matplotlib.pyplot as plt
 import argparse
 import pandas as pd
 import os
 from datetime import datetime
+
 
 parser = argparse.ArgumentParser(description='Vanilla VAE implementation on MNIST')
 parser.add_argument('--batch-size', type=int, default=128, metavar='N',
@@ -43,11 +42,11 @@ else:
 class VAE(nn.Module):
     def __init__(self):
         super().__init__()
-        self.encode = nn.Sequential(nn.Linear(img_dim ** 2, 400), nn.ReLU(True), nn.Linear(400, 200), nn.ReLU(True))
-        self.f1 = nn.Linear(200, 50)
-        self.f2 = nn.Linear(200, 50)
-        self.decode = nn.Sequential(nn.Linear(50, 200), nn.ReLU(True), nn.Linear(200, 400), nn.ReLU(True),
-                                    nn.Linear(400, img_dim ** 2))
+        self.encode = nn.Sequential(nn.Linear(img_dim ** 2, 512), nn.ReLU(True), nn.Linear(512, 256), nn.ReLU(True))
+        self.f1 = nn.Linear(256, 40)
+        self.f2 = nn.Linear(256, 40)
+        self.decode = nn.Sequential(nn.Linear(40, 256), nn.ReLU(True), nn.Linear(256, 512), nn.ReLU(True),
+                                    nn.Linear(512, img_dim ** 2))
 
     def forward(self, x):
         # Encode
@@ -60,7 +59,7 @@ class VAE(nn.Module):
         z = mu + norm_scale * std
 
         # Decode
-        z = z.view(z.size(0), 50)
+        z = z.view(z.size(0), 40)
         zD = self.decode(z)
         out = torch.sigmoid(zD)
 
@@ -152,12 +151,13 @@ if __name__ == '__main__':
         min_test_losses = []
         min_test_losses.append(str(args))
         for i in range(args.runs):
+            test_losses = []
             model.__init__()
             optimizer = optim.Adam(model.parameters(), lr=0.001)
             if i == 0:
                 seed = args.seed
             else:
-                seed+=1
+                seed += 1
             torch.manual_seed(seed)
             for e in range(args.epochs):
                 train(model, e)
@@ -177,7 +177,7 @@ if __name__ == '__main__':
         Series.to_excel(file_name, index=False, header=None)
     else:
         for e in range(args.epochs):
-            train(model,e)
+            train(model, e)
             tl = test(model, e)
             test_losses.append(tl)
         print('====> Lowest test set loss: {:.4f}'.format(min(test_losses)))
