@@ -29,7 +29,7 @@ class Planar(Flow):
         :param u,w,b: optional initialization for parameters
         """
         super().__init__()
-        lim = torch.sqrt(1.0 * torch.prod(torch.tensor(shape)))
+        lim = np.sqrt(1 / np.prod(shape))
         
         if u is not None:
             self.u = nn.Parameter(u)
@@ -51,7 +51,7 @@ class Planar(Flow):
     def forward(self, z):
         if self.h == torch.tanh:
             inner = torch.sum(self.w * self.u)
-            u = self.u# + (torch.log(1 + torch.exp(inner)) - 1 - inner) * self.w / torch.sum(self.w ** 2)
+            u = self.u + (torch.log(1 + torch.exp(inner)) - 1 - inner) * self.w / torch.sum(self.w ** 2)
             h_ = lambda x: 1 / torch.cosh(x) ** 2
         else:
             raise NotImplementedError('Nonlinearity is not implemented.')
