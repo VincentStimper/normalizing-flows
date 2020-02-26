@@ -58,7 +58,7 @@ class FlowVAE(nn.Module):
         self.f2 = nn.Linear(256, 40)
         self.decode = nn.Sequential(nn.Linear(40, 256), nn.ReLU(True), nn.Linear(256, 512), nn.ReLU(True),
                                     nn.Linear(512, img_dim ** 2))
-        self.flows = flows
+        self.flows = torch.nn.ModuleList(flows)
 
     def forward(self, x):
         # Encode
@@ -122,15 +122,9 @@ def flow_vae_datasets(id, download=True, batch_size=args.batch_size, shuffle=Tru
 
 
 if args.flow == 'Planar':
-    transform = Planar((40,))
-    if args.cuda:
-        transform.cuda()
-    flows = [transform for k in range(args.K)]
+    flows = [Planar((40,)) for k in range(args.K)]
 elif args.flow == 'Radial':
-    transform = Radial((40,))
-    if args.cuda:
-        transform.cuda()
-    flows = [transform for k in range(args.K)]
+    flows = [Radial((40,)) for k in range(args.K)]
 
 model = FlowVAE(flows).to(device)
 
