@@ -29,7 +29,7 @@ class Planar(Flow):
         :param u,w,b: optional initialization for parameters
         """
         super().__init__()
-        lim = np.sqrt(1 / np.prod(shape))
+        lim = np.sqrt(3. / np.prod(shape))
         
         if u is not None:
             self.u = nn.Parameter(u)
@@ -44,8 +44,7 @@ class Planar(Flow):
         if b is not None:
             self.b = nn.Parameter(b)
         else:
-            self.b = nn.Parameter(torch.empty(1))
-            nn.init.uniform_(self.b, -lim, lim)
+            self.b = nn.Parameter(torch.zeros(1))
         self.h = h
 
     def forward(self, z):
