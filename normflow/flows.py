@@ -76,7 +76,6 @@ class Radial(Flow):
         """
         super().__init__()
         self.d = torch.prod(torch.tensor(shape))
-        print(self.d)
         self.beta = nn.Parameter(torch.randn(1))
         self.alpha = nn.Parameter(torch.abs(torch.randn(1)))
         self.h = lambda x: 1 / (self.alpha + x)
