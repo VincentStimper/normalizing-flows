@@ -34,8 +34,8 @@ class Planar(Flow):
         if u is not None:
             self.u = nn.Parameter(u)
         else:
-            self.u = nn.Parameter(torch.empty(shape)[(None,) * 2])
-            nn.init.uniform_(self.u, -lim, lim)
+            self.u = nn.Parameter(torch.zeros(shape)[(None,) * 2])
+            #nn.init.uniform_(self.u, -lim, lim)
         if w is not None:
             self.w = nn.Parameter(w)
         else:
