@@ -144,6 +144,6 @@ class Sinusoidal(PriorDistribution):
             z_ = z
             
         w_1 = lambda x: torch.sin(2*np.pi / self.period * z_[0])
-        log_prob = - 0.5 * ((z_[1] - w_1(z_)) / (2 * self.scale)) ** 2 - 0.5 * ((z_[0]) / (20 * self.scale)) ** 2
+        log_prob = - 0.5 * ((z_[1] - w_1(z_)) / (2 * self.scale)) ** 2 - 0.5 * (z_[0] / (10 * self.scale)) ** 2
         
         return log_prob
