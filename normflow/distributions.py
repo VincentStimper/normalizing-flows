@@ -86,7 +86,7 @@ class PriorDistribution(nn.Module):
     def __init__(self):
         super().__init__()
 
-    def forward(self, z):
+    def log_prob(self, z):
         """
         :param z: value or batch of latent variable
         :return: log probability of the distribution for z
@@ -107,7 +107,7 @@ class TwoModes(PriorDistribution):
         self.scale_cpu = torch.tensor(scale)
         self.register_buffer('scale', self.scale_cpu)
 
-    def forward(self, z):
+    def log_prob(self, z):
         """
         log(p) = 1/2 * ((norm(z) - loc) / (2 * scale)) ** 2
                 - log(exp(-1/2 * ((z[0] - loc) / (3 * scale)) ** 2) + exp(-1/2 * ((z[0] + loc) / (3 * scale)) ** 2))
@@ -137,7 +137,7 @@ class Sinusoidal(PriorDistribution):
         self.period_cpu = torch.tensor(period)
         self.register_buffer('period', self.period_cpu)
 
-    def forward(self, z):
+    def log_prob(self, z):
         """
         log(p) = 1/2 * ((z[1] - w_1(z)) / (2 * scale)) ** 2
         w_1(z) = sin(2*pi / period * z[0])
