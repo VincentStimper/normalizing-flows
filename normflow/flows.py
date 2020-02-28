@@ -93,8 +93,8 @@ class Radial(Flow):
         beta = torch.log(1 + torch.exp(self.beta)) - self.alpha ** 2
         dz = z - self.z_0
         r = torch.norm(dz)
-        h_arr = beta * self.h(self.alpha ** 2 + r)
-        h_arr_ = beta * self.h_(self.alpha ** 2 + r) * r
+        h_arr = beta * self.h(torch.abs(self.alpha) + r)
+        h_arr_ = beta * self.h_(torch.abs(self.alpha) + r) * r
         z_ = z + h_arr * dz
         log_det = (self.d - 1) * torch.log(1 + h_arr) + torch.log(1 + h_arr + h_arr_)
         if log_det.dim() == 1:
