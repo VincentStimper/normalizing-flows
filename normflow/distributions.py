@@ -82,7 +82,7 @@ class ConstDiagGaussian(ParametrizedConditionalDistribution):
         return log_p
 
 
-class PriorDistribution:
+class PriorDistribution(nn.Module):
     def __init__(self):
         raise NotImplementedError
 
