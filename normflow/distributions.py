@@ -101,8 +101,10 @@ class TwoModes(PriorDistribution):
         :param loc: distance of modes from the origin
         :param scale: scale of modes
         """
-        self.loc = loc
-        self.scale = scale
+        self.loc_cpu = torch.tensor(loc)
+        self.register_buffer('loc', self.loc_cpu)
+        self.scale_cpu = torch.tensor(scale)
+        self.register_buffer('scale', self.scale_cpu)
 
     def forward(self, z):
         """
