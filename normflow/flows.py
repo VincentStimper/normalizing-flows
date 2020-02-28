@@ -75,7 +75,8 @@ class Radial(Flow):
         :param z_0,alpha,beta: parameters of the radial flow
         """
         super().__init__()
-        self.d = torch.prod(torch.tensor(shape))
+        self.d_cpu = torch.prod(torch.tensor(shape))
+        self.register_buffer('d', self.d_cpu)
         self.beta = nn.Parameter(torch.empty(1))
         lim = np.sqrt(3. / np.prod(shape))
         nn.init.uniform_(self.beta, -lim, lim)
