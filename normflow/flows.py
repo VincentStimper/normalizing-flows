@@ -80,8 +80,8 @@ class Radial(Flow):
         lim = np.sqrt(3. / np.prod(shape))
         nn.init.uniform_(self.beta, -lim, lim)
         self.alpha = nn.Parameter(1e-3 * torch.ones(1))
-        self.h = lambda x: 1 / (self.alpha + x)
-        self.h_ = lambda x: -1 / torch.pow(self.alpha + x, 2)
+        self.h = lambda x: 1 / x
+        self.h_ = lambda x: -1 / torch.pow(x, 2)
 
         if z_0 is not None:
             self.z_0 = nn.Parameter(z_0)
