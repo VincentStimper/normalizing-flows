@@ -25,7 +25,7 @@ class NormalizingFlow(nn.Module):
         for flow in self.flows:
             z, log_det = flow(z)
             log_q -= log_det
-        log_p = self.prior.log_prob(z)
+        log_p = self.prior(z)
         if self.decoder is not None:
             log_p += self.decoder(x, z)
         return z, log_q, log_p
