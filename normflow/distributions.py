@@ -84,7 +84,7 @@ class ConstDiagGaussian(ParametrizedConditionalDistribution):
 
 class PriorDistribution(nn.Module):
     def __init__(self):
-        raise NotImplementedError
+        super().__init__()
 
     def forward(self, z):
         """
@@ -101,6 +101,7 @@ class TwoModes(PriorDistribution):
         :param loc: distance of modes from the origin
         :param scale: scale of modes
         """
+        super().__init__()
         self.loc_cpu = torch.tensor(loc)
         self.register_buffer('loc', self.loc_cpu)
         self.scale_cpu = torch.tensor(scale)
@@ -130,8 +131,11 @@ class Sinusoidal(PriorDistribution):
         :param loc: distance of modes from the origin
         :param scale: scale of modes
         """
-        self.scale = scale
-        self.period = period
+        super().__init__()
+        self.scale_cpu = torch.tensor(scale)
+        self.register_buffer('scale', self.scale_cpu)
+        self.period_cpu = torch.tensor(period)
+        self.register_buffer('period', self.period_cpu)
 
     def forward(self, z):
         """
