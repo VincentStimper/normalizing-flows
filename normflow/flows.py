@@ -71,14 +71,13 @@ class Radial(Flow):
         """
         Constructor of the radial flow
         :param shape: shape of the latent variable z
-        :param h: nonlinear function h of the planar flow (see definition of f above)
-        :param z_0,alpha,beta: parameters of the radial flow
+        :param z_0: parameter of the radial flow
         """
         super().__init__()
         self.d_cpu = torch.prod(torch.tensor(shape))
         self.register_buffer('d', self.d_cpu)
         self.beta = nn.Parameter(torch.empty(1))
-        lim = np.sqrt(30. / np.prod(shape))
+        lim = np.sqrt(3. / np.prod(shape))
         nn.init.uniform_(self.beta, -lim, lim)
         self.alpha = nn.Parameter(1e-3 * torch.ones(1))
 
@@ -88,11 +87,11 @@ class Radial(Flow):
             self.z_0 = nn.Parameter(torch.randn(shape)[(None,) * 2])
 
     def forward(self, z):
-        beta = torch.log(1 + torch.exp(self.beta)) - torch.abs(self.alpha)
+        beta = torch.log(1 + torch.exp(self.beta)) - torch.exp(self.alpha)
         dz = z - self.z_0
         r = torch.norm(dz)
-        h_arr = beta / (torch.abs(self.alpha) + r)
-        h_arr_ = - beta * r / (torch.abs(self.alpha) + r) ** 2
+        h_arr = beta / (torch.exp(self.alpha) + r)
+        h_arr_ = - beta * r / (torch.exp(self.alpha) + r) ** 2
         z_ = z + h_arr * dz
         log_det = (self.d - 1) * torch.log(1 + h_arr) + torch.log(1 + h_arr + h_arr_)
         if log_det.dim() == 1:
