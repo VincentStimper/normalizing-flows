@@ -57,6 +57,8 @@ class Planar(Flow):
         lin = torch.sum(self.w * z, list(range(2, self.w.dim())), keepdim=True) + self.b
         z_ = z + u * self.h(lin)
         log_det = torch.log(torch.abs(1 + torch.sum(self.w * u) * h_(lin.squeeze())))
+        if log_det.dim() == 0:
+            log_det = log_det.unsqueeze(0)
         if log_det.dim() == 1:
             log_det = log_det.unsqueeze(1)
         return z_, log_det
@@ -95,6 +97,9 @@ class Radial(Flow):
         h_arr_ = - beta * r / (torch.abs(self.alpha) + r) ** 2
         z_ = z + h_arr * dz
         log_det = (self.d - 1) * torch.log(1 + h_arr) + torch.log(1 + h_arr + h_arr_)
+        log_det = log_det.squeeze()
+        if log_det.dim() == 0:
+            log_det = log_det.unsqueeze(0)
         if log_det.dim() == 1:
             log_det = log_det.unsqueeze(1)
         return z_, log_det
