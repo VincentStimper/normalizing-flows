@@ -81,8 +81,6 @@ class Radial(Flow):
         lim = np.sqrt(3. / np.prod(shape))
         nn.init.uniform_(self.beta, -lim, lim)
         self.alpha = nn.Parameter(1e-3 * torch.ones(1))
-        self.h = lambda x: 1 / x
-        self.h_ = lambda x: -1 / torch.pow(x, 2)
 
         if z_0 is not None:
             self.z_0 = nn.Parameter(z_0)
@@ -90,11 +88,11 @@ class Radial(Flow):
             self.z_0 = nn.Parameter(torch.zeros(shape)[(None,) * 2])
 
     def forward(self, z):
-        beta = torch.log(1 + torch.exp(self.beta)) - self.alpha ** 2
+        beta = torch.log(1 + torch.exp(self.beta)) - self.abs(self.alpha)
         dz = z - self.z_0
         r = torch.norm(dz)
-        h_arr = beta * self.h(torch.abs(self.alpha) + r)
-        h_arr_ = beta * self.h_(torch.abs(self.alpha) + r) * r
+        h_arr = beta / (torch.abs(self.alpha) + r)
+        h_arr_ = - beta * r / (torch.abs(self.alpha) + r) ** 2
         z_ = z + h_arr * dz
         log_det = (self.d - 1) * torch.log(1 + h_arr) + torch.log(1 + h_arr + h_arr_)
         if log_det.dim() == 1:
