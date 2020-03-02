@@ -88,7 +88,7 @@ class Radial(Flow):
             self.z_0 = nn.Parameter(torch.zeros(shape)[(None,) * 2])
 
     def forward(self, z):
-        beta = torch.log(1 + torch.exp(self.beta)) - self.abs(self.alpha)
+        beta = torch.log(1 + torch.exp(self.beta)) - torch.abs(self.alpha)
         dz = z - self.z_0
         r = torch.norm(dz)
         h_arr = beta / (torch.abs(self.alpha) + r)
