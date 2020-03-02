@@ -78,7 +78,7 @@ class Radial(Flow):
         self.d_cpu = torch.prod(torch.tensor(shape))
         self.register_buffer('d', self.d_cpu)
         self.beta = nn.Parameter(torch.empty(1))
-        lim = np.sqrt(3. / np.prod(shape))
+        lim = np.sqrt(30. / np.prod(shape))
         nn.init.uniform_(self.beta, -lim, lim)
         self.alpha = nn.Parameter(1e-3 * torch.ones(1))
 
