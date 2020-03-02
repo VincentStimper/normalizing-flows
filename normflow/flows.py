@@ -85,7 +85,7 @@ class Radial(Flow):
         if z_0 is not None:
             self.z_0 = nn.Parameter(z_0)
         else:
-            self.z_0 = nn.Parameter(torch.zeros(shape)[(None,) * 2])
+            self.z_0 = nn.Parameter(torch.randn(shape)[(None,) * 2])
 
     def forward(self, z):
         beta = torch.log(1 + torch.exp(self.beta)) - torch.abs(self.alpha)
