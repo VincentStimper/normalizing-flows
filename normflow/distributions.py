@@ -144,6 +144,72 @@ class Sinusoidal(PriorDistribution):
             z_ = z
             
         w_1 = lambda x: torch.sin(2*np.pi / self.period * z_[0])
-        log_prob = - 0.5 * ((z_[1] - w_1(z_)) / (2 * self.scale)) ** 2
+        log_prob = - 0.5 * ((z_[1] - w_1(z_)) / (self.scale)) ** 2
+        
+        return log_prob
+    
+    
+class Sinusoidal_gap(PriorDistribution):
+    def __init__(self, scale, period):
+        """
+        Distribution 2d with sinusoidal density
+        :param loc: distance of modes from the origin
+        :param scale: scale of modes
+        """
+        self.scale = scale
+        self.period = period
+        self.w2_scale = 0.6
+        self.w2_amp = 3.0
+        self.w2_mu = 1.0
+
+    def log_prob(self, z):
+        """
+        log(p) = 1/2 * ((z[1] - w_1(z)) / (2 * scale)) ** 2
+        w_1(z) = sin(2*pi / period * z[0])
+        :param z: value or batch of latent variable
+        :return: log probability of the distribution for z
+        """
+        if z.dim() > 1:
+            z_ = z.permute((z.dim() - 1, ) + tuple(range(0, z.dim() - 1)))
+        else:
+            z_ = z
+            
+        w_1 = lambda x: torch.sin(2*np.pi / self.period * z_[0])
+        w_2 = lambda x: self.w2_amp * torch.exp(-0.5*((z_[0] - self.w2_mu) / self.w2_scale)**2)
+        log_prob = torch.log( torch.exp(-0.5 * ((z_[1] - w_1(z_)) / (self.scale)) ** 2 ) + \
+                             torch.exp(-0.5 * ((z_[1] - w_1(z_) + w_2(z_)) / (self.scale)) ** 2 ) )
+        
+        return log_prob
+    
+    
+class Sinusoidal_split(PriorDistribution):
+    def __init__(self, scale, period):
+        """
+        Distribution 2d with sinusoidal density
+        :param loc: distance of modes from the origin
+        :param scale: scale of modes
+        """
+        self.scale = scale
+        self.period = period
+        self.w3_scale = 0.3
+        self.w3_amp = 3.0
+        self.w3_mu = 1.0
+
+    def log_prob(self, z):
+        """
+        log(p) = 1/2 * ((z[1] - w_1(z)) / (2 * scale)) ** 2
+        w_1(z) = sin(2*pi / period * z[0])
+        :param z: value or batch of latent variable
+        :return: log probability of the distribution for z
+        """
+        if z.dim() > 1:
+            z_ = z.permute((z.dim() - 1, ) + tuple(range(0, z.dim() - 1)))
+        else:
+            z_ = z
+            
+        w_1 = lambda x: torch.sin(2*np.pi / self.period * z_[0])
+        w_3 = lambda x: self.w3_amp * torch.sigmoid((z_[0] - self.w3_mu) / self.w3_scale)
+        log_prob = torch.log( torch.exp(-0.5 * ((z_[1] - w_1(z_)) / (self.scale)) ** 2 ) + \
+                             torch.exp(-0.5 * ((z_[1] - w_1(z_) + w_3(z_)) / (self.scale)) ** 2 ) )
         
         return log_prob
