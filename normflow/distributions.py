@@ -51,7 +51,7 @@ class ConstDiagGaussian(ParametrizedConditionalDistribution):
         if not torch.is_tensor(scale):
             scale = torch.tensor(scale)
         self.loc = nn.Parameter(loc.reshape((1, 1, self.n)))
-        self.scale = nn.Parameter(scale.reshape((1, 1, self.n)))
+        self.scale = nn.Parameter(scale)
 
     def forward(self, x=None, num_samples=1):
         """
@@ -211,5 +211,33 @@ class Sinusoidal_split(PriorDistribution):
         w_3 = lambda x: self.w3_amp * torch.sigmoid((z_[0] - self.w3_mu) / self.w3_scale)
         log_prob = torch.log( torch.exp(-0.5 * ((z_[1] - w_1(z_)) / (self.scale)) ** 2 ) + \
                              torch.exp(-0.5 * ((z_[1] - w_1(z_) + w_3(z_)) / (self.scale)) ** 2 ) )
+        
+        return log_prob
+    
+    
+class Smiley(PriorDistribution):
+    def __init__(self, scale):
+        """
+        Distribution 2d with sinusoidal density
+        :param loc: distance of modes from the origin
+        :param scale: scale of modes
+        """
+        self.scale = scale
+        self.loc = 2.0
+
+    def log_prob(self, z):
+        """
+        log(p) = 1/2 * ((z[1] - w_1(z)) / (2 * scale)) ** 2
+        w_1(z) = sin(2*pi / period * z[0])
+        :param z: value or batch of latent variable
+        :return: log probability of the distribution for z
+        """
+        if z.dim() > 1:
+            z_ = z.permute((z.dim() - 1, ) + tuple(range(0, z.dim() - 1)))
+        else:
+            z_ = z
+            
+        log_prob = - 0.5 * ((torch.norm(z_, dim=0) - self.loc) / (2 * self.scale)) ** 2\
+                   - 0.5 * ((torch.abs(z_[1] + 0.8) - 1.2) / (2 * self.scale)) ** 2
         
         return log_prob
