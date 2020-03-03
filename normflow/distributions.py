@@ -103,8 +103,8 @@ class NNDiagGaussian(ParametrizedConditionalDistribution):
         eps = torch.randn((batch_size, num_samples) + (x.dim() - 1) * (1,), device=x.device)
         mean_std = self.net(x)
         n_hidden = mean_std.size()[2] // 2
-        mean = mean_std[:, :, :n_hidden, ...]
-        std = mean_std[:, :, n_hidden:(2 * n_hidden), ...]
+        mean = mean_std[:, :n_hidden, ...].unsqueeze(1)
+        std = mean_std[:, n_hidden:(2 * n_hidden), ...].unsqueeze(1)
         z = mean + std * eps
         log_p = - 0.5 * torch.prod(z.size()[2:]) * np.log(2 * np.pi)\
                 - torch.sum(torch.log(std) + 0.5 * torch.pow(eps, 2), list(range(2, self.z.dim())))
@@ -122,10 +122,59 @@ class NNDiagGaussian(ParametrizedConditionalDistribution):
             z = z.unsqueeze(0)
         mean_std = self.net(x)
         n_hidden = mean_std.size()[2] // 2
-        mean = mean_std[:, :, :n_hidden, ...]
-        std = mean_std[:, :, n_hidden:(2 * n_hidden), ...]
+        mean = mean_std[:, :n_hidden, ...].unsqueeze(1)
+        std = mean_std[:, n_hidden:(2 * n_hidden), ...].unsqueeze(1)
         log_p = - 0.5 * torch.prod(z.size()[2:]) * np.log(2 * np.pi)\
                 - torch.sum(torch.log(std) + 0.5 * ((z - mean) / std) ** 2, 2)
+        return log_p
+
+
+class Decoder(nn.Module):
+    def __init__(self):
+        super().__init__()
+
+    def forward(self, z):
+        """
+        Decodes z to x
+        :param z: latent variable
+        :return: x, std of x
+        """
+        raise NotImplementedError
+
+    def log_p(self, x, z):
+        """
+        :param x: observable
+        :param z: latent variable
+        :return: log(p) of x given z
+        """
+        raise NotImplementedError
+
+
+class NNDiagGaussianDecoder(Decoder):
+    """
+    Decoder representing a diagonal Gaussian distribution with mean and std parametrized by a NN
+    """
+    def __init__(self, net):
+        """
+        Constructor
+        :param net: neural network parametrizing mean and standard deviation of diagonal Gaussian
+        """
+        self.net = net
+
+    def forward(self, z):
+        mean_std = self.net(z)
+        n_hidden = mean_std.size()[2] // 2
+        mean = mean_std[:, :n_hidden, ...]
+        std = mean_std[:, n_hidden:(2 * n_hidden), ...]
+        return mean, std
+
+    def log_p(self, x, z):
+        mean_std = self.net(z)
+        n_hidden = mean_std.size()[2] // 2
+        mean = mean_std[:, :n_hidden, ...]
+        std = mean_std[:, n_hidden:(2 * n_hidden), ...]
+        log_p = - 0.5 * torch.prod(z.size()[2:]) * np.log(2 * np.pi) \
+                - torch.sum(torch.log(std) + 0.5 * ((z - mean) / std) ** 2, list(range(1, self.z.dim())))
         return log_p
 
 
