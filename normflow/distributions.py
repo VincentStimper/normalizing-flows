@@ -82,6 +82,53 @@ class ConstDiagGaussian(ParametrizedConditionalDistribution):
         return log_p
 
 
+class NNDiagGaussian(ParametrizedConditionalDistribution):
+    """
+    Diagonal Gaussian distribution with mean and variance determined by a neural network
+    """
+    def __init__(self, net):
+        """
+        Constructor
+        :param net: net computing mean (first n / 2 outputs), standard deviation (second n / 2 outputs)
+        """
+        self.net = net
+
+    def forward(self, x, num_samples=1):
+        """
+        :param x: Variable to condition on
+        :param num_samples: number of samples to draw per element of mini-batch
+        :return: sample of z for x, log probability for sample
+        """
+        batch_size = len(x)
+        eps = torch.randn((batch_size, num_samples) + (x.dim() - 1) * (1,), device=x.device)
+        mean_std = self.net(x)
+        n_hidden = mean_std.size()[2] // 2
+        mean = mean_std[:, :, :n_hidden, ...]
+        std = mean_std[:, :, n_hidden:(2 * n_hidden), ...]
+        z = mean + std * eps
+        log_p = - 0.5 * torch.prod(z.size()[2:]) * np.log(2 * np.pi)\
+                - torch.sum(torch.log(std) + 0.5 * torch.pow(eps, 2), list(range(2, self.z.dim())))
+        return z, log_p
+
+    def log_prob(self, z, x):
+        """
+        :param z: Primary random variable, first dimension is batch dimension
+        :param x: Variable to condition on, first dimension is batch dimension
+        :return: log probability of z given x
+        """
+        if z.dim() == 1:
+            z = z.unsqueeze(0)
+        if z.dim() == 2:
+            z = z.unsqueeze(0)
+        mean_std = self.net(x)
+        n_hidden = mean_std.size()[2] // 2
+        mean = mean_std[:, :, :n_hidden, ...]
+        std = mean_std[:, :, n_hidden:(2 * n_hidden), ...]
+        log_p = - 0.5 * torch.prod(z.size()[2:]) * np.log(2 * np.pi)\
+                - torch.sum(torch.log(std) + 0.5 * ((z - mean) / std) ** 2, 2)
+        return log_p
+
+
 class PriorDistribution:
     def __init__(self):
         raise NotImplementedError
