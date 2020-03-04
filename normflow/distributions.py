@@ -102,7 +102,6 @@ class NNDiagGaussian(ParametrizedConditionalDistribution):
         """
         batch_size = len(x)
         mean_std = self.net(x)
-        print(mean_std.size())
         n_hidden = mean_std.size()[1] // 2
         mean = mean_std[:, :n_hidden, ...].unsqueeze(1)
         std = mean_std[:, n_hidden:(2 * n_hidden), ...].unsqueeze(1)
