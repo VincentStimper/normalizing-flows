@@ -130,6 +130,7 @@ class NNDiagGaussian(ParametrizedConditionalDistribution):
         return log_p
 
 
+
 class Decoder(nn.Module):
     def __init__(self):
         super().__init__()
@@ -179,6 +180,35 @@ class NNDiagGaussianDecoder(Decoder):
         log_p = - 0.5 * torch.prod(torch.tensor(z.size()[2:])) * np.log(2 * np.pi) \
                 - 0.5 * torch.sum(torch.log(var) + (x.unsqueeze(1) - mean) ** 2 / var, list(range(2, z.dim())))
         return log_p
+
+
+class NNBernoulliDecoder(Decoder):
+    """
+    Decoder representing a Bernoulli distribution with mean parametrized by a NN
+    """
+
+    def __init__(self, net):
+        """
+        Constructor
+        :param net: neural network parametrizing mean Bernoulli
+        """
+        super().__init__()
+        self.net = net
+
+    def forward(self, z):
+        z_size = z.size()
+        mean = self.net(z.view(-1, *z_size[2:])).view(*z_size[:2], -1)
+        return mean
+
+    def log_p(self, x, z):
+        z_size = z.size()
+        mean = self.net(z.view(-1, *z_size[2:]))
+        x = x.unsqueeze(1)
+        x = x.repeat(1, z_size[1], *((x.dim() - 2) * [1]))
+        mean = mean.view(*x.size())
+        log_p = torch.sum(x * torch.log(mean) + (1 - x) * torch.log(1 - mean), list(range(2, x.dim())))
+        return log_p
+
 
 
 class PriorDistribution:
