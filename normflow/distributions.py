@@ -172,8 +172,8 @@ class NNDiagGaussianDecoder(Decoder):
         return mean, std
 
     def log_p(self, x, z):
-        z_size = z.size()
-        mean_std = self.net(z.view(-1, *z_size[2:])).view(z_size)
+        x_size = x.size()
+        mean_std = self.net(z.view(-1, *z.size()[2:])).view(*z.size()[:2], x.size(2) // 2, *x.size()[3:])
         n_hidden = mean_std.size()[2] // 2
         mean = mean_std[:, :, :n_hidden, ...]
         std = mean_std[:, :, n_hidden:(2 * n_hidden), ...]
