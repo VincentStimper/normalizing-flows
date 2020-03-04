@@ -164,19 +164,21 @@ class NNDiagGaussianDecoder(Decoder):
         self.net = net
 
     def forward(self, z):
-        mean_std = self.net(z)
+        z_size = z.size()
+        mean_std = self.net(z.view(-1, *z_size[2:])).view(z_size)
         n_hidden = mean_std.size()[2] // 2
-        mean = mean_std[:, :n_hidden, ...]
-        std = mean_std[:, n_hidden:(2 * n_hidden), ...]
+        mean = mean_std[:, :, :n_hidden, ...]
+        std = mean_std[:, :, n_hidden:(2 * n_hidden), ...]
         return mean, std
 
     def log_p(self, x, z):
-        mean_std = self.net(z)
+        z_size = z.size()
+        mean_std = self.net(z.view(-1, *z_size[2:])).view(z_size)
         n_hidden = mean_std.size()[2] // 2
-        mean = mean_std[:, :n_hidden, ...]
-        std = mean_std[:, n_hidden:(2 * n_hidden), ...]
+        mean = mean_std[:, :, :n_hidden, ...]
+        std = mean_std[:, :, n_hidden:(2 * n_hidden), ...]
         log_p = - 0.5 * torch.prod(z.size()[2:]) * np.log(2 * np.pi) \
-                - torch.sum(torch.log(std) + 0.5 * ((z - mean) / std) ** 2, list(range(1, self.z.dim())))
+                - torch.sum(torch.log(std) + 0.5 * ((x - mean) / std) ** 2, list(range(2, self.z.dim())))
         return log_p
 
 
