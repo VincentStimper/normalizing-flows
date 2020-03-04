@@ -108,7 +108,7 @@ class NNDiagGaussian(ParametrizedConditionalDistribution):
         std = mean_std[:, n_hidden:(2 * n_hidden), ...].unsqueeze(1)
         z = mean + std * eps
         log_p = - 0.5 * torch.prod(torch.tensor(z.size()[2:])) * np.log(2 * np.pi)\
-                - torch.sum(torch.log(std) + 0.5 * torch.pow(eps, 2), list(range(2, self.z.dim())))
+                - torch.sum(torch.log(std) + 0.5 * torch.pow(eps, 2), list(range(2, z.dim())))
         return z, log_p
 
     def log_prob(self, z, x):
