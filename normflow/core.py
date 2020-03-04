@@ -22,8 +22,12 @@ class NormalizingFlow(nn.Module):
 
     def forward(self, x, num_samples=1):
         z, log_q = self.q0(x, num_samples=num_samples)
+        print(z.size())
+        print(log_q.size())
         for flow in self.flows:
             z, log_det = flow(z)
+            print(z.size())
+            print(log_det.size())
             log_q -= log_det
         log_p = self.prior.log_prob(z)
         if self.decoder is not None:
