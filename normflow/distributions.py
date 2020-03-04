@@ -104,7 +104,7 @@ class NNDiagGaussian(ParametrizedConditionalDistribution):
         mean_std = self.net(x)
         n_hidden = mean_std.size()[1] // 2
         mean = mean_std[:, :n_hidden, ...].unsqueeze(1)
-        std = mean_std[:, n_hidden:(2 * n_hidden), ...].unsqueeze(1)
+        std = torch.abs(mean_std[:, n_hidden:(2 * n_hidden), ...].unsqueeze(1))
         eps = torch.randn((batch_size, num_samples) + (mean.dim() - 2) * (1,), device=x.device)
         z = mean + std * eps
         log_p = - 0.5 * torch.prod(torch.tensor(z.size()[2:])) * np.log(2 * np.pi)\
@@ -124,9 +124,9 @@ class NNDiagGaussian(ParametrizedConditionalDistribution):
         mean_std = self.net(x)
         n_hidden = mean_std.size()[1] // 2
         mean = mean_std[:, :n_hidden, ...].unsqueeze(1)
-        std = mean_std[:, n_hidden:(2 * n_hidden), ...].unsqueeze(1)
+        var = mean_std[:, n_hidden:(2 * n_hidden), ...].unsqueeze(1) ** 2
         log_p = - 0.5 * torch.prod(torch.tensor(z.size()[2:])) * np.log(2 * np.pi)\
-                - torch.sum(torch.log(std) + 0.5 * ((z - mean) / std) ** 2, 2)
+                - 0.5 * torch.sum(torch.log(var) + (z - mean) ** 2 / var, 2)
         return log_p
 
 
@@ -168,16 +168,16 @@ class NNDiagGaussianDecoder(Decoder):
         mean_std = self.net(z.view(-1, *z_size[2:])).view(z_size)
         n_hidden = mean_std.size()[2] // 2
         mean = mean_std[:, :, :n_hidden, ...]
-        std = mean_std[:, :, n_hidden:(2 * n_hidden), ...]
+        std = torch.abs(mean_std[:, :, n_hidden:(2 * n_hidden), ...])
         return mean, std
 
     def log_p(self, x, z):
         mean_std = self.net(z.view(-1, *z.size()[2:])).view(*z.size()[:2], x.size(1) * 2, *x.size()[3:])
         n_hidden = mean_std.size()[2] // 2
         mean = mean_std[:, :, :n_hidden, ...]
-        std = mean_std[:, :, n_hidden:(2 * n_hidden), ...]
+        var = mean_std[:, :, n_hidden:(2 * n_hidden), ...] ** 2
         log_p = - 0.5 * torch.prod(torch.tensor(z.size()[2:])) * np.log(2 * np.pi) \
-                - torch.sum(torch.log(std) + 0.5 * ((x.unsqueeze(1) - mean) / std) ** 2, list(range(2, z.dim())))
+                - 0.5 * torch.sum(torch.log(var) + (x.unsqueeze(1) - mean) ** 2 / var, list(range(2, z.dim())))
         return log_p
 
 
