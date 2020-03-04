@@ -10,7 +10,7 @@ class FCN(nn.Module):
         Constructor
         :param hidden_units: list of hidden units per layer
         """
-        super.__init__()
+        super().__init__()
 
         self.n_hidden_layers = len(hidden_units) - 1
         self.layers = []
