@@ -91,6 +91,7 @@ class NNDiagGaussian(ParametrizedConditionalDistribution):
         Constructor
         :param net: net computing mean (first n / 2 outputs), standard deviation (second n / 2 outputs)
         """
+        super().__init__()
         self.net = net
 
     def forward(self, x, num_samples=1):
@@ -159,6 +160,7 @@ class NNDiagGaussianDecoder(Decoder):
         Constructor
         :param net: neural network parametrizing mean and standard deviation of diagonal Gaussian
         """
+        super().__init__()
         self.net = net
 
     def forward(self, z):
