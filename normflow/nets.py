@@ -12,12 +12,12 @@ class FCN(nn.Module):
         """
         super().__init__()
 
-        self.n_hidden_layers = len(hidden_units) - 1
+        self.n_hidden_layers = len(hidden_units)
         self.layers = []
-        for i in range(self.n_hidden_layers):
+        for i in range(self.n_hidden_layers - 2):
             self.layers.append(nn.Linear(hidden_units[i], hidden_units[i + 1]))
             self.layers.append(nn.ReLU(True))
-        self.layers.append(nn.Linear(hidden_units[self.n_hidden_layers - 1], hidden_units[self.n_hidden_layers]))
+        self.layers.append(nn.Linear(hidden_units[self.n_hidden_layers - 2], hidden_units[self.n_hidden_layers - 1]))
 
         self.layers_seq = nn.Sequential(*self.layers)
 
