@@ -120,9 +120,9 @@ def flow_vae_datasets(id, download=True, batch_size=args.batch_size, shuffle=Tru
 
 
 if args.flow == 'Planar':
-    flows = SimpleFlowModel[Planar((40,)) for k in range(args.K)]
+    flows = SimpleFlowModel([Planar((40,)) for k in range(args.K)])
 elif args.flow == 'Radial':
-    flows = SimpleFlowModel[Radial((40,)) for k in range(args.K)]
+    flows = SimpleFlowModel([Radial((40,)) for k in range(args.K)])
 
 model = FlowVAE(flows).to(device)
 
