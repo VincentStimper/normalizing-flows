@@ -49,7 +49,6 @@ elif args.dataset == 'cifar10' or args.dataset == 'cifar100':
 else:
     raise ValueError('The only dataset calls supported are: mnist, cifar10, cifar100')
 
-
 class FlowVAE(nn.Module):
     def __init__(self, flows):
         super().__init__()
@@ -58,7 +57,7 @@ class FlowVAE(nn.Module):
         self.f2 = nn.Linear(256, 40)
         self.decode = nn.Sequential(nn.Linear(40, 256), nn.ReLU(True), nn.Linear(256, 512), nn.ReLU(True),
                                     nn.Linear(512, img_dim ** 2))
-        self.flows = torch.nn.ModuleList(flows)
+        self.flows = flows
 
     def forward(self, x):
         # Encode
@@ -71,8 +70,7 @@ class FlowVAE(nn.Module):
         z_0 = mu + norm_scale * std
 
         # Flow transforms
-        flow_model = SimpleFlowModel(self.flows)
-        z_, log_det = flow_model(z_0)
+        z_, log_det = self.flows(z_0)
         z_ = z_.squeeze()
 
         # Q0 and prior
@@ -122,9 +120,9 @@ def flow_vae_datasets(id, download=True, batch_size=args.batch_size, shuffle=Tru
 
 
 if args.flow == 'Planar':
-    flows = [Planar((40,)) for k in range(args.K)]
+    flows = SimpleFlowModel[Planar((40,)) for k in range(args.K)]
 elif args.flow == 'Radial':
-    flows = [Radial((40,)) for k in range(args.K)]
+    flows = SimpleFlowModel[Radial((40,)) for k in range(args.K)]
 
 model = FlowVAE(flows).to(device)
 
