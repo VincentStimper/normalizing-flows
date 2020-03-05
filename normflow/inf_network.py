@@ -78,7 +78,7 @@ class FlowVAE(nn.Module):
         p = Normal(0., 1.)
 
         # KLD including logdet term
-        kld = - torch.sum(p.log_prob(z_), -1) + torch.sum(q0.log_prob(z_0), -1) + log_det.view(-1)
+        kld = - torch.sum(p.log_prob(z_), -1) + torch.sum(q0.log_prob(z_0), -1) - log_det.view(-1)
 
         # Decode
         z_ = z_.view(z_.size(0), 40)
