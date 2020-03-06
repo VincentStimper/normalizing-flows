@@ -112,8 +112,8 @@ class Radial(Flow):
 
 class AffineConstFlow(Flow):
     """ 
-    Scales + Shifts the flow by (learned) constants per dimension.
-    In NICE paper there is a Scaling layer which is a special case of this where t is None
+    scales and shifts with learned constants per dimension. In the NICE paper there is a 
+    scaling layer which is a special case of this where t is None
     """
     def __init__(self, shape, scale=True, shift=True):
         super().__init__()
@@ -163,7 +163,7 @@ class AffineHalfFlow(Flow):
     Which half is which is determined by the parity bit.
     RealNVP both scales and shifts (default), NICE only shifts
     """
-    def __init__(self, shape, parity, net_class=nets.MLP, nh=24, scale=True, shift=True):
+    def __init__(self, shape, parity, net_class=nets.MLP, nh=4, scale=True, shift=True):
         super().__init__()
         self.dim = shape[0]
         self.parity = parity
@@ -176,15 +176,14 @@ class AffineHalfFlow(Flow):
         
     def forward(self, z):
         z0, z1 = z[:, :, ::2], z[:, :, 1::2]
-        print(z0)
-        print(z1)
         bs = z.shape[0]
         if self.parity:
             z0, z1 = z1, z0
-        s = self.s_cond(z0.reshape(-1, self.dim // 2))
-        t = self.t_cond(z0.reshape(-1, self.dim // 2))
+        # reshape because nn.Linear takes the form (batch, dim) while we have (batch, samples, dim)
+        s = self.s_cond(z0.reshape(-1, self.dim // 2).float()).reshape(bs, -1, self.dim // 2)
+        t = self.t_cond(z0.reshape(-1, self.dim // 2).float()).reshape(bs, -1, self.dim // 2)
         z_0 = z0 # untouched
-        z_1 = torch.exp(s.reshape(bs, -1, self.dim // 2)) * z1 + t.reshape(bs, -1, self.dim // 2)
+        z_1 = torch.exp(s) * z1 + t
         if self.parity:
             z_0, z_1 = z_1, z_0
         z_ = torch.cat([z_0, z_1], dim=2)
@@ -193,16 +192,18 @@ class AffineHalfFlow(Flow):
     
     def inverse(self, z):
         z0, z1 = z[:, :, ::2], z[:, :, 1::2]
+        bs = z.shape[0]
         if self.parity:
             z0, z1 = z1, z0
-        s = self.s_cond(z0)
-        t = self.t_cond(z0)
+        # reshape because nn.Linear takes the form (batch, dim) while we have (batch, samples, dim)
+        s = self.s_cond(z0.reshape(-1, self.dim // 2).float()).reshape(bs, -1, self.dim // 2)
+        t = self.t_cond(z0.reshape(-1, self.dim // 2).float()).reshape(bs, -1, self.dim // 2)
         x0 = z0 # this was the same
         x1 = (z1 - t) * torch.exp(-s) # reverse the transform on this half
         if self.parity:
             x0, x1 = x1, x0
         x = torch.cat([x0, x1], dim=2)
-        log_det = torch.sum(-s, dim=2)
+        log_det = torch.sum(-s, dim=1)
         return x, log_det
     
     
