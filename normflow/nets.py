@@ -26,3 +26,24 @@ class FCN(nn.Module):
 
     def forward(self, x):
         return self.layers_seq(x)
+    
+
+class MLP(nn.Module):
+    """
+    A multilayer perceptron with Leaky ReLU nonlinearities
+    """
+
+    def __init__(self, layers):
+        """
+        :param layers: list of layer sizes from start to end
+        """
+        super().__init__()
+        net = nn.ModuleList([])
+        for k in range(len(layers)-1):
+            net.append(nn.Linear(layers[k], layers[k+1]))
+            if k != len(layers)-2:
+                net.append(nn.LeakyReLU(0.2))
+        self.net = nn.Sequential(*net)
+        
+    def forward(self, x):
+        return self.net(x)
