@@ -16,6 +16,8 @@ import pandas as pd
 parser = argparse.ArgumentParser(description='FlowVAE implementation on MNIST')
 parser.add_argument('--batch-size', type=int, default=128, metavar='N',
                     help='Training batch size (default: 128)')
+parser.add_argument('--latent-size', type=int, default=40, metavar='N',
+                    help='Latent dimension size (default: 40)')
 parser.add_argument('--K', type=int, default=10, metavar='N',
                     help='Number of flows (default: 10)')
 parser.add_argument('--flow', type=str, default='Planar', metavar='N',
@@ -53,9 +55,9 @@ class FlowVAE(nn.Module):
     def __init__(self, flows):
         super().__init__()
         self.encode = nn.Sequential(nn.Linear(img_dim ** 2, 512), nn.ReLU(True), nn.Linear(512, 256), nn.ReLU(True))
-        self.f1 = nn.Linear(256, 40)
-        self.f2 = nn.Linear(256, 40)
-        self.decode = nn.Sequential(nn.Linear(40, 256), nn.ReLU(True), nn.Linear(256, 512), nn.ReLU(True),
+        self.f1 = nn.Linear(256, args.latent_size)
+        self.f2 = nn.Linear(256, args.latent_size)
+        self.decode = nn.Sequential(nn.Linear(args.latent_size, 256), nn.ReLU(True), nn.Linear(256, 512), nn.ReLU(True),
                                     nn.Linear(512, img_dim ** 2))
         self.flows = flows
 
@@ -81,7 +83,7 @@ class FlowVAE(nn.Module):
         kld = - torch.sum(p.log_prob(z_), -1) + torch.sum(q0.log_prob(z_0), -1) - log_det.view(-1)
 
         # Decode
-        z_ = z_.view(z_.size(0), 40)
+        z_ = z_.view(z_.size(0), args.latent_size)
         zD = self.decode(z_)
         out = torch.sigmoid(zD)
 
@@ -120,9 +122,9 @@ def flow_vae_datasets(id, download=True, batch_size=args.batch_size, shuffle=Tru
 
 
 if args.flow == 'Planar':
-    flows = SimpleFlowModel([Planar((40,)) for k in range(args.K)])
+    flows = SimpleFlowModel([Planar((args.latent_size,)) for k in range(args.K)])
 elif args.flow == 'Radial':
-    flows = SimpleFlowModel([Radial((40,)) for k in range(args.K)])
+    flows = SimpleFlowModel([Radial((args.latent_size,)) for k in range(args.K)])
 
 model = FlowVAE(flows).to(device)
 
