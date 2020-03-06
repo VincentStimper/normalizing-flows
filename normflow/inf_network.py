@@ -6,7 +6,7 @@ from torch.distributions.normal import Normal
 from torch.nn import functional as F
 from torchvision import datasets, transforms
 from tqdm import tqdm
-from flows import *
+from flows import Planar, Radial
 from simple_flow_model import SimpleFlowModel
 import argparse
 from datetime import datetime
