@@ -136,7 +136,6 @@ def train(model, epoch):
                 epoch, batch_n * len(x), len(train_loader.dataset),
                        100. * batch_n / len(train_loader),
                        loss.item() / len(x)))
-            print(model.test_params)
     progressbar.close()
     print('====> Epoch: {} Average loss: {:.4f}'.format(
         epoch, tr_loss / len(train_loader.dataset)))
