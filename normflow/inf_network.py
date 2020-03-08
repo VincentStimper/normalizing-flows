@@ -81,19 +81,22 @@ class FlowVAE(nn.Module):
         p = Normal(0., 1.)
 
         # KLD including logdet term
+        p_z_ = torch.sum(p.log_prob(z_), -1)
+        q0_z_0 = torch.sum(q0.log_prob(z_0), -1)
+        log_det = log_det.view(-1)
         kld = - torch.sum(p.log_prob(z_), -1) + torch.sum(q0.log_prob(z_0), -1) - log_det.view(-1)
-        self.test_params = [torch.mean(- torch.sum(p.log_prob(z_), -1)), torch.mean(torch.sum(q0.log_prob(z_0), -1)), torch.mean(log_det.view(-1)), torch.mean(kld)]
+        self.test_params = [torch.mean(- torch.sum(p.log_prob(z_), -1)), torch.mean(torch.sum(q0.log_prob(z_0), -1)), torch.mean(- log_det.view(-1)), torch.mean(kld)]
 
         # Decode
         z_ = z_.view(z_.size(0), args.latent_size)
         zD = self.decode(z_)
         out = torch.sigmoid(zD)
 
-        return out, kld
+        return out, p_z_, q0_z_0, log_det
 
 
-def bound(rce, x, kld, beta):
-    return F.binary_cross_entropy(rce, x.view(-1, img_dim ** 2), reduction='sum') + beta * kld
+def bound(rce, x, p_z_, q0_z_0, log_det, beta):
+    return F.binary_cross_entropy(rce, x.view(-1, img_dim ** 2), reduction='sum') + q0_z_0 - beta * p_z_ - log_det
 
 
 class BinaryTransform():
@@ -181,7 +184,7 @@ test_losses = []
 
 
 def anneal(epoch, len_e):
-    return min(1., 0.01+epoch/len_e)
+    return min(1., epoch/len_e)
 
 if __name__ == '__main__':
     if args.experiment_mode:
