@@ -6,7 +6,7 @@ from torch.distributions.normal import Normal
 from torch.nn import functional as F
 from torchvision import datasets, transforms
 from tqdm import tqdm
-from flows import Planar, Radial
+from flows import *
 from simple_flow_model import SimpleFlowModel
 import argparse
 from datetime import datetime
@@ -14,8 +14,8 @@ import os
 import pandas as pd
 
 parser = argparse.ArgumentParser(description='FlowVAE implementation on MNIST')
-parser.add_argument('--batch-size', type=int, default=128, metavar='N',
-                    help='Training batch size (default: 128)')
+parser.add_argument('--batch-size', type=int, default=256, metavar='N',
+                    help='Training batch size (default: 256)')
 parser.add_argument('--latent-size', type=int, default=40, metavar='N',
                     help='Latent dimension size (default: 40)')
 parser.add_argument('--K', type=int, default=10, metavar='N',
@@ -28,8 +28,8 @@ parser.add_argument('--dataset', type=str, default='mnist', metavar='N',
                     help='Dataset to train and test on (mnist, cifar10 or cifar100) (default: mnist)')
 parser.add_argument('--no-cuda', action='store_true', default=False,
                     help='enables CUDA training')
-parser.add_argument('--seed', type=int, default=21, metavar='S',
-                    help='Random Seed (default: 21)')
+parser.add_argument('--seed', type=int, default=15, metavar='S',
+                    help='Random Seed (default: 1)')
 parser.add_argument('--log-intv', type=int, default=20, metavar='N',
                     help='Training log status interval (default: 20')
 parser.add_argument('--experiment_mode', type=bool, default=False, metavar='N',
@@ -50,6 +50,7 @@ elif args.dataset == 'cifar10' or args.dataset == 'cifar100':
     img_dim = 32
 else:
     raise ValueError('The only dataset calls supported are: mnist, cifar10, cifar100')
+
 
 class FlowVAE(nn.Module):
     def __init__(self, flows):
@@ -81,6 +82,7 @@ class FlowVAE(nn.Module):
 
         # KLD including logdet term
         kld = - torch.sum(p.log_prob(z_), -1) + torch.sum(q0.log_prob(z_0), -1) - log_det.view(-1)
+        self.test_params = [torch.mean(- torch.sum(p.log_prob(z_), -1)), torch.mean(torch.sum(q0.log_prob(z_0), -1)), torch.mean(log_det.view(-1)), torch.mean(kld)]
 
         # Decode
         z_ = z_.view(z_.size(0), args.latent_size)
@@ -90,8 +92,8 @@ class FlowVAE(nn.Module):
         return out, kld
 
 
-def bound(rce, x, kld):
-    return F.binary_cross_entropy(rce, x.view(-1, img_dim ** 2), reduction='sum') + kld
+def bound(rce, x, kld, beta):
+    return F.binary_cross_entropy(rce, x.view(-1, img_dim ** 2), reduction='sum') + beta * kld
 
 
 class BinaryTransform():
@@ -126,6 +128,7 @@ if args.flow == 'Planar':
 elif args.flow == 'Radial':
     flows = SimpleFlowModel([Radial((args.latent_size,)) for k in range(args.K)])
 
+
 model = FlowVAE(flows).to(device)
 
 optimizer = optim.Adam(model.parameters(), lr=0.001)
@@ -134,7 +137,8 @@ train_loader, test_loader = flow_vae_datasets(args.dataset)
 
 
 # Train
-def train(model, epoch):
+
+def train(model, epoch, beta):
     model.train()
     tr_loss = 0
     progressbar = tqdm(enumerate(train_loader), total=len(train_loader))
@@ -142,9 +146,9 @@ def train(model, epoch):
         x = x.to(device)
         optimizer.zero_grad()
         rc_batch, kld = model(x)
-        loss = bound(rc_batch, x.view(x.size(0) * x.size(1), img_dim ** 2), kld.sum())
+        loss = bound(rc_batch, x.view(x.size(0) * x.size(1), img_dim ** 2), kld.sum(), beta=beta)
         avg_loss = loss / len(x)
-        avg_loss.backward()
+        loss.backward()
         tr_loss += loss.item()
         optimizer.step()
         progressbar.update()
@@ -153,6 +157,7 @@ def train(model, epoch):
                 epoch, batch_n * len(x), len(train_loader.dataset),
                        100. * batch_n / len(train_loader),
                        loss.item() / len(x)))
+            print(model.test_params)
     progressbar.close()
     print('====> Epoch: {} Average loss: {:.4f}'.format(
         epoch, tr_loss / len(train_loader.dataset)))
@@ -165,7 +170,7 @@ def test(model, epoch):
         for i, (x, _) in enumerate(test_loader):
             x = x.to(device)
             rc_batch, kld = model(x)
-            test_loss += bound(rc_batch, x, kld.sum()).item()
+            test_loss += bound(rc_batch, x, kld.sum(), beta=1).item()
 
     test_loss /= len(test_loader.dataset)
     print('====> Test set loss: {:.4f}'.format(test_loss))
@@ -173,6 +178,11 @@ def test(model, epoch):
 
 
 test_losses = []
+
+
+def anneal(epoch, len_e):
+    return min(1., 0.01+epoch/len_e)
+
 if __name__ == '__main__':
     if args.experiment_mode:
         min_test_losses = []
@@ -187,8 +197,9 @@ if __name__ == '__main__':
             else:
                 seed += 1
             torch.manual_seed(seed)
-            for e in range(args.epochs):
-                train(model, e)
+            for e in [i+1 for i in range(args.epochs)]:
+                beta = anneal(e, args.epochs)
+                train(model, e, beta)
                 tl = test(model, e)
                 test_losses.append(tl)
             print('====> Lowest test set loss: {:.4f}'.format(min(test_losses)))
@@ -204,7 +215,10 @@ if __name__ == '__main__':
         file_name = file_name.replace(':', '-')
         Series.to_excel(file_name, index=False, header=None)
     else:
-        for e in range(args.epochs):
-            train(model, e)
+        for e in [i+1 for i in range(args.epochs)]:
+            print(args.epochs)
+            beta = anneal(e, args.epochs)
+            print(beta)
+            train(model, e, beta=beta)
             tl = test(model, e)
             test_losses.append(tl)
