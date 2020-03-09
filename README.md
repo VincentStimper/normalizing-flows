@@ -19,7 +19,7 @@ This is a PyTorch implementation of several normalizing flow, including a variat
 The latest version of the package can be installed via pip
 
 ```
-pip install --upgrade git+https://github.com/VincentStimper/fuller.git
+pip install --upgrade git+https://github.com/VincentStimper/normalizing-flows.git
 ```
 
 Alternatively, download the repository and run
