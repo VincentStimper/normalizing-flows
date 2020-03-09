@@ -33,23 +33,23 @@ class Planar(Flow):
         :param u,w,b: optional initialization for parameters
         """
         super().__init__()
-        lim = 3. / np.prod(shape)
+        lim_w = np.sqrt(2. / np.prod(shape))
+        lim_u = np.sqrt(2)
         
         if u is not None:
             self.u = nn.Parameter(u)
         else:
             self.u = nn.Parameter(torch.empty(shape)[(None,) * 2])
-            nn.init.uniform_(self.u, -lim, lim)
+            nn.init.uniform_(self.u, -lim_u, lim_u)
         if w is not None:
             self.w = nn.Parameter(w)
         else:
             self.w = nn.Parameter(torch.empty(shape)[(None,) * 2])
-            nn.init.uniform_(self.w, -lim, lim)
+            nn.init.uniform_(self.w, -lim_w, lim_w)
         if b is not None:
             self.b = nn.Parameter(b)
         else:
-            self.b = nn.Parameter(torch.empty(1))
-            nn.init.uniform_(self.b, -lim, lim)
+            self.b = nn.Parameter(torch.zeros(1))
         self.h = h
 
     def forward(self, z):

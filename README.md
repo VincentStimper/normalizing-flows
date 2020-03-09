@@ -2,24 +2,25 @@
 
 ## Introduction
 
-This is a PyTorch implementation of normalizing flows.
+This is a PyTorch implementation of several normalizing flow, including a variational autoencoder.
 
 
-## Installation
+## Implemented Flows
 
-You can install `normflow` directly using pip:
+* Planar flow ([Rezende & Mohamed, 2015](https://arxiv.org/abs/1505.05770))
+* Radial flow ([Rezende & Mohamed, 2015](https://arxiv.org/abs/1505.05770))
+
+
+## Methods of Installation
+
+The latest version of the package can be installed via pip
+
 ```
-pip install --upgrade git+https://github.com/VincentStimper/normalizing-flows.git
+pip install --upgrade git+https://github.com/VincentStimper/fuller.git
 ```
-Alternatively, you can first download or clone the repository on your computer via
-```
-git clone https://github.com/VincentStimper/normalizing-flows.git
-```
-then navigate into the folder and install it via
-```
-pip install --upgrade .
-```
-or
+
+Alternatively, download the repository and run
+
 ```
 python setup.py install
 ```
