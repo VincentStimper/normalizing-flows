@@ -121,20 +121,17 @@ class AffineConstFlow(Flow):
         self.t = nn.Parameter(torch.randn(shape)[(None,) * 2]) if shift else None
         
     def forward(self, z):
-        s = self.s if self.s is not None else z.new_zeros(z.size())
-        t = self.t if self.t is not None else z.new_zeros(z.size())
+        s = self.s if self.s is not None else torch.zeros(z.shape, device=z.device)
+        t = self.t if self.t is not None else torch.zeros(z.shape, device=z.device)
         z_ = z * torch.exp(s) + t
         log_det = torch.sum(s, dim=2)
         return z_, log_det
     
     def inverse(self, z):
-        s = self.s if self.s is not None else z.new_zeros(z.size())
-        t = self.t if self.t is not None else z.new_zeros(z.size())
+        s = self.s if self.s is not None else z.new_zeros(z.shape, device=z.device)
+        t = self.t if self.t is not None else z.new_zeros(z.shape, device=z.device)
         z_ = (z - t) * torch.exp(-s)
         log_det = torch.sum(-s, dim=2)
-        print(z_.shape)
-        print(log_det.shape)
-        print("acf")
         return z_, log_det
        
         
@@ -144,16 +141,16 @@ class ActNorm(AffineConstFlow):
     where on the very first batch we clever initialize the s,t so that the output
     is unit gaussian. As described in Glow paper.
     """
-    def __init__(self, *args):
-        super().__init__(*args)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.data_dep_init_done = False
     
     def forward(self, z):
         # first batch is used for init
         if not self.data_dep_init_done:
             assert self.s is not None and self.t is not None # for now
-            self.s.data = (-torch.log(z.std(dim=0, keepdim=True))).detach()
-            self.t.data = (-(z * torch.exp(self.s)).mean(dim=0, keepdim=True)).detach()
+            self.s.data = (-torch.log(z.std(dim=0, keepdim=True))).data
+            self.t.data = (-(z * torch.exp(self.s)).mean(dim=0, keepdim=True)).data
             self.data_dep_init_done = True
         return super().forward(z)
 
@@ -174,12 +171,11 @@ class AffineHalfFlow(Flow):
         
         if scale:
             self.add_module('s_cond', net_class([self.d_cpu.numpy() // 2, nh, nh, self.d_cpu.numpy() // 2]))
-            #self.s_cond.to('cuda')
         else:
             self.s_cond = lambda x: x.new_zeros(x.shape[0], x.shape[1], self.d_cpu // 2)
+        
         if shift:
             self.add_module('t_cond', net_class([self.d_cpu.numpy() // 2, nh, nh, self.d_cpu.numpy() // 2]))
-            #self.t_cond.to('cuda')
         else:
             self.t_cond = lambda x: x.new_zeros(x.shape[0], x.shape[1], self.d_cpu // 2)
         
@@ -193,13 +189,11 @@ class AffineHalfFlow(Flow):
         t = self.t_cond(z0.reshape(-1, self.d_cpu // 2)).reshape(bs, -1, self.d_cpu // 2)
         z_0 = z0 # untouched
         z_1 = torch.exp(s) * z1 + t
+        #print(t.max())
         if self.parity:
             z_0, z_1 = z_1, z_0
         z_ = torch.cat([z_0, z_1], dim=2)
         log_det = torch.sum(s, dim=2)
-        print(z_.shape)
-        print(log_det.shape)
-        print("ahf")
         return z_, log_det
     
     def inverse(self, z):
@@ -226,32 +220,30 @@ class Invertible1x1Conv(Flow):
         self.register_buffer('d', self.d_cpu)
         Q = torch.nn.init.orthogonal_(torch.randn(self.d_cpu, self.d_cpu))
         P, L, U = torch.lu_unpack(*Q.lu())
-        self.P = P # remains fixed during optimization
+        self.register_buffer('P', P)
+        #self.P = P # remains fixed during optimization
         self.L = nn.Parameter(L) # lower triangular portion
         self.S = nn.Parameter(U.diag()) # "crop out" the diagonal to its own parameter
         self.U = nn.Parameter(torch.triu(U, diagonal=1)) # "crop out" diagonal, stored in S
 
     def _assemble_W(self):
         # assemble W from its components (P, L, U, S)
-        L = torch.tril(self.L, diagonal=-1) + torch.diag(torch.ones(self.d_cpu))
+        L = torch.tril(self.L, diagonal=-1) + torch.diag(torch.ones(self.d, device=self.d.device))
         U = torch.triu(self.U, diagonal=1)
         W = self.P @ L @ (U + torch.diag(self.S))
-        return W
+        return W.float()
 
     def forward(self, z):
-        W = self._assemble_W().float().to(z.device)
+        W = self._assemble_W()
         z_ = z @ W
         log_det = torch.sum(torch.log(torch.abs(self.S)))
         return z_, log_det
 
     def inverse(self, z):
-        W = self._assemble_W().float().to(z.device)
+        W = self._assemble_W()
         W_inv = torch.inverse(W)
         z_ = z @ W_inv
         log_det = -torch.sum(torch.log(torch.abs(self.S)))
-        print(z_.shape)
-        print(log_det.shape)
-        print("1x1")
         return z_, log_det
 
 
@@ -267,9 +259,10 @@ class Glow(Flow):
     def __init__(self, shape, parity):
         """
         :param shape: shape of the latent variable z
+        Need to reinitialize flows for Glow each training session as ActNorm initializes on first batch
         """
         super().__init__()
-        self.flows = [ActNorm(shape), Invertible1x1Conv(shape), AffineHalfFlow(shape, parity)]
+        self.flows = nn.ModuleList([ActNorm(shape), Invertible1x1Conv(shape), AffineHalfFlow(shape, parity)])
 
     def forward(self, z):
         log_det_tot = torch.zeros(z.shape[0], z.shape[1], device=z.device)
