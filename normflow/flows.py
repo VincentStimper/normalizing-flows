@@ -231,6 +231,7 @@ class MaskedAffineFlow(Flow):
         :param s: scale mapping, i.e. neural network, where first input dimension is batch dim
         :param t: translation mapping, i.e. neural network, where first input dimension is batch dim
         """
+        super().__init__()
         self.b_cpu = b.view(1, 1, *b.size())
         self.register_buffer('b', self.b_cpu)
         self.s = s
