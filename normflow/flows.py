@@ -244,7 +244,7 @@ class MaskedAffineFlow(Flow):
         scale = self.s(z_bd_flatten).view(*z_size)
         trans = self.t(z_bd_flatten).view(*z_size)
         z_ = z_masked + (1 - self.b) * (z * torch.exp(scale) + trans)
-        log_det = torch.sum((1 - self.b) * scale, dim=list(range(2, self.b.dim())))
+        log_det = torch.abs(torch.sum((1 - self.b) * scale, dim=list(range(2, self.b.dim()))))
         return z_, log_det
 
     def inverse(self, z):
