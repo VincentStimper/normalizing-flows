@@ -1,6 +1,12 @@
 import torch
 from torch import nn
 
+
+def init_weights(m):
+    if type(m) == nn.Linear:
+        m.weight.data.uniform_(0.0, 0.1)
+        m.bias.data.fill_(0.0)
+
 class FCN(nn.Module):
     """
     Fully Connected neural Network with ReLUs as nonlinearities
@@ -32,7 +38,7 @@ class MLP(nn.Module):
     """
     A multilayer perceptron with Leaky ReLU nonlinearities
     """
-
+    
     def __init__(self, layers):
         """
         :param layers: list of layer sizes from start to end
@@ -44,6 +50,8 @@ class MLP(nn.Module):
             if k != len(layers)-2:
                 net.append(nn.LeakyReLU(0.2))
         self.net = nn.Sequential(*net)
+        self.net.apply(init_weights)
+
         
     def forward(self, x):
         return self.net(x)
