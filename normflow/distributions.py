@@ -245,8 +245,8 @@ class TwoModes(PriorDistribution):
         else:
             z_ = z
         log_prob = - 0.5 * ((torch.norm(z_, dim=0) - self.loc) / (2 * self.scale)) ** 2\
-                   + torch.log(torch.exp(-0.5 * ((z_[0] - self.loc) / (3 * self.scale)) ** 2)
-                               + torch.exp(-0.5 * ((z_[0] + self.loc) / (3 * self.scale)) ** 2))
+                   - 0.5 * ((torch.abs(z_[0]) - torch.abs(torch.tensor(self.loc))) / (3 * self.scale)) ** 2\
+                   + torch.log(1 + torch.exp(-2 * torch.abs(z_[0] * self.loc) / (3 * self.scale) ** 2))
         return log_prob
     
     

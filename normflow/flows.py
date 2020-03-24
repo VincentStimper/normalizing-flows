@@ -211,7 +211,45 @@ class AffineHalfFlow(Flow):
         x = torch.cat([x0, x1], dim=2)
         log_det = torch.sum(-s, dim=1)
         return x, log_det
-    
+
+
+class MaskedAffineFlow(Flow):
+    """
+    RealNVP as introduced in arXiv: 1605.08803
+    Masked affine autoregressive flow f(z) = b * z + (1 - b) * (z * exp(s(b * z)) + t)
+    """
+    def __init__(self, b, s, t):
+        """
+        Constructor
+        :param b: mask for features, i.e. tensor of same size as latent data point filled with 0s and 1s
+        :param s: scale mapping, i.e. neural network, where first input dimension is batch dim
+        :param t: translation mapping, i.e. neural network, where first input dimension is batch dim
+        """
+        super().__init__()
+        self.b_cpu = b.view(1, 1, *b.size())
+        self.register_buffer('b', self.b_cpu)
+        self.s = s
+        self.t = t
+
+    def forward(self, z):
+        z_size = z.size()
+        z_masked = self.b * z
+        z_bd_flatten = z_masked.view(-1, *z_size[2:])
+        scale = self.s(z_bd_flatten).view(*z_size)
+        trans = self.t(z_bd_flatten).view(*z_size)
+        z_ = z_masked + (1 - self.b) * (z * torch.exp(scale) + trans)
+        log_det = torch.sum((1 - self.b) * scale, dim=list(range(2, self.b.dim())))
+        return z_, log_det
+
+    def inverse(self, z):
+        z_size = z.size()
+        z_masked = self.b * z
+        z_bd_flatten = z_masked.view(-1, *z_size[2:])
+        scale = self.s(z_bd_flatten).view(*z_size)
+        trans = self.t(z_bd_flatten).view(*z_size)
+        z_ = z_masked + (1 - self.b) * (z - trans) * torch.exp(-scale)
+        return z_
+
     
 class Invertible1x1Conv(Flow):
     def __init__(self, shape):
