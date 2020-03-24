@@ -206,7 +206,7 @@ class NNBernoulliDecoder(Decoder):
         x = x.unsqueeze(1)
         x = x.repeat(1, z_size[1], *((x.dim() - 2) * [1]))
         mean = mean.view(*x.size())
-        log_p = torch.sum(x * torch.log(mean) + (1 - x) * torch.log(1 - mean), list(range(2, x.dim())))
+        log_p = torch.mean(x * torch.log(mean) + (1 - x) * torch.log(1 - mean), list(range(2, x.dim())))
         return log_p
 
 
