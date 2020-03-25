@@ -27,7 +27,7 @@ class Planar(Flow):
     Planar flow as introduced in arXiv: 1505.05770
         f(z) = z + u * h(w * z + b)
     """
-    def __init__(self, shape, h=torch.tanh, u=None, w=None, b=None):
+    def __init__(self, shape, act="tanh", u=None, w=None, b=None):
         """
         Constructor of the planar flow
         :param shape: shape of the latent variable z
@@ -52,18 +52,44 @@ class Planar(Flow):
             self.b = nn.Parameter(b)
         else:
             self.b = nn.Parameter(torch.zeros(1))
-        self.h = h
+        
+        self.act = act
+        if act == "tanh":
+            self.h = torch.tanh
+        elif act == "leaky_relu":
+            self.h = torch.nn.LeakyReLU(negative_slope=0.2)
+        else:
+            raise NotImplementedError('Nonlinearity is not implemented.')
 
     def forward(self, z):
-        if self.h == torch.tanh:
+        lin = torch.sum(self.w * z, list(range(2, self.w.dim())), keepdim=True) + self.b
+        if self.act == "tanh":
             inner = torch.sum(self.w * self.u)
             u = self.u + (torch.log(1 + torch.exp(inner)) - 1 - inner) * self.w / torch.sum(self.w ** 2)
             h_ = lambda x: 1 / torch.cosh(x) ** 2
-        else:
-            raise NotImplementedError('Nonlinearity is not implemented.')
-        lin = torch.sum(self.w * z, list(range(2, self.w.dim())), keepdim=True) + self.b
+            log_det = torch.log(torch.abs(1 + torch.sum(self.w * u) * h_(lin.squeeze())))
+        elif self.act == "leaky_relu":
+            inner = torch.sum(self.w * self.u)
+            u = self.u + (torch.log(1 + torch.exp(inner)) - 1 - inner) * self.w / torch.sum(self.w ** 2) # constraint w.T * u neq -1, use >
+            h_ = lambda x: (x<0)*(self.h.negative_slope - 1.0) + 1.0
+        
         z_ = z + u * self.h(lin)
         log_det = torch.log(torch.abs(1 + torch.sum(self.w * u) * h_(lin.squeeze())))
+        if log_det.dim() == 0:
+            log_det = log_det.unsqueeze(0)
+        if log_det.dim() == 1:
+            log_det = log_det.unsqueeze(1)
+        return z_, log_det
+    
+    def inverse(self, z):
+        if self.act != "leaky_relu":
+            raise NotImplementedError('This flow has no algebraic inverse.')
+        lin = torch.sum(self.w * z, list(range(2, self.w.dim())), keepdim=True) + self.b
+        inner = torch.sum(self.w * self.u)
+        a = ((lin + self.b)/(1 + inner) < 0) * (self.h.negative_slope - 1.0) + 1.0 # absorb leakyReLU slope into u
+        u = a * (self.u + (torch.log(1 + torch.exp(inner)) - 1 - inner) * self.w / torch.sum(self.w ** 2))
+        z_ = z - 1/(1+inner) * (lin + u*self.b)
+        log_det = -torch.log(torch.abs(1 + torch.sum(self.w * u)))
         if log_det.dim() == 0:
             log_det = log_det.unsqueeze(0)
         if log_det.dim() == 1:
