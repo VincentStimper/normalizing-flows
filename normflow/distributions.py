@@ -319,8 +319,8 @@ class Sinusoidal_gap(PriorDistribution):
             
         w_1 = lambda x: torch.sin(2*np.pi / self.period * z_[0])
         w_2 = lambda x: self.w2_amp * torch.exp(-0.5*((z_[0] - self.w2_mu) / self.w2_scale)**2)
-        log_prob = -0.5 * ((z_[1] - w_1(z_)) / (self.scale)) ** 2 + \
-                    torch.log(1 + torch.exp(-((z_[1] - w_1(z_) + 0.5*w_2(z_)) * w_2(z_)) / self.scale**2)
+        log_prob = -0.5 * ( (z_[1] - w_1(z_)) / self.scale) ** 2 + \
+                    torch.log(1 + torch.exp(-( (z_[1] - w_1(z_) + 0.5*w_2(z_)) * w_2(z_) / self.scale**2)))
         
         return log_prob
     
@@ -351,7 +351,7 @@ class Sinusoidal_split(PriorDistribution):
         w_1 = lambda x: torch.sin(2*np.pi / self.period * z_[0])
         w_3 = lambda x: self.w3_amp * torch.sigmoid((z_[0] - self.w3_mu) / self.w3_scale)
         log_prob = -0.5 * ((z_[1] - w_1(z_)) / (self.scale)) ** 2 + \
-                    torch.log(1 + torch.exp(-((z_[1] - w_1(z_) + 0.5*w_3(z_)) * w_3(z_)) / self.scale**2)
+                    torch.log(1 + torch.exp(-( (z_[1] - w_1(z_) + 0.5*w_3(z_)) * w_3(z_) / self.scale**2)))
         
         return log_prob
     
