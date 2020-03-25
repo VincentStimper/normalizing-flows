@@ -38,16 +38,19 @@ class Dirac(ParametrizedConditionalDistribution):
     
     
 class Uniform(ParametrizedConditionalDistribution):
-    def __init__(self):
+    def __init__(self, zmin=0.0, zmax=1.0):
         super().__init__()
+        self.zmin = zmin
+        self.zmax = zmax
+        self.log_p = -torch.log(zmax-zmin)
 
     def forward(self, x, num_samples=1):
-        z = x.unsqueeze(1).repeat(1, num_samples, 1)
-        log_p = torch.zeros(z.size()[0:2])
+        z = x.unsqueeze(1).repeat(1, num_samples, 1).uniform_(min=zmin, max=zmax)
+        log_p = torch.zeros(z.size()[0:2]).fill_(self.log_p)
         return z, log_p
 
     def log_prob(self, z, x):
-        log_p = torch.zeros(z.size()[0:2])
+        log_p = torch.zeros(z.size()[0:2]).fill_(self.log_p)
         return log_p
 
 
