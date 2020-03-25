@@ -104,7 +104,7 @@ class NNDiagGaussian(ParametrizedConditionalDistribution):
         mean_std = self.net(x)
         n_hidden = mean_std.size()[1] // 2
         mean = mean_std[:, :n_hidden, ...].unsqueeze(1)
-        std = torch.abs(mean_std[:, n_hidden:(2 * n_hidden), ...].unsqueeze(1))
+        std = torch.exp(0.5 * mean_std[:, n_hidden:(2 * n_hidden), ...].unsqueeze(1))
         eps = torch.randn((batch_size, num_samples) + (mean.dim() - 2) * (1,), device=x.device)
         z = mean + std * eps
         log_p = - 0.5 * torch.prod(torch.tensor(z.size()[2:])) * np.log(2 * np.pi)\
@@ -124,7 +124,7 @@ class NNDiagGaussian(ParametrizedConditionalDistribution):
         mean_std = self.net(x)
         n_hidden = mean_std.size()[1] // 2
         mean = mean_std[:, :n_hidden, ...].unsqueeze(1)
-        var = mean_std[:, n_hidden:(2 * n_hidden), ...].unsqueeze(1) ** 2
+        var = torch.exp(mean_std[:, n_hidden:(2 * n_hidden), ...].unsqueeze(1))
         log_p = - 0.5 * torch.prod(torch.tensor(z.size()[2:])) * np.log(2 * np.pi)\
                 - 0.5 * torch.sum(torch.log(var) + (z - mean) ** 2 / var, 2)
         return log_p
