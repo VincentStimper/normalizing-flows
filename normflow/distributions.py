@@ -169,14 +169,14 @@ class NNDiagGaussianDecoder(Decoder):
         mean_std = self.net(z.view(-1, *z_size[2:])).view(z_size)
         n_hidden = mean_std.size()[2] // 2
         mean = mean_std[:, :, :n_hidden, ...]
-        std = torch.abs(mean_std[:, :, n_hidden:(2 * n_hidden), ...])
+        std = torch.exp(0.5 * mean_std[:, :, n_hidden:(2 * n_hidden), ...])
         return mean, std
 
     def log_p(self, x, z):
         mean_std = self.net(z.view(-1, *z.size()[2:])).view(*z.size()[:2], x.size(1) * 2, *x.size()[3:])
         n_hidden = mean_std.size()[2] // 2
         mean = mean_std[:, :, :n_hidden, ...]
-        var = mean_std[:, :, n_hidden:(2 * n_hidden), ...] ** 2
+        var = torch.exp(mean_std[:, :, n_hidden:(2 * n_hidden), ...])
         log_p = - 0.5 * torch.prod(torch.tensor(z.size()[2:])) * np.log(2 * np.pi) \
                 - 0.5 * torch.sum(torch.log(var) + (x.unsqueeze(1) - mean) ** 2 / var, list(range(2, z.dim())))
         return log_p
@@ -206,7 +206,7 @@ class NNBernoulliDecoder(Decoder):
         x = x.unsqueeze(1)
         x = x.repeat(1, z_size[1], *((x.dim() - 2) * [1]))
         mean = mean.view(*x.size())
-        log_p = torch.mean(x * torch.log(mean) + (1 - x) * torch.log(1 - mean), list(range(2, x.dim())))
+        log_p = torch.sum(x * torch.log(mean) + (1 - x) * torch.log(1 - mean), list(range(2, x.dim())))
         return log_p
 
 
