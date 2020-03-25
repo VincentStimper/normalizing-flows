@@ -190,23 +190,24 @@ class NNBernoulliDecoder(Decoder):
     def __init__(self, net):
         """
         Constructor
-        :param net: neural network parametrizing mean Bernoulli
+        :param net: neural network parametrizing mean Bernoulli (mean = sigmoid(nn_out)
         """
         super().__init__()
         self.net = net
 
     def forward(self, z):
         z_size = z.size()
-        mean = self.net(z.view(-1, *z_size[2:])).view(*z_size[:2], -1)
+        mean = torch.sigmoid(self.net(z.view(-1, *z_size[2:])).view(*z_size[:2], -1))
         return mean
 
     def log_p(self, x, z):
         z_size = z.size()
-        mean = self.net(z.view(-1, *z_size[2:]))
+        score = self.net(z.view(-1, *z_size[2:]))
         x = x.unsqueeze(1)
         x = x.repeat(1, z_size[1], *((x.dim() - 2) * [1]))
-        mean = mean.view(*x.size())
-        log_p = torch.sum(x * torch.log(mean) + (1 - x) * torch.log(1 - mean), list(range(2, x.dim())))
+        score = score.view(*x.size())
+        log_sig = lambda a: -torch.relu(-a) - torch.log(1 + torch.exp(-torch.abs(a)))
+        log_p = torch.sum(x * log_sig(score) + (1 - x) * log_sig(-score), list(range(2, x.dim())))
         return log_p
 
 
