@@ -258,13 +258,10 @@ class TwoModes(PriorDistribution):
             z_ = z.permute((z.dim() - 1, ) + tuple(range(0, z.dim() - 1)))
         else:
             z_ = z
-        eps = 1e-8
-        log_prob = - 0.5 * ((torch.norm(z_, dim=0) - self.loc) / (2 * self.scale)) ** 2\
-                   - 0.5 * ((torch.abs(z_[0]) - torch.abs(torch.tensor(self.loc))) / (3 * self.scale)) ** 2\
-                   + torch.log(1 + torch.exp(-2 * torch.abs(z_[0] * self.loc) / (3 * self.scale) ** 2))
 
-#                    + torch.log(torch.exp(-0.5 * ((z_[0] - self.loc) / (3 * self.scale)) ** 2)
-#                               + torch.exp(-0.5 * ((z_[0] + self.loc) / (3 * self.scale)) ** 2) + eps)
+        log_prob = - 0.5 * ((torch.norm(z_, dim=0) - self.loc) / (2 * self.scale)) ** 2\
+                   - 0.5 * ((torch.abs(z_[0]) + torch.abs(torch.tensor(self.loc))) / (3 * self.scale)) ** 2\
+                   + torch.log(1 + torch.exp(2 * torch.abs(z_[0] * self.loc) / (3 * self.scale) ** 2))
         
         return log_prob
     
@@ -300,7 +297,7 @@ class Sinusoidal(PriorDistribution):
 class Sinusoidal_gap(PriorDistribution):
     def __init__(self, scale, period):
         """
-        Distribution 2d with sinusoidal density
+        Distribution 2d with sinusoidal density with gap
         :param loc: distance of modes from the origin
         :param scale: scale of modes
         """
@@ -312,8 +309,6 @@ class Sinusoidal_gap(PriorDistribution):
 
     def log_prob(self, z):
         """
-        log(p) = 1/2 * ((z[1] - w_1(z)) / (2 * scale)) ** 2
-        w_1(z) = sin(2*pi / period * z[0])
         :param z: value or batch of latent variable
         :return: log probability of the distribution for z
         """
@@ -324,9 +319,8 @@ class Sinusoidal_gap(PriorDistribution):
             
         w_1 = lambda x: torch.sin(2*np.pi / self.period * z_[0])
         w_2 = lambda x: self.w2_amp * torch.exp(-0.5*((z_[0] - self.w2_mu) / self.w2_scale)**2)
-        log_prob = torch.log( torch.exp(-0.5 * ((z_[1] - w_1(z_)) / (self.scale)) ** 2 ) + \
-                             torch.exp(-0.5 * ((z_[1] - w_1(z_) + w_2(z_)) / (self.scale)) ** 2 ))#\
-                            #-torch.sum(0.5 * ((z_) / 4.0) ** 2, dim=0))
+        log_prob = -0.5 * ((z_[1] - w_1(z_)) / (self.scale)) ** 2 + \
+                    torch.log(1 + torch.exp(-((z_[1] - w_1(z_) + 0.5*w_2(z_)) * w_2(z_)) / self.scale**2)
         
         return log_prob
     
@@ -334,7 +328,7 @@ class Sinusoidal_gap(PriorDistribution):
 class Sinusoidal_split(PriorDistribution):
     def __init__(self, scale, period):
         """
-        Distribution 2d with sinusoidal density
+        Distribution 2d with sinusoidal density with split
         :param loc: distance of modes from the origin
         :param scale: scale of modes
         """
@@ -346,8 +340,6 @@ class Sinusoidal_split(PriorDistribution):
 
     def log_prob(self, z):
         """
-        log(p) = 1/2 * ((z[1] - w_1(z)) / (2 * scale)) ** 2
-        w_1(z) = sin(2*pi / period * z[0])
         :param z: value or batch of latent variable
         :return: log probability of the distribution for z
         """
@@ -358,9 +350,8 @@ class Sinusoidal_split(PriorDistribution):
             
         w_1 = lambda x: torch.sin(2*np.pi / self.period * z_[0])
         w_3 = lambda x: self.w3_amp * torch.sigmoid((z_[0] - self.w3_mu) / self.w3_scale)
-        log_prob = torch.log( torch.exp(-0.5 * ((z_[1] - w_1(z_)) / (self.scale)) ** 2 ) + \
-                             torch.exp(-0.5 * ((z_[1] - w_1(z_) + w_3(z_)) / (self.scale)) ** 2 ))# + \
-                            #-torch.sum(0.5 * ((z_) / 4.0) ** 2, dim=0))
+        log_prob = -0.5 * ((z_[1] - w_1(z_)) / (self.scale)) ** 2 + \
+                    torch.log(1 + torch.exp(-((z_[1] - w_1(z_) + 0.5*w_3(z_)) * w_3(z_)) / self.scale**2)
         
         return log_prob
     
@@ -368,7 +359,7 @@ class Sinusoidal_split(PriorDistribution):
 class Smiley(PriorDistribution):
     def __init__(self, scale):
         """
-        Distribution 2d with sinusoidal density
+        Distribution 2d of a smiley :)
         :param loc: distance of modes from the origin
         :param scale: scale of modes
         """
@@ -377,8 +368,6 @@ class Smiley(PriorDistribution):
 
     def log_prob(self, z):
         """
-        log(p) = 1/2 * ((z[1] - w_1(z)) / (2 * scale)) ** 2
-        w_1(z) = sin(2*pi / period * z[0])
         :param z: value or batch of latent variable
         :return: log probability of the distribution for z
         """
