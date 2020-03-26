@@ -192,7 +192,8 @@ class BatchNorm(Flow):
     """
     def __init__(self, eps=1.e-10):
         super().__init__()
-        self.register_buffer('eps', eps)
+        self.eps_cpu = torch.tensor(eps)
+        self.register_buffer('eps', self.eps_cpu)
 
     def forward(self, z):
         """
