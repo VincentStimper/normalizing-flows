@@ -191,7 +191,8 @@ class BatchNorm(Flow):
     Batch Normalization with out considering the derivatives of the batch statistics, see arXiv: 1605.08803
     """
     def __init__(self, eps=1.e-10):
-        self.eps = eps
+        super().__init__()
+        self.register_buffer('eps', eps)
 
     def forward(self, z):
         """
