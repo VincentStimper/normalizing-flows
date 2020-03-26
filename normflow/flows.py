@@ -202,7 +202,7 @@ class BatchNorm(Flow):
         mean = torch.mean(z, dim=[0, 1], keepdims=True)
         std = torch.std(z, dim=[0, 1], keepdims=True)
         z_ = (z - mean) / torch.sqrt(std ** 2 + self.eps)
-        log_det = torch.ones(*z.size()[:2]) * torch.log(1 / torch.prod(torch.sqrt(std ** 2 + self.eps)))
+        log_det = torch.log(1 / torch.prod(torch.sqrt(std ** 2 + self.eps))).repeat(*z.size()[:2])
         return z_, log_det
 
     
