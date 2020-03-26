@@ -185,6 +185,24 @@ class MaskedAffineFlow(Flow):
         log_det = -torch.sum((1 - self.b) * scale, dim=list(range(2, self.b.dim())))
         return z_, log_det
 
+
+class BatchNorm(Flow):
+    """
+    Batch Normalization with out considering the derivatives of the batch statistics, see arXiv: 1605.08803
+    """
+    def __init__(self, eps=1.e-10):
+        self.eps = eps
+
+    def forward(self, z):
+        """
+        Do batch norm over batch and sample dimension
+        """
+        mean = torch.mean(z, dim=[0, 1], keepdims=True)
+        std = torch.std(z, dim=[0, 1], keepdims=True)
+        z_ = (z - mean) / torch.sqrt(std ** 2 + self.eps)
+        log_det = torch.ones(*z.size()[:2]) * torch.log(1 / torch.prod(torch.sqrt(std ** 2 + self.eps)))
+        return z_, log_det
+
     
 class Invertible1x1Conv(Flow):
     def __init__(self, shape):
