@@ -245,15 +245,16 @@ class ImagePrior(nn.Module):
     """
     Intensities of an image determine probability density of prior
     """
-    def __init__(self, image, x_range=[-3, 3], y_range=[-3, 3]):
+    def __init__(self, image, x_range=[-3, 3], y_range=[-3, 3], eps=1.e-10):
         """
         Constructor
         :param image: image as np matrix
         :param x_range: x range to position image at
         :param y_range: y range to position image at
+        :param eps: small value to add to image to avoid log(0) problems
         """
         super().__init__()
-        self.image_cpu = torch.tensor(np.pad(image, ((1, 1), (1, 1))))
+        self.image_cpu = torch.tensor(np.pad(image, ((1, 1), (1, 1))) + eps)
         self.image_size = self.image_cpu.size()
         self.x_range_cpu = torch.tensor(x_range)
         self.y_range_cpu = torch.tensor(y_range)
