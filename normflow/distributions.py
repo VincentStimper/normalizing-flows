@@ -270,8 +270,8 @@ class ImagePrior(nn.Module):
         """
         x = torch.clamp((z[:, :, 0] - self.x_range[0]) / (self.x_range[1] - self.x_range[0]), max=1, min=0)
         y = torch.clamp((z[:, :, 1] - self.y_range[0]) / (self.x_range[1] - self.x_range[0]), max=1, min=0)
-        indx = (x * (self.image_size[0] - 1)).int()
-        indy = (y * (self.image_size[1] - 1)).int()
+        indx = (x * (self.image_size[0] - 1)).long()
+        indy = (y * (self.image_size[1] - 1)).long()
         return self.density[indx, indy]
 
 
