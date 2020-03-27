@@ -241,6 +241,39 @@ class PriorDistribution:
         raise NotImplementedError
 
 
+class ImagePrior(nn.Module):
+    """
+    Intensities of an image determine probability density of prior
+    """
+    def __init__(self, image, x_range=[-3, 3], y_range=[-3, 3]):
+        """
+        Constructor
+        :param image: image as np matrix
+        :param x_range: x range to position image at
+        :param y_range: y range to position image at
+        """
+        super().__init__()
+        self.image_cpu = torch.tensor(np.pad(image, ((1, 1), (1, 1))))
+        self.image_size = self.image_cpu.size()
+        self.x_range_cpu = torch.tensor(x_range)
+        self.y_range_cpu = torch.tensor(y_range)
+
+        self.register_buffer('density', torch.log(self.image_cpu / torch.sum(self.image_cpu)))
+        self.register_buffer('x_range', self.x_range_cpu)
+        self.register_buffer('y_range', self.y_range_cpu)
+
+    def log_prob(self, z):
+        """
+        :param z: value or batch of latent variable
+        :return: log probability of the distribution for z
+        """
+        x = torch.clamp((z[:, :, 0] - self.x_range[0]) / (self.x_range[1] - self.x_range[0]), max=1, min=0)
+        y = torch.clamp((z[:, :, 1] - self.y_range[0]) / (self.x_range[1] - self.x_range[0]), max=1, min=0)
+        indx = (x * (self.image_size[0] - 1)).int()
+        indy = (y * (self.image_size[1] - 1)).int()
+        return self.density[indx, indy]
+
+
 class TwoModes(PriorDistribution):
     def __init__(self, loc, scale):
         """
