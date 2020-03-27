@@ -254,7 +254,7 @@ class ImagePrior(nn.Module):
         :param eps: small value to add to image to avoid log(0) problems
         """
         super().__init__()
-        self.image_cpu = torch.tensor(np.pad(image, ((1, 1), (1, 1))) + eps)
+        self.image_cpu = torch.tensor(np.pad(image.transpose(), ((1, 1), (1, 1))) + eps)
         self.image_size = self.image_cpu.size()
         self.x_range_cpu = torch.tensor(x_range)
         self.y_range_cpu = torch.tensor(y_range)
