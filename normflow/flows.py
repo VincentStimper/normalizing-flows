@@ -124,10 +124,10 @@ class Radial(Flow):
         beta = torch.log(1 + torch.exp(self.beta)) - torch.abs(self.alpha)
         dz = z - self.z_0
         r = torch.norm(dz, dim=list(range(1, self.z_0.dim())))
-        h_arr = beta / (torch.abs(self.alpha) + r.unsqueeze(1))
+        h_arr = beta / (torch.abs(self.alpha) + r)
         h_arr_ = - beta * r / (torch.abs(self.alpha) + r) ** 2
-        z_ = z + h_arr * dz
-        log_det = (self.d - 1) * torch.log(1 + h_arr.squeeze()) + torch.log(1 + h_arr + h_arr_)
+        z_ = z + h_arr.unsqueeze(1) * dz
+        log_det = (self.d - 1) * torch.log(1 + h_arr) + torch.log(1 + h_arr + h_arr_)
         return z_, log_det
 
 class MaskedAffineFlow(Flow):
