@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import numpy as np
 
-class ParametrizedConditionalDistribution(nn.Module):
+class BaseEncoder(nn.Module):
     def __init__(self):
         super().__init__()
 
@@ -23,7 +23,7 @@ class ParametrizedConditionalDistribution(nn.Module):
         raise NotImplementedError
 
 
-class Dirac(ParametrizedConditionalDistribution):
+class Dirac(BaseEncoder):
     def __init__(self):
         super().__init__()
 
@@ -37,7 +37,7 @@ class Dirac(ParametrizedConditionalDistribution):
         return log_p
     
     
-class Uniform(ParametrizedConditionalDistribution):
+class Uniform(BaseEncoder):
     def __init__(self, zmin=0.0, zmax=1.0):
         super().__init__()
         self.zmin = zmin
@@ -54,7 +54,7 @@ class Uniform(ParametrizedConditionalDistribution):
         return log_p
 
 
-class ConstDiagGaussian(ParametrizedConditionalDistribution):
+class ConstDiagGaussian(BaseEncoder):
     def __init__(self, loc, scale):
         """
         Multivariate Gaussian distribution with diagonal covariance and parameters being constant wrt x
@@ -99,7 +99,7 @@ class ConstDiagGaussian(ParametrizedConditionalDistribution):
         return log_p
 
 
-class NNDiagGaussian(ParametrizedConditionalDistribution):
+class NNDiagGaussian(BaseEncoder):
     """
     Diagonal Gaussian distribution with mean and variance determined by a neural network
     """
@@ -160,7 +160,7 @@ class Decoder(nn.Module):
         """
         raise NotImplementedError
 
-    def log_p(self, x, z):
+    def log_prob(self, x, z):
         """
         :param x: observable
         :param z: latent variable
@@ -189,7 +189,7 @@ class NNDiagGaussianDecoder(Decoder):
         std = torch.exp(0.5 * mean_std[:, :, n_hidden:(2 * n_hidden), ...])
         return mean, std
 
-    def log_p(self, x, z):
+    def log_prob(self, x, z):
         mean_std = self.net(z.view(-1, *z.size()[2:])).view(*z.size()[:2], x.size(1) * 2, *x.size()[3:])
         n_hidden = mean_std.size()[2] // 2
         mean = mean_std[:, :, :n_hidden, ...]
@@ -214,17 +214,16 @@ class NNBernoulliDecoder(Decoder):
 
     def forward(self, z):
         z_size = z.size()
-        mean = torch.sigmoid(self.net(z.view(-1, *z_size[2:])).view(*z_size[:2], -1))
+        mean = torch.sigmoid(self.net(z))
         return mean
 
-    def log_p(self, x, z):
-        z_size = z.size()
-        score = self.net(z.view(-1, *z_size[2:]))
+    def log_prob(self, x, z):
+        score = self.net(z)
         x = x.unsqueeze(1)
-        x = x.repeat(1, z_size[1], *((x.dim() - 2) * [1]))
-        score = score.view(*x.size())
+        x = x.repeat(1, z.size()[0] // x.size()[0], *((x.dim() - 2) * [1])).view(-1, *x.size()[2:])
+        score = score
         log_sig = lambda a: -torch.relu(-a) - torch.log(1 + torch.exp(-torch.abs(a)))
-        log_p = torch.sum(x * log_sig(score) + (1 - x) * log_sig(-score), list(range(2, x.dim())))
+        log_p = torch.sum(x * log_sig(score) + (1 - x) * log_sig(-score), list(range(1, x.dim())))
         return log_p
 
 
