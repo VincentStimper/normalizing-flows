@@ -146,7 +146,7 @@ class MaskedAffineFlow(Flow):
         :param batch_shape: tuple of batch size and sample number
         """
         super().__init__()
-        self.b_cpu = b.view(1, 1, *b.size())
+        self.b_cpu = b.view(1, *b.size())
         self.register_buffer('b', self.b_cpu)
         
         if scale:
@@ -162,11 +162,10 @@ class MaskedAffineFlow(Flow):
     def forward(self, z):
         z_size = z.size()
         z_masked = self.b * z
-        z_bd_flatten = z_masked.view(-1, *z_size[2:])
-        scale = self.s(z_bd_flatten).view(*z_size)
-        trans = self.t(z_bd_flatten).view(*z_size)
+        scale = self.s(z)
+        trans = self.t(z)
         z_ = z_masked + (1 - self.b) * (z * torch.exp(scale) + trans)
-        log_det = torch.sum((1 - self.b) * scale, dim=list(range(2, self.b.dim())))
+        log_det = torch.sum((1 - self.b) * scale, dim=list(range(1, self.b.dim())))
         return z_, log_det
 
     def inverse(self, z):
@@ -193,10 +192,10 @@ class BatchNorm(Flow):
         """
         Do batch norm over batch and sample dimension
         """
-        mean = torch.mean(z, dim=[0, 1], keepdims=True)
-        std = torch.std(z, dim=[0, 1], keepdims=True)
+        mean = torch.mean(z, dim=0, keepdims=True)
+        std = torch.std(z, dim=0, keepdims=True)
         z_ = (z - mean) / torch.sqrt(std ** 2 + self.eps)
-        log_det = torch.log(1 / torch.prod(torch.sqrt(std ** 2 + self.eps))).repeat(*z.size()[:2])
+        log_det = torch.log(1 / torch.prod(torch.sqrt(std ** 2 + self.eps))).repeat(z.size()[0])
         return z_, log_det
 
     
