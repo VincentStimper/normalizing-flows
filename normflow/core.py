@@ -2,9 +2,9 @@ import torch
 import torch.nn as nn
 from . import distributions
 
-class NormalizingFlow(nn.Module):
+class NormalizingFlowVAE(nn.Module):
     """
-    Normalizing flow model
+    VAE using normalizing flows to express approximate distribution
     """
     def __init__(self, prior, decoder=None, q0=distributions.Dirac(), flows=None):
         """
@@ -22,22 +22,17 @@ class NormalizingFlow(nn.Module):
 
     def forward(self, x, num_samples=1):
         z, log_q = self.q0(x, num_samples=num_samples)
+        # Flatten batch and sample dim
+        z = z.view(-1, *z.size()[2:])
+        log_q = log_q.view(-1, *log_q.size()[2:])
         for flow in self.flows:
             z, log_det = flow(z)
             log_q -= log_det
         log_p = self.prior.log_prob(z)
         if self.decoder is not None:
             log_p += self.decoder.log_p(x, z)
+        # Separate batch and sample dimension again
+        z = z.view(-1, num_samples, *z.size()[1:])
+        log_q = log_q.view(-1, num_samples, *log_q.size()[1:])
+        log_p = log_p.view(-1, num_samples, *log_p.size()[1:])
         return z, log_q, log_p
-
-    def log_q(self, z, x):
-        """
-        :param z: Latent variable, first dimension is batch dimension
-        :param x: Observable, first dimension is batch dimension
-        :return: Approximate posterior at z given x
-        """
-        log_q = self.q0.log_prob(z, x)
-        for flow in self.flows:
-            z, log_det = flow(z)
-            log_q -= log_det
-        return log_q
