@@ -213,7 +213,6 @@ class NNBernoulliDecoder(Decoder):
         self.net = net
 
     def forward(self, z):
-        z_size = z.size()
         mean = torch.sigmoid(self.net(z))
         return mean
 
@@ -221,7 +220,6 @@ class NNBernoulliDecoder(Decoder):
         score = self.net(z)
         x = x.unsqueeze(1)
         x = x.repeat(1, z.size()[0] // x.size()[0], *((x.dim() - 2) * [1])).view(-1, *x.size()[2:])
-        score = score
         log_sig = lambda a: -torch.relu(-a) - torch.log(1 + torch.exp(-torch.abs(a)))
         log_p = torch.sum(x * log_sig(score) + (1 - x) * log_sig(-score), list(range(1, x.dim())))
         return log_p
