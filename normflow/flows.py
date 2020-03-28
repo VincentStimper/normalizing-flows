@@ -118,21 +118,16 @@ class Radial(Flow):
         if z_0 is not None:
             self.z_0 = nn.Parameter(z_0)
         else:
-            self.z_0 = nn.Parameter(torch.randn(shape)[(None,) * 2])
+            self.z_0 = nn.Parameter(torch.randn(shape)[None])
 
     def forward(self, z):
         beta = torch.log(1 + torch.exp(self.beta)) - torch.abs(self.alpha)
         dz = z - self.z_0
-        r = torch.norm(dz, dim=list(range(2, self.z_0.dim())), keepdim=True)
-        h_arr = beta / (torch.abs(self.alpha) + r)
+        r = torch.norm(dz, dim=list(range(1, self.z_0.dim())))
+        h_arr = beta / (torch.abs(self.alpha) + r.unsqueeze(1))
         h_arr_ = - beta * r / (torch.abs(self.alpha) + r) ** 2
         z_ = z + h_arr * dz
-        log_det = (self.d - 1) * torch.log(1 + h_arr) + torch.log(1 + h_arr + h_arr_)
-        log_det = log_det.squeeze()
-        if log_det.dim() == 0:
-            log_det = log_det.unsqueeze(0)
-        if log_det.dim() == 1:
-            log_det = log_det.unsqueeze(1)
+        log_det = (self.d - 1) * torch.log(1 + h_arr.squeeze()) + torch.log(1 + h_arr + h_arr_)
         return z_, log_det
 
 class MaskedAffineFlow(Flow):
