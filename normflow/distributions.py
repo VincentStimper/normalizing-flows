@@ -292,15 +292,10 @@ class TwoModes(PriorDistribution):
         :param z: value or batch of latent variable
         :return: log probability of the distribution for z
         """
-        if z.dim() > 1:
-            z_ = z.permute((z.dim() - 1, ) + tuple(range(0, z.dim() - 1)))
-        else:
-            z_ = z
-            
-        a = torch.abs(z_[0])
+        a = torch.abs(z[:, 0])
         eps = torch.abs(torch.tensor(self.loc))
 
-        log_prob = - 0.5 * ((torch.norm(z_, dim=0) - self.loc) / (2 * self.scale)) ** 2\
+        log_prob = - 0.5 * ((torch.norm(z, dim=1) - self.loc) / (2 * self.scale)) ** 2\
                    - 0.5 * ((a - eps) / (3 * self.scale)) ** 2\
                    + torch.log(1 + torch.exp(-2 * (a * eps) / (3 * self.scale) ** 2))
         

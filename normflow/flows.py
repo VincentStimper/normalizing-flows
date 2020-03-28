@@ -14,6 +14,10 @@ class Flow(nn.Module):
         super().__init__()
 
     def forward(self, z):
+        """
+        :param z: input variable, first dimension is batch dim
+        :return: transformed z and log of absolute determinant
+        """
         raise NotImplementedError('Forward pass has not been implemented.')
 
     def inverse(self, z):
@@ -41,12 +45,12 @@ class Planar(Flow):
         if u is not None:
             self.u = nn.Parameter(u)
         else:
-            self.u = nn.Parameter(torch.empty(shape)[(None,) * 2])
+            self.u = nn.Parameter(torch.empty(shape)[None])
             nn.init.uniform_(self.u, -lim_u, lim_u)
         if w is not None:
             self.w = nn.Parameter(w)
         else:
-            self.w = nn.Parameter(torch.empty(shape)[(None,) * 2])
+            self.w = nn.Parameter(torch.empty(shape)[None])
             nn.init.uniform_(self.w, -lim_w, lim_w)
         if b is not None:
             self.b = nn.Parameter(b)
@@ -62,23 +66,18 @@ class Planar(Flow):
             raise NotImplementedError('Nonlinearity is not implemented.')
 
     def forward(self, z):
-        lin = torch.sum(self.w * z, list(range(2, self.w.dim())), keepdim=True) + self.b
+        lin = torch.sum(self.w * z, list(range(1, self.w.dim()))) + self.b
         if self.act == "tanh":
             inner = torch.sum(self.w * self.u)
             u = self.u + (torch.log(1 + torch.exp(inner)) - 1 - inner) * self.w / torch.sum(self.w ** 2)
             h_ = lambda x: 1 / torch.cosh(x) ** 2
-            log_det = torch.log(torch.abs(1 + torch.sum(self.w * u) * h_(lin.squeeze())))
         elif self.act == "leaky_relu":
             inner = torch.sum(self.w * self.u)
             u = self.u + (torch.log(1 + torch.exp(inner)) - 1 - inner) * self.w / torch.sum(self.w ** 2) # constraint w.T * u neq -1, use >
             h_ = lambda x: (x<0)*(self.h.negative_slope - 1.0) + 1.0
         
-        z_ = z + u * self.h(lin)
-        log_det = torch.log(torch.abs(1 + torch.sum(self.w * u) * h_(lin.squeeze())))
-        if log_det.dim() == 0:
-            log_det = log_det.unsqueeze(0)
-        if log_det.dim() == 1:
-            log_det = log_det.unsqueeze(1)
+        z_ = z + u * self.h(lin.unsqueeze(1))
+        log_det = torch.log(torch.abs(1 + torch.sum(self.w * u) * h_(lin)))
         return z_, log_det
     
     def inverse(self, z):
