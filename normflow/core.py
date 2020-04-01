@@ -2,6 +2,37 @@ import torch
 import torch.nn as nn
 from . import distributions
 
+class NormalizingFlow(nn.Module):
+    """
+    Normalizing Flow model to approximate target distribution
+    """
+    def __init__(self, q0, flows, p=None):
+        """
+        Constructor
+        :param q0: Base distribution
+        :param flows: List of flows
+        :param p: Target distribution
+        """
+        super().__init__()
+        self.q0 = q0
+        self.flows = nn.ModuleList(flows)
+        self.p = p
+
+    def forward_kld(self, x):
+        """
+        Estimates forward KL divergence
+        :param x: Batch sampled from target distribution
+        :return: Estimate of forward KL divergence averaged over batch
+        """
+        log_q = torch.zeros(len(x))
+        z = x
+        for i in range(len(self.flows) - 1, -1, -1):
+            z, log_det = self.flows[i].inverse(z)
+            log_q += log_det
+        log_q += self.q0.log_prob(z)
+        return -torch.mean(log_q)
+
+
 class NormalizingFlowVAE(nn.Module):
     """
     VAE using normalizing flows to express approximate distribution
