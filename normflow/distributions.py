@@ -323,7 +323,7 @@ class ImagePrior(nn.Module):
         :return: log probability of the distribution for z
         """
         x = torch.clamp((z[:, 0] - self.x_range[0]) / (self.x_range[1] - self.x_range[0]), max=1, min=0)
-        y = torch.clamp((z[:, 1] - self.y_range[0]) / (self.x_range[1] - self.x_range[0]), max=1, min=0)
+        y = torch.clamp((z[:, 1] - self.y_range[0]) / (self.y_range[1] - self.y_range[0]), max=1, min=0)
         indx = (x * (self.image_size[0] - 1)).long()
         indy = (y * (self.image_size[1] - 1)).long()
         return self.density[indx, indy]
@@ -336,8 +336,8 @@ class ImagePrior(nn.Module):
         """
         z = torch.rand((num_steps, 2), device=self.image.device)
         prob = torch.rand(num_steps, device=self.image.device)
-        x = torch.clamp((z[:, 0] - self.x_range[0]) / (self.x_range[1] - self.x_range[0]), max=1, min=0)
-        y = torch.clamp((z[:, 1] - self.y_range[0]) / (self.x_range[1] - self.x_range[0]), max=1, min=0)
+        x = z[:, 0] * (self.x_range[1] - self.x_range[0]) + self.x_range[0]
+        y = z[:, 1] * (self.y_range[1] - self.y_range[0]) + self.y_range[0]
         indx = (x * (self.image_size[0] - 1)).long()
         indy = (y * (self.image_size[1] - 1)).long()
         intensity = self.image[indx, indy]
