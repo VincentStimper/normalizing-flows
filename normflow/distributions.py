@@ -306,11 +306,13 @@ class ImagePrior(nn.Module):
         :param eps: small value to add to image to avoid log(0) problems
         """
         super().__init__()
-        self.image_cpu = torch.tensor(np.flip(image, 0).transpose() + eps)
+        image_ = np.flip(image, 0).transpose() + eps
+        self.image_cpu = torch.tensor(image_ / np.max(image_))
         self.image_size = self.image_cpu.size()
         self.x_range_cpu = torch.tensor(x_range)
         self.y_range_cpu = torch.tensor(y_range)
 
+        self.register_buffer('image', self.image_cpu)
         self.register_buffer('density', torch.log(self.image_cpu / torch.sum(self.image_cpu)))
         self.register_buffer('x_range', self.x_range_cpu)
         self.register_buffer('y_range', self.y_range_cpu)
@@ -325,6 +327,23 @@ class ImagePrior(nn.Module):
         indx = (x * (self.image_size[0] - 1)).long()
         indy = (y * (self.image_size[1] - 1)).long()
         return self.density[indx, indy]
+
+    def rejection_sampling(self, num_steps):
+        """
+        Perform rejection sampling on image distribution
+        :param num_steps: Number of rejection sampling steps to perform
+        :return: Accepted samples
+        """
+        z = torch.rand((num_steps, 2), device=self.image.device)
+        prob = torch.rand(num_steps, device=self.image.device)
+        x = torch.clamp((z[:, 0] - self.x_range[0]) / (self.x_range[1] - self.x_range[0]), max=1, min=0)
+        y = torch.clamp((z[:, 1] - self.y_range[0]) / (self.x_range[1] - self.x_range[0]), max=1, min=0)
+        indx = (x * (self.image_size[0] - 1)).long()
+        indy = (y * (self.image_size[1] - 1)).long()
+        intensity = self.image[indx, indy]
+        accept = intensity > prob
+        return z[accept, :]
+
 
 
 class TwoModes(PriorDistribution):
