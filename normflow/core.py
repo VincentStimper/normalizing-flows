@@ -38,7 +38,7 @@ class NormalizingFlow(nn.Module):
         :param num_samples: Number of samples to draw from base distribution
         :return: Estimate of the reverse KL divergence averaged over latent samples
         """
-        z, log_q = self.q0.sample(num_samples)
+        z, log_q = self.q0(num_samples)
         for flow in self.flows:
             z, log_det = flow(z)
             log_q -= log_det
