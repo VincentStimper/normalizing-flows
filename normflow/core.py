@@ -72,6 +72,20 @@ class NormalizingFlow(nn.Module):
         log_q += self.q0.log_prob(z)
         return log_q
 
+    def save(self, path):
+        """
+        Save state dict of model
+        :param path: Path including filename where to save model
+        """
+        torch.save(self.state_dict(), path)
+
+    def load(self, path):
+        """
+        Load model from state dict
+        :param path: Path including filename where to load model from
+        """
+        self.load_state_dict(torch.load(path))
+
 
 class NormalizingFlowVAE(nn.Module):
     """
