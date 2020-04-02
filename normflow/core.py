@@ -36,7 +36,7 @@ class NormalizingFlow(nn.Module):
         """
         Estimates reverse KL divergence, see arXiv 1912.02762
         :param num_samples: Number of samples to draw from base distribution
-        :param beta: Annealing parameter
+        :param beta: Annealing parameter, see arXiv 1505.05770
         :return: Estimate of the reverse KL divergence averaged over latent samples
         """
         z, log_q = self.q0(num_samples)
