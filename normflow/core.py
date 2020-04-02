@@ -24,7 +24,7 @@ class NormalizingFlow(nn.Module):
         :param x: Batch sampled from target distribution
         :return: Estimate of forward KL divergence averaged over batch
         """
-        log_q = torch.zeros(len(x))
+        log_q = torch.zeros(len(x), device=x.device)
         z = x
         for i in range(len(self.flows) - 1, -1, -1):
             z, log_det = self.flows[i].inverse(z)
