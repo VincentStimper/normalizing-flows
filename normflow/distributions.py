@@ -336,11 +336,11 @@ class ImagePrior(nn.Module):
         """
         z_ = torch.rand((num_steps, 2), device=self.image.device)
         prob = torch.rand(num_steps, device=self.image.device)
-        ind = (z_ * (self.image_size.unsqueeze(0) - 1)).long()
+        ind = (z_ * (self.image_size - 1)).long()
         intensity = self.image[ind[:, 0], ind[:, 1]]
         accept = intensity > prob
         z = z_[accept, :] * self.scale + self.shift
-        return z[accept, :]
+        return z
 
 
 
