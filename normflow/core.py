@@ -58,6 +58,20 @@ class NormalizingFlow(nn.Module):
             log_q -= log_det
         return z, log_q
 
+    def log_prob(self, x):
+        """
+        Get log probability for batch
+        :param x: Batch
+        :return: log probability
+        """
+        log_q = torch.zeros(len(x), device=x.device)
+        z = x
+        for i in range(len(self.flows) - 1, -1, -1):
+            z, log_det = self.flows[i].inverse(z)
+            log_q += log_det
+        log_q += self.q0.log_prob(z)
+        return log_q
+
 
 class NormalizingFlowVAE(nn.Module):
     """
