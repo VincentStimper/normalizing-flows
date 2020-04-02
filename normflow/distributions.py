@@ -309,24 +309,23 @@ class ImagePrior(nn.Module):
         image_ = np.flip(image, 0).transpose() + eps
         self.image_cpu = torch.tensor(image_ / np.max(image_))
         self.image_size = self.image_cpu.size()
-        self.x_range_cpu = torch.tensor(x_range)
-        self.y_range_cpu = torch.tensor(y_range)
+        self.x_range = torch.tensor(x_range)
+        self.y_range = torch.tensor(y_range)
 
         self.register_buffer('image', self.image_cpu)
         self.register_buffer('density', torch.log(self.image_cpu / torch.sum(self.image_cpu)))
-        self.register_buffer('x_range', self.x_range_cpu)
-        self.register_buffer('y_range', self.y_range_cpu)
+        self.register_buffer('scale', torch.tensor([[self.x_range[1] - self.x_range[0],
+                                                     self.y_range[1] - self.y_range[0]]]))
+        self.register_buffer('shift', torch.tensor([[self.x_range[0], self.y_range[0]]]))
 
     def log_prob(self, z):
         """
         :param z: value or batch of latent variable
         :return: log probability of the distribution for z
         """
-        x = torch.clamp((z[:, 0] - self.x_range[0]) / (self.x_range[1] - self.x_range[0]), max=1, min=0)
-        y = torch.clamp((z[:, 1] - self.y_range[0]) / (self.y_range[1] - self.y_range[0]), max=1, min=0)
-        indx = (x * (self.image_size[0] - 1)).long()
-        indy = (y * (self.image_size[1] - 1)).long()
-        return self.density[indx, indy]
+        z_ = torch.clamp((z - self.shift) / self.scale, max=1, min=0)
+        ind = (z_ * (self.image_size.unsqueeze(0) - 1)).long()
+        return self.density[ind[:, 0], ind[:, 1]]
 
     def rejection_sampling(self, num_steps):
         """
@@ -334,14 +333,12 @@ class ImagePrior(nn.Module):
         :param num_steps: Number of rejection sampling steps to perform
         :return: Accepted samples
         """
-        z = torch.rand((num_steps, 2), device=self.image.device)
+        z_ = torch.rand((num_steps, 2), device=self.image.device)
         prob = torch.rand(num_steps, device=self.image.device)
-        x = z[:, 0] * (self.x_range[1] - self.x_range[0]) + self.x_range[0]
-        y = z[:, 1] * (self.y_range[1] - self.y_range[0]) + self.y_range[0]
-        indx = (x * (self.image_size[0] - 1)).long()
-        indy = (y * (self.image_size[1] - 1)).long()
-        intensity = self.image[indx, indy]
+        ind = (z_ * (self.image_size.unsqueeze(0) - 1)).long()
+        intensity = self.image[ind[:, 0], ind[:, 1]]
         accept = intensity > prob
+        z = z_[accept, :] * self.scale + self.shift
         return z[accept, :]
 
 
