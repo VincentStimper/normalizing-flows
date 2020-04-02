@@ -308,11 +308,12 @@ class ImagePrior(nn.Module):
         super().__init__()
         image_ = np.flip(image, 0).transpose() + eps
         self.image_cpu = torch.tensor(image_ / np.max(image_))
-        self.image_size = self.image_cpu.size()
+        self.image_size_cpu = self.image_cpu.size()
         self.x_range = torch.tensor(x_range)
         self.y_range = torch.tensor(y_range)
 
         self.register_buffer('image', self.image_cpu)
+        self.register_buffer('image_size', self.image_size_cpu.unsqueeze(0))
         self.register_buffer('density', torch.log(self.image_cpu / torch.sum(self.image_cpu)))
         self.register_buffer('scale', torch.tensor([[self.x_range[1] - self.x_range[0],
                                                      self.y_range[1] - self.y_range[0]]]))
@@ -324,7 +325,7 @@ class ImagePrior(nn.Module):
         :return: log probability of the distribution for z
         """
         z_ = torch.clamp((z - self.shift) / self.scale, max=1, min=0)
-        ind = (z_ * (torch.tensor(self.image_size).unsqueeze(0) - 1)).long()
+        ind = (z_ * (self.image_size - 1)).long()
         return self.density[ind[:, 0], ind[:, 1]]
 
     def rejection_sampling(self, num_steps):
