@@ -313,7 +313,7 @@ class ImagePrior(nn.Module):
         self.y_range = torch.tensor(y_range)
 
         self.register_buffer('image', self.image_cpu)
-        self.register_buffer('image_size', self.image_size_cpu.unsqueeze(0))
+        self.register_buffer('image_size', torch.tensor(self.image_size_cpu).unsqueeze(0))
         self.register_buffer('density', torch.log(self.image_cpu / torch.sum(self.image_cpu)))
         self.register_buffer('scale', torch.tensor([[self.x_range[1] - self.x_range[0],
                                                      self.y_range[1] - self.y_range[0]]]))
