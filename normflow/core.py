@@ -32,7 +32,7 @@ class NormalizingFlow(nn.Module):
         log_q += self.q0.log_prob(z)
         return -torch.mean(log_q)
 
-    def reverse_kld(self, num_samples):
+    def reverse_kld(self, num_samples=1):
         """
         Estimates reverse KL divergence, see arXiv 1912.02762
         :param num_samples: Number of samples to draw from base distribution
@@ -44,6 +44,18 @@ class NormalizingFlow(nn.Module):
             log_q -= log_det
         log_p = self.p.log_prob(z)
         return torch.mean(log_q) - torch.mean(log_p)
+
+    def sample(self, num_samples=1):
+        """
+        Samples from flow-based approximate distribution
+        :param num_samples: Number of samples to draw
+        :return: Samples, log probability
+        """
+        z, log_q = self.q0(num_samples)
+        for flow in self.flows:
+            z, log_det = flow(z)
+            log_q -= log_det
+        return z, log_q
 
 
 class NormalizingFlowVAE(nn.Module):
