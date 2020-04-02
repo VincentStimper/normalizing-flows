@@ -324,7 +324,7 @@ class ImagePrior(nn.Module):
         :return: log probability of the distribution for z
         """
         z_ = torch.clamp((z - self.shift) / self.scale, max=1, min=0)
-        ind = (z_ * (self.image_size.unsqueeze(0) - 1)).long()
+        ind = (z_ * (torch.tensor(self.image_size).unsqueeze(0) - 1)).long()
         return self.density[ind[:, 0], ind[:, 1]]
 
     def rejection_sampling(self, num_steps):
