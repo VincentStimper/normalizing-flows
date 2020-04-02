@@ -328,7 +328,7 @@ class ImagePrior(nn.Module):
         ind = (z_ * (self.image_size - 1)).long()
         return self.density[ind[:, 0], ind[:, 1]]
 
-    def rejection_sampling(self, num_steps):
+    def rejection_sampling(self, num_steps=1):
         """
         Perform rejection sampling on image distribution
         :param num_steps: Number of rejection sampling steps to perform
@@ -342,6 +342,18 @@ class ImagePrior(nn.Module):
         z = z_[accept, :] * self.scale + self.shift
         return z
 
+    def sample(self, num_samples=1):
+        """
+        Sample from image distribution through rejection sampling
+        :param num_samples: Number of samples to draw
+        :return: Samples
+        """
+        z = torch.ones((0, 2), device=self.image.device)
+        while len(z) < num_samples:
+            z_ = self.rejection_sampling(num_samples)
+            ind = np.min([len(z_), num_samples - len(z)])
+            z = torch.cat([z, z_[:ind, :]], 0)
+        return z
 
 
 class TwoModes(PriorDistribution):
