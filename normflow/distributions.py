@@ -306,7 +306,7 @@ class ImagePrior(nn.Module):
         :param eps: small value to add to image to avoid log(0) problems
         """
         super().__init__()
-        self.image_cpu = torch.tensor(np.pad(image.transpose(), ((1, 1), (1, 1))) + eps)
+        self.image_cpu = torch.tensor(np.flip(image, 0).transpose() + eps)
         self.image_size = self.image_cpu.size()
         self.x_range_cpu = torch.tensor(x_range)
         self.y_range_cpu = torch.tensor(y_range)
@@ -320,8 +320,8 @@ class ImagePrior(nn.Module):
         :param z: value or batch of latent variable
         :return: log probability of the distribution for z
         """
-        x = torch.clamp((z[:, :, 0] - self.x_range[0]) / (self.x_range[1] - self.x_range[0]), max=1, min=0)
-        y = torch.clamp((z[:, :, 1] - self.y_range[0]) / (self.x_range[1] - self.x_range[0]), max=1, min=0)
+        x = torch.clamp((z[:, 0] - self.x_range[0]) / (self.x_range[1] - self.x_range[0]), max=1, min=0)
+        y = torch.clamp((z[:, 1] - self.y_range[0]) / (self.x_range[1] - self.x_range[0]), max=1, min=0)
         indx = (x * (self.image_size[0] - 1)).long()
         indy = (y * (self.image_size[1] - 1)).long()
         return self.density[indx, indy]
