@@ -163,9 +163,6 @@ def bound(rce, x, kld, beta):
         # return (- torch.distributions.Normal(x.view(-1, img_dim ** 2), 1.).log_prob(rce)).sum() + beta * kld
         return F.mse_loss(rce, x, reduction='sum') + beta * kld
 
-
-args.flow = 'RealNVP'
-
 if args.flow == 'Planar':
     flows = SimpleFlowModel([Planar((args.latent_size,)) for k in range(args.K)])
 elif args.flow == 'Radial':
