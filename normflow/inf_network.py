@@ -90,11 +90,11 @@ def flow_vae_datasets(id, download=True, batch_size=args.batch_size, shuffle=Tru
 
     training_data = data_d_train.get(id)
     test_data = data_d_test.get(id)
-    if patch_size is not None:
-        training_data.data = np.stack(
-            [extract_cifar_patch(training_data.data[i, :, :], patch_size) for i in range(len(training_data.data))])
-        test_data.data = np.stack(
-            [extract_cifar_patch(test_data.data[i, :, :], patch_size) for i in range(len(test_data.data))])
+    #if patch_size is not None:
+        #training_data.data = np.stack(
+            #[extract_cifar_patch(training_data.data[i, :, :], patch_size) for i in range(len(training_data.data))])
+        #test_data.data = np.stack(
+            #[extract_cifar_patch(test_data.data[i, :, :], patch_size) for i in range(len(test_data.data))])
 
     train_loader = torch.utils.data.DataLoader(
         training_data,
