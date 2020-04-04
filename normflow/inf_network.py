@@ -6,7 +6,7 @@ from torch.distributions.normal import Normal
 from torch.nn import functional as F
 from torchvision import datasets, transforms
 from tqdm import tqdm
-from flows import *
+from flows import Planar, Radial, MaskedAffineFlow, BatchNorm
 from simple_flow_model import SimpleFlowModel
 import argparse
 from datetime import datetime
@@ -46,6 +46,7 @@ torch.manual_seed(args.seed)
 
 device = torch.device("cuda" if args.cuda else "cpu")
 
+
 class BinaryTransform():
     def __init__(self, thresh=0.5):
         self.thresh = thresh
@@ -62,12 +63,14 @@ class ColourNormalize():
     def __call__(self, x):
         return (self.b - self.a) * x / 255 + self.a
 
+
 if args.dataset == 'mnist':
     img_dim = 28
     dtf = transforms.Compose([transforms.ToTensor(), BinaryTransform()])
 elif args.dataset == 'cifar10' or args.dataset == 'cifar100':
     img_dim = 8
-    dtf = transforms.Compose([transforms.RandomCrop([8,8]), transforms.ToTensor(), ColourNormalize(0.0001, 1-0.0001)])
+    dtf = transforms.Compose(
+        [transforms.RandomCrop([8, 8]), transforms.ToTensor(), ColourNormalize(0.0001, 1 - 0.0001)])
 else:
     raise ValueError('The only dataset calls supported are: mnist, cifar10, cifar100')
 
@@ -90,11 +93,11 @@ def flow_vae_datasets(id, download=True, batch_size=args.batch_size, shuffle=Tru
 
     training_data = data_d_train.get(id)
     test_data = data_d_test.get(id)
-    #if patch_size is not None:
-        #training_data.data = np.stack(
-            #[extract_cifar_patch(training_data.data[i, :, :], patch_size) for i in range(len(training_data.data))])
-        #test_data.data = np.stack(
-            #[extract_cifar_patch(test_data.data[i, :, :], patch_size) for i in range(len(test_data.data))])
+    # if patch_size is not None:
+    # training_data.data = np.stack(
+    # [extract_cifar_patch(training_data.data[i, :, :], patch_size) for i in range(len(training_data.data))])
+    # test_data.data = np.stack(
+    # [extract_cifar_patch(test_data.data[i, :, :], patch_size) for i in range(len(test_data.data))])
 
     train_loader = torch.utils.data.DataLoader(
         training_data,
@@ -109,10 +112,12 @@ def flow_vae_datasets(id, download=True, batch_size=args.batch_size, shuffle=Tru
 class FlowVAE(nn.Module):
     def __init__(self, flows):
         super().__init__()
-        self.encode = nn.Sequential(nn.Linear(img_dim ** 2, 512), nn.LeakyReLU(True), nn.Linear(512, 256), nn.LeakyReLU(True))
+        self.encode = nn.Sequential(nn.Linear(img_dim ** 2, 512), nn.LeakyReLU(True), nn.Linear(512, 256),
+                                    nn.LeakyReLU(True))
         self.f1 = nn.Linear(256, args.latent_size)
         self.f2 = nn.Linear(256, args.latent_size)
-        self.decode = nn.Sequential(nn.Linear(args.latent_size, 256), nn.LeakyReLU(True), nn.Linear(256, 512), nn.LeakyReLU(True),
+        self.decode = nn.Sequential(nn.Linear(args.latent_size, 256), nn.LeakyReLU(True), nn.Linear(256, 512),
+                                    nn.LeakyReLU(True),
                                     nn.Linear(512, img_dim ** 2))
         self.flows = flows
 
@@ -155,34 +160,33 @@ def bound(rce, x, kld, beta):
     if args.dataset == 'mnist':
         return F.binary_cross_entropy(rce, x.view(-1, img_dim ** 2), reduction='sum') + beta * kld
     elif args.dataset == 'cifar10' or args.dataset == 'cifar100':
-        #return (- torch.distributions.Normal(x.view(-1, img_dim ** 2), 1.).log_prob(rce)).sum() + beta * kld
+        # return (- torch.distributions.Normal(x.view(-1, img_dim ** 2), 1.).log_prob(rce)).sum() + beta * kld
         return F.mse_loss(rce, x, reduction='sum') + beta * kld
 
+
+args.flow = 'RealNVP'
 
 if args.flow == 'Planar':
     flows = SimpleFlowModel([Planar((args.latent_size,)) for k in range(args.K)])
 elif args.flow == 'Radial':
     flows = SimpleFlowModel([Radial((args.latent_size,)) for k in range(args.K)])
 elif args.flow == 'RealNVP':
-    b = torch.tensor([0, 1])
+    b = torch.Tensor([1 if i % 2 == 0 else 0 for i in range(args.latent_size)])
     flows = []
     for i in range(args.K):
-        s = nets.MLP([2, 8, 2])
-        t = nets.MLP([2, 8, 2])
+        s = nets.MLP([args.latent_size, 8, args.latent_size])
+        t = nets.MLP([args.latent_size, 8, args.latent_size])
         if i % 2 == 0:
             flows += [MaskedAffineFlow(b, s, t)]
         else:
             flows += [MaskedAffineFlow(1 - b, s, t), BatchNorm()]
     flows = SimpleFlowModel(flows[:-1])  # Remove last Batch Norm layer to allow arbirary output
 
-
 model = FlowVAE(flows).to(device)
 optimizer = optim.Adam(model.parameters(), lr=0.001)
 # train_losses = []
 train_loader, test_loader = flow_vae_datasets(args.dataset)
 
-
-# Train
 
 def train(model, epoch, beta):
     model.train()
@@ -222,10 +226,13 @@ def test(model, epoch):
     print('====> Test set loss: {:.4f}'.format(test_loss))
     return test_loss
 
+
 test_losses = []
+
 
 def anneal(epoch, len_e):
     return min(1., 0.01 + epoch / len_e)
+
 
 if __name__ == '__main__':
     if args.experiment_mode:
@@ -260,7 +267,6 @@ if __name__ == '__main__':
         Series.to_excel(file_name, index=False, header=None)
     else:
         for e in [i + 1 for i in range(args.epochs)]:
-            print(args.epochs)
             beta = anneal(e, args.epochs)
             train(model, e, beta=beta)
             tl = test(model, e)
