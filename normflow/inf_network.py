@@ -11,7 +11,9 @@ from simple_flow_model import SimpleFlowModel
 import argparse
 from datetime import datetime
 import os
+import nets
 import pandas as pd
+import random
 
 parser = argparse.ArgumentParser(description='FlowVAE implementation on MNIST')
 parser.add_argument('--batch-size', type=int, default=256, metavar='N',
@@ -44,21 +46,73 @@ torch.manual_seed(args.seed)
 
 device = torch.device("cuda" if args.cuda else "cpu")
 
+class BinaryTransform():
+    def __init__(self, thresh=0.5):
+        self.thresh = thresh
+
+    def __call__(self, x):
+        return (x > self.thresh).type(x.type())
+
+
+class ColourNormalize():
+    def __init__(self, a=0., b=0.):
+        self.a = a
+        self.b = b
+
+    def __call__(self, x):
+        return (self.b - self.a) * x / 255 + self.a
+
 if args.dataset == 'mnist':
     img_dim = 28
+    dtf = transforms.Compose([transforms.ToTensor(), BinaryTransform()])
 elif args.dataset == 'cifar10' or args.dataset == 'cifar100':
-    img_dim = 32
+    img_dim = 8
+    dtf = transforms.Compose([transforms.RandomCrop([8,8]), transforms.ToTensor(), ColourNormalize(0.0001, 1-0.0001)])
 else:
     raise ValueError('The only dataset calls supported are: mnist, cifar10, cifar100')
+
+
+def extract_cifar_patch(tensor, target_size):
+    x = random.randint(0, 32 - target_size)
+    y = random.randint(0, 32 - target_size)
+    return tensor[x:x + target_size, y:y + target_size, :]
+
+
+# Training
+def flow_vae_datasets(id, download=True, batch_size=args.batch_size, shuffle=True,
+                      transform=dtf, patch_size=None):
+    data_d_train = {'mnist': datasets.MNIST('datasets', train=True, download=True, transform=transform),
+                    'cifar10': datasets.CIFAR10('datasets', train=True, download=True, transform=transform),
+                    'cifar100': datasets.CIFAR100('datasets', train=True, download=True, transform=transform)}
+    data_d_test = {'mnist': datasets.MNIST('datasets', train=False, download=True, transform=transform),
+                   'cifar10': datasets.CIFAR10('datasets', train=False, download=True, transform=transform),
+                   'cifar100': datasets.CIFAR100('datasets', train=False, download=True, transform=transform)}
+
+    training_data = data_d_train.get(id)
+    test_data = data_d_test.get(id)
+    if patch_size is not None:
+        training_data.data = np.stack(
+            [extract_cifar_patch(training_data.data[i, :, :], patch_size) for i in range(len(training_data.data))])
+        test_data.data = np.stack(
+            [extract_cifar_patch(test_data.data[i, :, :], patch_size) for i in range(len(test_data.data))])
+
+    train_loader = torch.utils.data.DataLoader(
+        training_data,
+        batch_size=batch_size, shuffle=shuffle)
+
+    test_loader = torch.utils.data.DataLoader(
+        data_d_test.get(id),
+        batch_size=batch_size, shuffle=shuffle)
+    return train_loader, test_loader
 
 
 class FlowVAE(nn.Module):
     def __init__(self, flows):
         super().__init__()
-        self.encode = nn.Sequential(nn.Linear(img_dim ** 2, 512), nn.ReLU(True), nn.Linear(512, 256), nn.ReLU(True))
+        self.encode = nn.Sequential(nn.Linear(img_dim ** 2, 512), nn.LeakyReLU(True), nn.Linear(512, 256), nn.LeakyReLU(True))
         self.f1 = nn.Linear(256, args.latent_size)
         self.f2 = nn.Linear(256, args.latent_size)
-        self.decode = nn.Sequential(nn.Linear(args.latent_size, 256), nn.ReLU(True), nn.Linear(256, 512), nn.ReLU(True),
+        self.decode = nn.Sequential(nn.Linear(args.latent_size, 256), nn.LeakyReLU(True), nn.Linear(256, 512), nn.LeakyReLU(True),
                                     nn.Linear(512, img_dim ** 2))
         self.flows = flows
 
@@ -82,7 +136,8 @@ class FlowVAE(nn.Module):
 
         # KLD including logdet term
         kld = - torch.sum(p.log_prob(z_), -1) + torch.sum(q0.log_prob(z_0), -1) - log_det.view(-1)
-        self.test_params = [torch.mean(- torch.sum(p.log_prob(z_), -1)), torch.mean(torch.sum(q0.log_prob(z_0), -1)), torch.mean(log_det.view(-1)), torch.mean(kld)]
+        self.test_params = [torch.mean(- torch.sum(p.log_prob(z_), -1)), torch.mean(torch.sum(q0.log_prob(z_0), -1)),
+                            torch.mean(log_det.view(-1)), torch.mean(kld)]
 
         # Decode
         z_ = z_.view(z_.size(0), args.latent_size)
@@ -92,44 +147,36 @@ class FlowVAE(nn.Module):
         return out, kld
 
 
+def logit(x):
+    return torch.log(x / (1 - x))
+
+
 def bound(rce, x, kld, beta):
-    return F.binary_cross_entropy(rce, x.view(-1, img_dim ** 2), reduction='sum') + beta * kld
+    if args.dataset == 'mnist':
+        return F.binary_cross_entropy(rce, x.view(-1, img_dim ** 2), reduction='sum') + beta * kld
+    elif args.dataset == 'cifar10' or args.dataset == 'cifar100':
+        #return (- torch.distributions.Normal(x.view(-1, img_dim ** 2), 1.).log_prob(rce)).sum() + beta * kld
+        return F.mse_loss(rce, x, reduction='sum') + beta * kld
 
-
-class BinaryTransform():
-    def __init__(self, thresh=0.5):
-        self.thresh = thresh
-
-    def __call__(self, x):
-        return (x > self.thresh).type(x.type())
-
-
-# Training
-def flow_vae_datasets(id, download=True, batch_size=args.batch_size, shuffle=True,
-                      transform=transforms.Compose([transforms.ToTensor(), BinaryTransform()])):
-    data_d_train = {'mnist': datasets.MNIST('datasets', train=True, download=True, transform=transform),
-                    'cifar10': datasets.CIFAR10('datasets', train=True, download=True, transform=transform),
-                    'cifar100': datasets.CIFAR100('datasets', train=True, download=True, transform=transform)}
-    data_d_test = {'mnist': datasets.MNIST('datasets', train=False, download=True, transform=transform),
-                   'cifar10': datasets.CIFAR10('datasets', train=False, download=True, transform=transform),
-                   'cifar100': datasets.CIFAR100('datasets', train=False, download=True, transform=transform)}
-    train_loader = torch.utils.data.DataLoader(
-        data_d_train.get(id),
-        batch_size=batch_size, shuffle=shuffle)
-
-    test_loader = torch.utils.data.DataLoader(
-        data_d_test.get(id),
-        batch_size=batch_size, shuffle=shuffle)
-    return train_loader, test_loader
 
 if args.flow == 'Planar':
     flows = SimpleFlowModel([Planar((args.latent_size,)) for k in range(args.K)])
 elif args.flow == 'Radial':
     flows = SimpleFlowModel([Radial((args.latent_size,)) for k in range(args.K)])
+elif args.flow == 'RealNVP':
+    b = torch.tensor([0, 1])
+    flows = []
+    for i in range(args.K):
+        s = nets.MLP([2, 8, 2])
+        t = nets.MLP([2, 8, 2])
+        if i % 2 == 0:
+            flows += [MaskedAffineFlow(b, s, t)]
+        else:
+            flows += [MaskedAffineFlow(1 - b, s, t), BatchNorm()]
+    flows = SimpleFlowModel(flows[:-1])  # Remove last Batch Norm layer to allow arbirary output
 
 
 model = FlowVAE(flows).to(device)
-
 optimizer = optim.Adam(model.parameters(), lr=0.001)
 # train_losses = []
 train_loader, test_loader = flow_vae_datasets(args.dataset)
@@ -169,18 +216,16 @@ def test(model, epoch):
         for i, (x, _) in enumerate(test_loader):
             x = x.to(device)
             rc_batch, kld = model(x)
-            test_loss += bound(rc_batch, x, kld.sum(), beta=1).item()
+            test_loss += bound(rc_batch, x.view(x.size(0) * x.size(1), img_dim ** 2), kld.sum(), beta=1).item()
 
     test_loss /= len(test_loader.dataset)
     print('====> Test set loss: {:.4f}'.format(test_loss))
     return test_loss
 
-
 test_losses = []
 
-
 def anneal(epoch, len_e):
-    return min(1., 0.01+epoch/len_e)
+    return min(1., 0.01 + epoch / len_e)
 
 if __name__ == '__main__':
     if args.experiment_mode:
@@ -196,7 +241,7 @@ if __name__ == '__main__':
             else:
                 seed += 1
             torch.manual_seed(seed)
-            for e in [i+1 for i in range(args.epochs)]:
+            for e in [i + 1 for i in range(args.epochs)]:
                 beta = anneal(e, args.epochs)
                 train(model, e, beta)
                 tl = test(model, e)
@@ -214,10 +259,9 @@ if __name__ == '__main__':
         file_name = file_name.replace(':', '-')
         Series.to_excel(file_name, index=False, header=None)
     else:
-        for e in [i+1 for i in range(args.epochs)]:
+        for e in [i + 1 for i in range(args.epochs)]:
             print(args.epochs)
             beta = anneal(e, args.epochs)
-            print(beta)
             train(model, e, beta=beta)
             tl = test(model, e)
             test_losses.append(tl)
