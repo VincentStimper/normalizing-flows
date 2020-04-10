@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 from . import distributions
+from . import utils
 
 class NormalizingFlow(nn.Module):
     """
@@ -30,7 +31,7 @@ class NormalizingFlow(nn.Module):
             z, log_det = self.flows[i].inverse(z)
             log_q += log_det
         log_q += self.q0.log_prob(z)
-        return -torch.mean(log_q)
+        return -utils.nanmean(log_q)
 
     def reverse_kld(self, num_samples=1, beta=1.):
         """
@@ -44,8 +45,7 @@ class NormalizingFlow(nn.Module):
             z, log_det = flow(z)
             log_q -= log_det
         log_p = self.p.log_prob(z)
-        return log_q, beta * log_p
-        #return torch.mean(log_q) - beta * torch.mean(log_p)
+        return utils.nanmean(log_q - beta * log_p)
 
     def sample(self, num_samples=1):
         """
