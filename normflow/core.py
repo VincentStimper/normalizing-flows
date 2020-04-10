@@ -44,7 +44,8 @@ class NormalizingFlow(nn.Module):
             z, log_det = flow(z)
             log_q -= log_det
         log_p = self.p.log_prob(z)
-        return torch.mean(log_q) - beta * torch.mean(log_p)
+        return log_q, beta * log_p
+        #return torch.mean(log_q) - beta * torch.mean(log_p)
 
     def sample(self, num_samples=1):
         """
