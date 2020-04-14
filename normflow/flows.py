@@ -232,21 +232,22 @@ class AffineConstFlow(Flow):
     """
     def __init__(self, shape, scale=True, shift=True):
         super().__init__()
-        self.s = nn.Parameter(torch.randn(shape)[(None,) * 2]) if scale else None
-        self.t = nn.Parameter(torch.randn(shape)[(None,) * 2]) if shift else None
+        self.s = nn.Parameter(torch.zeros(shape)[None]) if scale else None
+        self.t = nn.Parameter(torch.zeros(shape)[None]) if shift else None
+        self.n_dim = self.s.dim()
         
     def forward(self, z):
         s = self.s if self.s is not None else torch.zeros(z.shape, device=z.device)
         t = self.t if self.t is not None else torch.zeros(z.shape, device=z.device)
         z_ = z * torch.exp(s) + t
-        log_det = torch.sum(s, dim=2)
+        log_det = torch.sum(s, dim=list(range(1, self.n_dim)))
         return z_, log_det
     
     def inverse(self, z):
         s = self.s if self.s is not None else z.new_zeros(z.shape, device=z.device)
         t = self.t if self.t is not None else z.new_zeros(z.shape, device=z.device)
         z_ = (z - t) * torch.exp(-s)
-        log_det = torch.sum(-s, dim=2)
+        log_det = torch.sum(-s, dim=list(range(1, self.n_dim)))
         return z_, log_det
        
         
@@ -265,7 +266,16 @@ class ActNorm(AffineConstFlow):
         if not self.data_dep_init_done:
             assert self.s is not None and self.t is not None
             self.s.data = (-torch.log(z.std(dim=0, keepdim=True))).data
-            self.t.data = (-(z * torch.exp(self.s)).mean(dim=0, keepdim=True)).data
+            self.t.data = (-z.mean(dim=0, keepdim=True) * torch.exp(self.s)).data
+            self.data_dep_init_done = True
+        return super().forward(z)
+
+    def inverse(self, z):
+        # first batch is used for initialization, c.f. batchnorm
+        if not self.data_dep_init_done:
+            assert self.s is not None and self.t is not None
+            self.s.data = torch.log(z.std(dim=0, keepdim=True)).data
+            self.t.data = z.mean(dim=0, keepdim=True).data
             self.data_dep_init_done = True
         return super().forward(z)
     
