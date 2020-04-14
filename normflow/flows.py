@@ -277,7 +277,7 @@ class ActNorm(AffineConstFlow):
             self.s.data = torch.log(z.std(dim=0, keepdim=True)).data
             self.t.data = z.mean(dim=0, keepdim=True).data
             self.data_dep_init_done = True
-        return super().forward(z)
+        return super().inverse(z)
     
 class Glow(Flow):
     """
