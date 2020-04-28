@@ -58,6 +58,26 @@ class NormalizingFlow(nn.Module):
         log_p = self.p.log_prob(z)
         return torch.mean(log_q) - beta * torch.mean(log_p)
 
+    def reverse_alpha_div(self, num_samples=1, alpha=1, dreg=False):
+        """
+        Alpha divergence when sampling from q
+        :param num_samples: Number of samples to draw
+        :param dreg: Flag whether to use Double REparametrized Gradient estimator,
+        see arXiv 1810.04152
+        :return:Alpha divergence
+        """
+        if dreg:
+            pass
+        else:
+            z, log_q = self.q0(num_samples)
+            for flow in self.flows:
+                z, log_det = flow(z)
+                log_q -= log_det
+            log_p = self.p.log_prob(z)
+            w = torch.exp(alpha * (log_p - log_q))
+            loss = -torch.mean(torch.log(torch.mean(w, 1)))
+        return loss
+
     def sample(self, num_samples=1):
         """
         Samples from flow-based approximate distribution
