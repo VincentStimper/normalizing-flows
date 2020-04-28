@@ -66,14 +66,27 @@ class NormalizingFlow(nn.Module):
         see arXiv 1810.04152
         :return:Alpha divergence
         """
+        z, log_q = self.q0(num_samples)
+        for flow in self.flows:
+            z, log_det = flow(z)
+            log_q -= log_det
+        log_p = self.p.log_prob(z)
         if dreg:
-            pass
+            w_const = torch.exp(log_p - log_q).detach()
+            z_ = z
+            log_q = torch.zeros(len(z_), device=z_.device)
+            utils.set_requires_grad(self, False)
+            for i in range(len(self.flows) - 1, -1, -1):
+                z_, log_det = self.flows[i].inverse(z_)
+                log_q += log_det
+            log_q += self.q0.log_prob(z_)
+            utils.set_requires_grad(self, True)
+            w = torch.exp(log_p - log_q)
+            w_alpha = w_const ** alpha
+            w_alpha = w_alpha / torch.mean(w_alpha)
+            weights = (1 - alpha) * w_alpha + alpha * w_alpha ** 2
+            loss = -alpha * torch.mean(weights * torch.log(w))
         else:
-            z, log_q = self.q0(num_samples)
-            for flow in self.flows:
-                z, log_det = flow(z)
-                log_q -= log_det
-            log_p = self.p.log_prob(z)
             w = torch.exp(alpha * (log_p - log_q))
             loss = -torch.log(torch.mean(w))
         return loss
