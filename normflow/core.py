@@ -48,6 +48,7 @@ class NormalizingFlow(nn.Module):
             log_q -= log_det
         if not score_fn:
             z_ = z
+            log_q = torch.zeros(len(z_), device=z_.device)
             utils.set_requires_grad(self, False)
             for i in range(len(self.flows) - 1, -1, -1):
                 z_, log_det = self.flows[i].inverse(z_)
