@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 from . import distributions
+from . import utils
 
 class NormalizingFlow(nn.Module):
     """
@@ -32,17 +33,27 @@ class NormalizingFlow(nn.Module):
         log_q += self.q0.log_prob(z)
         return -torch.mean(log_q)
 
-    def reverse_kld(self, num_samples=1, beta=1.):
+    def reverse_kld(self, num_samples=1, beta=1., score_fn=True):
         """
         Estimates reverse KL divergence, see arXiv 1912.02762
         :param num_samples: Number of samples to draw from base distribution
         :param beta: Annealing parameter, see arXiv 1505.05770
+        :param score_fn: Flag whether to include score function in gradient, see
+        arXiv 1703.09194
         :return: Estimate of the reverse KL divergence averaged over latent samples
         """
         z, log_q = self.q0(num_samples)
         for flow in self.flows:
             z, log_det = flow(z)
             log_q -= log_det
+        if not score_fn:
+            z_ = z
+            utils.set_requires_grad(self, False)
+            for i in range(len(self.flows) - 1, -1, -1):
+                z_, log_det = self.flows[i].inverse(z_)
+                log_q += log_det
+            log_q += self.q0.log_prob(z_)
+            utils.set_requires_grad(self, True)
         log_p = self.p.log_prob(z)
         return torch.mean(log_q) - beta * torch.mean(log_p)
 
