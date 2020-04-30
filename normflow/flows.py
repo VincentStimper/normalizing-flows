@@ -210,7 +210,7 @@ class Invertible1x1Conv(Flow):
         L = torch.tril(self.L, diagonal=-1) + torch.diag(torch.ones(self.d_cpu, device=self.P.device))
         U = torch.triu(self.U, diagonal=1)
         W = self.P @ L @ (U + torch.diag(self.S))
-        return W.float()
+        return W
 
     def forward(self, z):
         W = self._assemble_W()
@@ -296,14 +296,14 @@ class Glow(Flow):
         self.flows = nn.ModuleList([ActNorm(b.size()), Invertible1x1Conv(b.size()), MaskedAffineFlow(b, s, t)])
 
     def forward(self, z):
-        log_det_tot = torch.zeros(z.shape[0], z.shape[1], device=z.device)
+        log_det_tot = torch.zeros(z.shape[0], device=z.device)
         for flow in self.flows:
             z, log_det = flow(z)
             log_det_tot += log_det
         return z, log_det_tot
 
     def inverse(self, z):
-        log_det_tot = torch.zeros(z.shape[0], z.shape[1], device=z.device)
+        log_det_tot = torch.zeros(z.shape[0], device=z.device)
         for flow in self.flows:
             z, log_det = flow.inverse(z)
             log_det_tot += log_det
