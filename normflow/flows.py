@@ -304,7 +304,7 @@ class Glow(Flow):
 
     def inverse(self, z):
         log_det_tot = torch.zeros(z.shape[0], device=z.device)
-        for flow in self.flows:
-            z, log_det = flow.inverse(z)
+        for i in range(len(self.flows) - 1, -1, -1):
+            z, log_det = self.flows[i].inverse(z)
             log_det_tot += log_det
         return z, log_det_tot
