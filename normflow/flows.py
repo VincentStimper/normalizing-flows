@@ -160,7 +160,11 @@ class MaskedAffineFlow(Flow):
     def forward(self, z):
         z_masked = self.b * z
         scale = self.s(z_masked)
+        scale = torch.where(torch.isfinite(scale), scale,
+                            torch.tensor(np.nan, dtype=scale.type()))
         trans = self.t(z_masked)
+        trans = torch.where(torch.isfinite(trans), trans,
+                            torch.tensor(np.nan, dtype=trans.type()))
         z_ = z_masked + (1 - self.b) * (z * torch.exp(scale) + trans)
         log_det = torch.sum((1 - self.b) * scale, dim=list(range(1, self.b.dim())))
         return z_, log_det
@@ -168,7 +172,11 @@ class MaskedAffineFlow(Flow):
     def inverse(self, z):
         z_masked = self.b * z
         scale = self.s(z_masked)
+        scale = torch.where(torch.isfinite(scale), scale,
+                            torch.tensor(np.nan, dtype=scale.type()))
         trans = self.t(z_masked)
+        trans = torch.where(torch.isfinite(trans), trans,
+                            torch.tensor(np.nan, dtype=trans.type()))
         z_ = z_masked + (1 - self.b) * (z - trans) * torch.exp(-scale)
         log_det = -torch.sum((1 - self.b) * scale, dim=list(range(1, self.b.dim())))
         return z_, log_det
