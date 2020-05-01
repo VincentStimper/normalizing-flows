@@ -6,7 +6,7 @@ class MLP(nn.Module):
     A multilayer perceptron with Leaky ReLU nonlinearities
     """
 
-    def __init__(self, layers, leaky=0.0, sigmoid_output=False, init_zeros=True):
+    def __init__(self, layers, leaky=0.0, sigmoid_output=False, init_zeros=False):
         """
         :param layers: list of layer sizes from start to end
         :param leaky: slope of the leaky part of the ReLU,
