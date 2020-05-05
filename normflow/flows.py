@@ -265,7 +265,8 @@ class ActNorm(AffineConstFlow):
     """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.data_dep_init_done = False
+        self.data_dep_init_done_cpu = torch.tensor(False)
+        self.register_buffer('data_dep_init_done', self.data_dep_init_done_cpu)
     
     def forward(self, z):
         # first batch is used for initialization, c.f. batchnorm
@@ -273,7 +274,7 @@ class ActNorm(AffineConstFlow):
             assert self.s is not None and self.t is not None
             self.s.data = (-torch.log(z.std(dim=0, keepdim=True))).data
             self.t.data = (-z.mean(dim=0, keepdim=True) * torch.exp(self.s)).data
-            self.data_dep_init_done = True
+            self.data_dep_init_done = torch.tensor(True)
         return super().forward(z)
 
     def inverse(self, z):
@@ -282,7 +283,7 @@ class ActNorm(AffineConstFlow):
             assert self.s is not None and self.t is not None
             self.s.data = torch.log(z.std(dim=0, keepdim=True)).data
             self.t.data = z.mean(dim=0, keepdim=True).data
-            self.data_dep_init_done = True
+            self.data_dep_init_done = torch.tensor(True)
         return super().inverse(z)
     
 class Glow(Flow):
