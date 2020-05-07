@@ -31,15 +31,19 @@ class DiagGaussian(BaseDistribution):
     """
     Multivariate Gaussian distribution with diagonal covariance matrix
     """
-    def __init__(self, d):
+    def __init__(self, d, trainable=True):
         """
         Constructor
         :param d: Dimension of Gaussian distribution
         """
         super().__init__()
         self.d = d
-        self.loc = nn.Parameter(torch.zeros(1, self.d))
-        self.log_scale = nn.Parameter(torch.zeros(1, self.d))
+        if trainable
+            self.loc = nn.Parameter(torch.zeros(1, self.d))
+            self.log_scale = nn.Parameter(torch.zeros(1, self.d))
+        else:
+            self.register_buffer("loc", torch.zeros(1, self.d))
+            self.register_buffer("log_scale", torch.zeros(1, self.d))
 
     def forward(self, num_samples=1):
         eps = torch.randn((num_samples, self.d), device=self.loc.device)
