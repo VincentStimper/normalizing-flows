@@ -338,7 +338,7 @@ class MetropolisHastings(Flow):
         num_samples = len(z)
         log_det = torch.zeros(num_samples, dtype=z.dtype, device=z.device)
         for i in range(self.steps):
-            w = torch.rand(num_samples)
+            w = torch.rand(num_samples, dtype=z.dtype, device=z.device)
             z_, log_p_diff = self.proposal(z)
             log_p = self.dist.log_prob(z)
             log_p_ = self.dist.log_prob(z_)
