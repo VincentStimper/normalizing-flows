@@ -315,3 +315,40 @@ class Glow(Flow):
             z, log_det = self.flows[i].inverse(z)
             log_det_tot += log_det
         return z, log_det_tot
+
+
+class MetropolisHastings(Flow):
+    """
+    Sampling through Metropolis Hastings in Stochastic Normalizing
+    Flow, see arXiv: 2002.06707
+    """
+    def __init__(self, dist, proposal, steps):
+        """
+        Constructor
+        :param dist: Distribution to sample from
+        :param proposal: Proposal distribution
+        :param steps: Number of MCMC steps to perform
+        """
+        super().__init__()
+        self.dist = dist
+        self.proposal = proposal
+        self.steps = steps
+
+    def forward(self, z):
+        num_samples = len(z)
+        log_det = torch.zeros(num_samples, dtype=z.dtype, device=z.device)
+        for i in range(self.steps):
+            w = torch.rand(num_samples)
+            z_, log_p_diff = self.proposal(z)
+            log_p = self.dist.log_prob(z)
+            log_p_ = self.dist.log_prob(z_)
+            log_det_ = log_p - log_p_ + log_p_diff
+            w_accept = torch.clamp(torch.exp(log_det_), max=1)
+            accept = w <= w_accept
+            z = torch.where(accept, z_, z)
+            log_det = torch.where(accept, log_det + log_det_, log_det)
+        return z, log_det
+
+    def inverse(self, z):
+        # Equivalent to forward pass
+        return self.forward(z)
