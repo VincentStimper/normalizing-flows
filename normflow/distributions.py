@@ -560,7 +560,7 @@ class DiagGaussianProposal(MHProposal):
 
     def sample(self, z):
         num_samples = len(z)
-        eps = torch.randn((num_samples,) + self.shape, device=z.device)
+        eps = torch.randn((num_samples,) + self.shape, dtype=z.dtype, device=z.device)
         z_ = eps * self.scale + z
         return z_
 
@@ -572,7 +572,7 @@ class DiagGaussianProposal(MHProposal):
 
     def forward(self, z):
         num_samples = len(z)
-        eps = torch.randn((num_samples,) + self.shape, device=z.device)
+        eps = torch.randn((num_samples,) + self.shape, dtype=z.dtype, device=z.device)
         z_ = eps * self.scale + z
         log_p_diff = torch.zeros(num_samples, dtype=z.dtype, device=z.device)
         return z_, log_p_diff
