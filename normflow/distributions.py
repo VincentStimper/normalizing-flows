@@ -38,7 +38,7 @@ class DiagGaussian(BaseDistribution):
         """
         super().__init__()
         self.d = d
-        if trainable
+        if trainable:
             self.loc = nn.Parameter(torch.zeros(1, self.d))
             self.log_scale = nn.Parameter(torch.zeros(1, self.d))
         else:
@@ -104,7 +104,7 @@ class Uniform(BaseEncoder):
         self.log_p = -torch.log(zmax-zmin)
 
     def forward(self, x, num_samples=1):
-        z = x.unsqueeze(1).repeat(1, num_samples, 1).uniform_(min=zmin, max=zmax)
+        z = x.unsqueeze(1).repeat(1, num_samples, 1).uniform_(min=self.zmin, max=self.zmax)
         log_p = torch.zeros(z.size()[0:2]).fill_(self.log_p)
         return z, log_p
 
