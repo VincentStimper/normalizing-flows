@@ -342,7 +342,7 @@ class MetropolisHastings(Flow):
             z_, log_p_diff = self.proposal(z)
             log_p = self.dist.log_prob(z)
             log_p_ = self.dist.log_prob(z_)
-            log_det_ = log_p - log_p_ + log_p_diff
+            log_det_ = log_p_ - log_p + log_p_diff
             w_accept = torch.clamp(torch.exp(log_det_), max=1)
             accept = w <= w_accept
             z = torch.where(accept.unsqueeze(1), z_, z)
