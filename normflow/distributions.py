@@ -535,7 +535,7 @@ class MHProposal(nn.Module):
     def forward(self, z):
         """
         Draw samples given z and compute log probability difference
-        log(p(z_new | z)) - log(p(z | z_new))
+        log(p(z | z_new)) - log(p(z_new | z))
         :param z: Previous samples
         :return: Proposal, difference of log probability ratio
         """
