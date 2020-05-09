@@ -337,33 +337,17 @@ class MetropolisHastings(Flow):
     def forward(self, z):
         num_samples = len(z)
         log_det = torch.zeros(num_samples, dtype=z.dtype, device=z.device)
-        from time import time
         for i in range(self.steps):
-            print('w')
-            t = time()
             w = torch.rand(num_samples, dtype=z.dtype, device=z.device)
-            print(time() - t)
-            print('proposal')
-            t = time()
             z_, log_p_diff = self.proposal(z)
-            print(time() - t)
-            print('energy')
-            t = time()
             log_p = self.dist.log_prob(z)
             log_p_ = self.dist.log_prob(z_)
-            print(time() - t)
-            print('acceptance')
-            t = time()
             log_w_accept = log_p_ - log_p + log_p_diff
             w_accept = torch.clamp(torch.exp(log_w_accept), max=1)
             accept = w <= w_accept
-            print(time() - t)
-            print('update')
-            t = time()
             z = torch.where(accept.unsqueeze(1), z_, z)
             log_det_ = log_p - log_p_ + log_p_diff
             log_det = torch.where(accept, log_det + log_det_, log_det)
-            print(time() - t)
         return z, log_det
 
     def inverse(self, z):
