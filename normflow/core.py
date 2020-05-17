@@ -64,7 +64,7 @@ class NormalizingFlow(nn.Module):
         :param num_samples: Number of samples to draw
         :param dreg: Flag whether to use Double REparametrized Gradient estimator,
         see arXiv 1810.04152
-        :return:Alpha divergence
+        :return: Alpha divergence
         """
         z, log_q = self.q0(num_samples)
         for flow in self.flows:
