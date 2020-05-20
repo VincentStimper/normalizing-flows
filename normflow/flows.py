@@ -351,7 +351,7 @@ class MetropolisHastings(Flow):
             accept = w <= w_accept
             # Update samples, log(det), and log(p)
             z = torch.where(accept.unsqueeze(1), z_, z)
-            log_det_ = log_p - log_p_ + log_p_diff
+            log_det_ = log_p - log_p_
             log_det = torch.where(accept, log_det + log_det_, log_det)
             log_p = torch.where(accept, log_p_, log_p)
         return z, log_det

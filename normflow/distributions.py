@@ -570,7 +570,7 @@ class DiagGaussianProposal(MHProposal):
 
     def log_prob(self, z_, z):
         log_p = - 0.5 * np.prod(self.shape) * np.log(2 * np.pi) \
-                - torch.sum(torch.log(self.scale) + 0.5 * torch.pow(z_ - z, 2),
+                - torch.sum(torch.log(self.scale) + 0.5 * torch.pow((z_ - z) / self.scale, 2),
                             list(range(1, z.dim())))
         return log_p
 
