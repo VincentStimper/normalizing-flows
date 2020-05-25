@@ -348,9 +348,6 @@ class MetropolisHastings(Flow):
             w = torch.rand(num_samples, dtype=z.dtype, device=z.device)
             log_w_accept = log_p_ - log_p + log_p_diff
             w_accept = torch.clamp(torch.exp(log_w_accept), max=1)
-            print(log_p)
-            print(log_p_)
-            print(w_accept)
             accept = w <= w_accept
             # Update samples, log(det), and log(p)
             z = torch.where(accept.unsqueeze(1), z_, z)
