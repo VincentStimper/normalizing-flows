@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 from . import distributions
 from . import utils
+import math
 
 class NormalizingFlow(nn.Module):
     """
@@ -87,8 +88,8 @@ class NormalizingFlow(nn.Module):
             weights = (1 - alpha) * w_alpha + alpha * w_alpha ** 2
             loss = -alpha * torch.mean(weights * torch.log(w))
         else:
-            w = torch.exp(alpha * (log_p - log_q))
-            loss = -torch.log(torch.mean(w))
+            loss = -torch.logsumexp(alpha * (log_p - log_q), 0) + \
+                math.log(log_p.shape[0])
         return loss
 
     def sample(self, num_samples=1):
