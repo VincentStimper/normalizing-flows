@@ -78,7 +78,7 @@ class GaussianMixture(BaseDistribution):
             loc = np.random.randn(self.n_modes, self.dim)
         loc = np.array(loc)[None, ...]
         if scale is None:
-            scale = np.ones(self.n_modes, self.dim)
+            scale = np.ones((self.n_modes, self.dim))
         scale = np.array(scale)[None, ...]
         if weights is None:
             weights = np.ones(self.n_modes)
