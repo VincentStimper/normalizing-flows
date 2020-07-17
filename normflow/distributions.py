@@ -71,6 +71,8 @@ class GaussianMixture(BaseDistribution):
         :param weights: List of mode probabilities
         :param trainable: Flag, if true parameters will be optimized during training
         """
+        super().__init__()
+        
         self.n_modes = n_modes
         self.dim = dim
 
