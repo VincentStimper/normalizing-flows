@@ -72,7 +72,7 @@ class GaussianMixture(BaseDistribution):
         :param trainable: Flag, if true parameters will be optimized during training
         """
         super().__init__()
-        
+
         self.n_modes = n_modes
         self.dim = dim
 
@@ -101,14 +101,15 @@ class GaussianMixture(BaseDistribution):
         mode_ind = torch.randint(high=self.n_modes, size=(num_samples,))
         mode_1h = torch.zeros((num_samples, self.n_modes), dtype=torch.int64)
         mode_1h.scatter_(1, mode_ind[:, None], 1)
+        mode_1h = mode_1h[..., None]
 
         # Get weights
         weights = torch.softmax(self.weight_scores, 1)
 
         # Get samples
         eps = torch.randn(num_samples, self.dim)
-        scale_sample = torch.sum(torch.exp(self.log_scale) * mode_1h[..., None], 1)
-        loc_sample = torch.sum(self.loc * mode_1h[..., None], 1)
+        scale_sample = torch.sum(torch.exp(self.log_scale) * mode_1h, 1)
+        loc_sample = torch.sum(self.loc * mode_1h, 1)
         z = eps * scale_sample + loc_sample
 
         # Compute log probability
@@ -126,7 +127,7 @@ class GaussianMixture(BaseDistribution):
         # Compute log probability
         eps = (z[:, None, :] - self.loc) / torch.exp(self.log_scale)
         log_p = - 0.5 * self.dim * np.log(2 * np.pi) + torch.log(weights) \
-                - 0.5 * torch.sum(torch.pow(eps, 2), 1, keepdim=True) \
+                - 0.5 * torch.sum(torch.pow(eps, 2), 2) \
                 - torch.sum(self.log_scale, 2)
         log_p = torch.logsumexp(log_p, 1)
 
