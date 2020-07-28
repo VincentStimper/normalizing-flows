@@ -107,7 +107,7 @@ class GaussianMixture(BaseDistribution):
         weights = torch.softmax(self.weight_scores, 1)
 
         # Get samples
-        eps = torch.randn(num_samples, self.dim)
+        eps = torch.randn(num_samples, self.dim, device=self.loc.device)
         scale_sample = torch.sum(torch.exp(self.log_scale) * mode_1h, 1)
         loc_sample = torch.sum(self.loc * mode_1h, 1)
         z = eps * scale_sample + loc_sample
@@ -160,7 +160,7 @@ class GaussianPCA(BaseDistribution):
         self.log_sigma = nn.Parameter(torch.tensor(np.log(sigma)))
 
     def forward(self, num_samples=1):
-        eps = torch.randn(num_samples, self.latent_dim)
+        eps = torch.randn(num_samples, self.latent_dim, device=self.loc.device)
         z_ = torch.matmul(eps, self.W)
         z = z_ + self.loc
 
