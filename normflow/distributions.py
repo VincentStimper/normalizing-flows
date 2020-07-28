@@ -134,6 +134,54 @@ class GaussianMixture(BaseDistribution):
         return log_p
 
 
+class GaussianPCA(BaseDistribution):
+    """
+    Gaussian distribution resulting from linearly mapping a normal distributed latent
+    variable describing the "content of the target"
+    """
+    def __init__(self, dim, latent_dim=None, sigma=0.1):
+        """
+        Constructor
+        :param dim: Number of dimensions of the flow variables
+        :param latent_dim: Number of dimensions of the latent "content" variable;
+                           if None it is set equal to dim
+        :param sigma: Noise level
+        """
+        super().__init__()
+
+        self.dim = dim
+        if latent_dim is None:
+            self.latent_dim = dim
+        else:
+            self.latent_dim = latent_dim
+
+        self.loc = nn.Parameter(torch.zeros(1, dim))
+        self.W = nn.Parameter(torch.randn(latent_dim, dim))
+        self.log_sigma = nn.Parameter(torch.tensor(np.log(sigma)))
+
+    def forward(self, num_samples=1):
+        eps = torch.randn(num_samples, self.latent_dim)
+        z_ = torch.matmul(eps, self.W)
+        z = z_ + self.loc
+
+        Sig = torch.matmul(self.W.T, self.W) \
+              + torch.exp(self.log_sigma * 2) * torch.eye(self.dim)
+        log_p = self.dim / 2 * np.log(2 * np.pi) - 0.5 * torch.det(Sig) \
+                - 0.5 * torch.sum(z_ * torch.matmul(z_, torch.inverse(Sig)), 1)
+
+        return z, log_p
+
+    def log_prob(self, z):
+        z_ = z - self.loc
+
+        Sig = torch.matmul(self.W.T, self.W) \
+              + torch.exp(self.log_sigma * 2) * torch.eye(self.dim)
+        log_p = self.dim / 2 * np.log(2 * np.pi) - 0.5 * torch.det(Sig) \
+                - 0.5 * torch.sum(z_ * torch.matmul(z_, torch.inverse(Sig)), 1)
+
+        return log_p
+
+
 class BaseEncoder(nn.Module):
     """
     Base distribution of a flow-based variational autoencoder
