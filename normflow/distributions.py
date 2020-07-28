@@ -166,7 +166,8 @@ class GaussianPCA(BaseDistribution):
         z = z_ + self.loc
 
         Sig = torch.matmul(self.W.T, self.W) \
-              + torch.exp(self.log_sigma * 2) * torch.eye(self.dim)
+              + torch.exp(self.log_sigma * 2) \
+              * torch.eye(self.dim, dtype=self.loc.dtype, device=self.loc.device)
         log_p = self.dim / 2 * np.log(2 * np.pi) - 0.5 * torch.det(Sig) \
                 - 0.5 * torch.sum(z_ * torch.matmul(z_, torch.inverse(Sig)), 1)
 
@@ -176,7 +177,8 @@ class GaussianPCA(BaseDistribution):
         z_ = z - self.loc
 
         Sig = torch.matmul(self.W.T, self.W) \
-              + torch.exp(self.log_sigma * 2) * torch.eye(self.dim)
+              + torch.exp(self.log_sigma * 2) \
+              * torch.eye(self.dim, dtype=self.loc.dtype, device=self.loc.device)
         log_p = self.dim / 2 * np.log(2 * np.pi) - 0.5 * torch.det(Sig) \
                 - 0.5 * torch.sum(z_ * torch.matmul(z_, torch.inverse(Sig)), 1)
 
