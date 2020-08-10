@@ -110,7 +110,7 @@ class ResampledGaussian(BaseDistribution):
         if self.Z == None:
             self.Z = torch.mean(acc).detach()
         alpha = (1 - self.Z) ** (self.T - 1)
-        log_p = torch.log((1 - alpha) * acc / self.Z + alpha) + log_p_gauss
+        log_p = torch.log((1 - alpha) * acc[:, 0] / self.Z + alpha) + log_p_gauss
         return z, log_p
 
     def log_prob(self, z):
