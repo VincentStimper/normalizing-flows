@@ -100,9 +100,9 @@ class ResampledGaussian(BaseDistribution):
                     t = 0
                 else:
                     t = t + 1
-                if s == self.d:
+                if s == num_samples:
                     break
-            if s == self.d:
+            if s == num_samples:
                 break
         log_p_gauss = - 0.5 * self.d * np.log(2 * np.pi) \
                       - torch.sum(self.log_scale + 0.5 * torch.pow((z - self.loc) / torch.exp(self.log_scale), 2), 1)
