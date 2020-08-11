@@ -91,8 +91,8 @@ class ResampledGaussian(BaseDistribution):
         for i in range(self.T):
             eps = torch.randn((num_samples, self.d), dtype=self.loc.dtype, device=self.loc.device)
             z_ = self.loc + torch.exp(self.log_scale) * eps
-            acc = self.a(z)
-            dec = torch.randn_like(acc) < acc
+            acc = self.a(z_)
+            dec = torch.rand_like(acc) < acc
             for i, dec_ in enumerate(dec):
                 if dec_ or t == self.T:
                     z[s] = z_[i]
