@@ -127,9 +127,9 @@ class ResampledGaussian(BaseDistribution):
         log_p_gauss = - 0.5 * self.d * np.log(2 * np.pi) \
                       - torch.sum(self.log_scale + 0.5 * torch.pow((z - self.loc) / torch.exp(self.log_scale), 2), 1)
         acc = self.a(z)
-        eps = torch.randn_like(z)
-        z_ = self.loc + torch.exp(self.log_scale) * eps
         if self.training or self.Z == None:
+            eps = torch.randn_like(z)
+            z_ = self.loc + torch.exp(self.log_scale) * eps
             Z_batch = torch.mean(self.a(z_))
             if self.Z == None:
                 self.Z = Z_batch
