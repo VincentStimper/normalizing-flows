@@ -88,10 +88,15 @@ class ResampledGaussian(BaseDistribution):
         t = 0
         z = torch.zeros(num_samples, self.d, dtype=self.loc.dtype, device=self.loc.device)
         s = 0
+        n = 0
+        Z_batch = 0
         for i in range(self.T):
             eps = torch.randn((num_samples, self.d), dtype=self.loc.dtype, device=self.loc.device)
             z_ = self.loc + torch.exp(self.log_scale) * eps
             acc = self.a(z_)
+            if self.training or self.Z == None:
+                Z_batch = Z_batch + torch.sum(acc)
+                n = n + num_samples
             dec = torch.rand_like(acc) < acc
             for i, dec_ in enumerate(dec):
                 if dec_ or t == self.T:
@@ -107,8 +112,13 @@ class ResampledGaussian(BaseDistribution):
         log_p_gauss = - 0.5 * self.d * np.log(2 * np.pi) \
                       - torch.sum(self.log_scale + 0.5 * torch.pow((z - self.loc) / torch.exp(self.log_scale), 2), 1)
         acc = self.a(z)
-        if self.Z == None:
-            self.Z = torch.mean(acc).detach()
+        if self.training or self.Z == None:
+            Z_batch = Z_batch / n
+            if self.Z == None:
+                self.Z = Z_batch
+            else:
+                self.Z = ((1 - self.eps) * self.Z + self.eps * Z_batch).detach()
+                self.Z = Z_batch - Z_batch.detach() + self.Z
         alpha = (1 - self.Z) ** (self.T - 1)
         log_p = torch.log((1 - alpha) * acc[:, 0] / self.Z + alpha) + log_p_gauss
         return z, log_p
@@ -119,18 +129,15 @@ class ResampledGaussian(BaseDistribution):
         acc = self.a(z)
         eps = torch.randn_like(z)
         z_ = self.loc + torch.exp(self.log_scale) * eps
-        Z_batch = torch.mean(self.a(z_))
-        if self.training:
+        if self.training or self.Z == None:
+            Z_batch = torch.mean(self.a(z_))
             if self.Z == None:
                 self.Z = Z_batch
-                Z = Z_batch
             else:
                 self.Z = ((1 - self.eps) * self.Z + self.eps * Z_batch).detach()
-                Z = Z_batch - Z_batch.detach() + self.Z
-        else:
-            Z = self.Z
-        alpha = (1 - Z) ** (self.T - 1)
-        log_p = torch.log((1 - alpha) * acc[:, 0] / Z + alpha) + log_p_gauss
+                self.Z = Z_batch - Z_batch.detach() + self.Z
+        alpha = (1 - self.Z) ** (self.T - 1)
+        log_p = torch.log((1 - alpha) * acc[:, 0] / self.Z + alpha) + log_p_gauss
         return log_p
 
 
