@@ -102,7 +102,7 @@ class ResampledGaussian(BaseDistribution):
                     Z_sum = Z_sum + torch.sum(acc).detach()
             dec = torch.rand_like(acc) < acc
             for i, dec_ in enumerate(dec):
-                if dec_ or t == self.T:
+                if dec_ or t == self.T - 1:
                     z[s] = z_[i]
                     s = s + 1
                     t = 0
