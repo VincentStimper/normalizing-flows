@@ -57,6 +57,131 @@ class DiagGaussian(BaseDistribution):
         return log_p
 
 
+class GaussianMixture(BaseDistribution):
+    """
+    Mixture of Gaussians with diagonal covariance matrix
+    """
+    def __init__(self, n_modes, dim, loc=None, scale=None, weights=None, trainable=True):
+        """
+        Constructor
+        :param n_modes: Number of modes of the mixture model
+        :param dim: Number of dimensions of each Gaussian
+        :param loc: List of mean values
+        :param scale: List of diagonals of the covariance matrices
+        :param weights: List of mode probabilities
+        :param trainable: Flag, if true parameters will be optimized during training
+        """
+        super().__init__()
+
+        self.n_modes = n_modes
+        self.dim = dim
+
+        if loc is None:
+            loc = np.random.randn(self.n_modes, self.dim)
+        loc = np.array(loc)[None, ...]
+        if scale is None:
+            scale = np.ones((self.n_modes, self.dim))
+        scale = np.array(scale)[None, ...]
+        if weights is None:
+            weights = np.ones(self.n_modes)
+        weights = np.array(weights)[None, ...]
+        weights /= weights.sum(1)
+
+        if trainable:
+            self.loc = nn.Parameter(torch.tensor(1. * loc))
+            self.log_scale = nn.Parameter(torch.tensor(np.log(1. * scale)))
+            self.weight_scores = nn.Parameter(torch.tensor(np.log(1. * weights)))
+        else:
+            self.register_buffer("loc", torch.tensor(1. * loc))
+            self.register_buffer("log_scale", torch.tensor(np.log(1. * scale)))
+            self.register_buffer("weight_scores", torch.tensor(np.log(1. * weights)))
+
+    def forward(self, num_samples=1):
+        # Sample mode indices
+        mode_ind = torch.randint(high=self.n_modes, size=(num_samples,))
+        mode_1h = torch.zeros((num_samples, self.n_modes), dtype=torch.int64)
+        mode_1h.scatter_(1, mode_ind[:, None], 1)
+        mode_1h = mode_1h[..., None]
+
+        # Get weights
+        weights = torch.softmax(self.weight_scores, 1)
+
+        # Get samples
+        eps = torch.randn(num_samples, self.dim)
+        scale_sample = torch.sum(torch.exp(self.log_scale) * mode_1h, 1)
+        loc_sample = torch.sum(self.loc * mode_1h, 1)
+        z = eps * scale_sample + loc_sample
+
+        # Compute log probability
+        log_p = - 0.5 * self.dim * np.log(2 * np.pi) + torch.log(weights)\
+                - 0.5 * torch.sum(torch.pow(eps, 2), 1, keepdim=True)\
+                - torch.sum(self.log_scale, 2)
+        log_p = torch.logsumexp(log_p, 1)
+
+        return z, log_p
+
+    def log_prob(self, z):
+        # Get weights
+        weights = torch.softmax(self.weight_scores, 1)
+
+        # Compute log probability
+        eps = (z[:, None, :] - self.loc) / torch.exp(self.log_scale)
+        log_p = - 0.5 * self.dim * np.log(2 * np.pi) + torch.log(weights) \
+                - 0.5 * torch.sum(torch.pow(eps, 2), 2) \
+                - torch.sum(self.log_scale, 2)
+        log_p = torch.logsumexp(log_p, 1)
+
+        return log_p
+
+
+class GaussianPCA(BaseDistribution):
+    """
+    Gaussian distribution resulting from linearly mapping a normal distributed latent
+    variable describing the "content of the target"
+    """
+    def __init__(self, dim, latent_dim=None, sigma=0.1):
+        """
+        Constructor
+        :param dim: Number of dimensions of the flow variables
+        :param latent_dim: Number of dimensions of the latent "content" variable;
+                           if None it is set equal to dim
+        :param sigma: Noise level
+        """
+        super().__init__()
+
+        self.dim = dim
+        if latent_dim is None:
+            self.latent_dim = dim
+        else:
+            self.latent_dim = latent_dim
+
+        self.loc = nn.Parameter(torch.zeros(1, dim))
+        self.W = nn.Parameter(torch.randn(latent_dim, dim))
+        self.log_sigma = nn.Parameter(torch.tensor(np.log(sigma)))
+
+    def forward(self, num_samples=1):
+        eps = torch.randn(num_samples, self.latent_dim)
+        z_ = torch.matmul(eps, self.W)
+        z = z_ + self.loc
+
+        Sig = torch.matmul(self.W.T, self.W) \
+              + torch.exp(self.log_sigma * 2) * torch.eye(self.dim)
+        log_p = self.dim / 2 * np.log(2 * np.pi) - 0.5 * torch.det(Sig) \
+                - 0.5 * torch.sum(z_ * torch.matmul(z_, torch.inverse(Sig)), 1)
+
+        return z, log_p
+
+    def log_prob(self, z):
+        z_ = z - self.loc
+
+        Sig = torch.matmul(self.W.T, self.W) \
+              + torch.exp(self.log_sigma * 2) * torch.eye(self.dim)
+        log_p = self.dim / 2 * np.log(2 * np.pi) - 0.5 * torch.det(Sig) \
+                - 0.5 * torch.sum(z_ * torch.matmul(z_, torch.inverse(Sig)), 1)
+
+        return log_p
+
+
 class BaseEncoder(nn.Module):
     """
     Base distribution of a flow-based variational autoencoder
@@ -204,7 +329,6 @@ class NNDiagGaussian(BaseEncoder):
         log_p = - 0.5 * torch.prod(torch.tensor(z.size()[2:])) * np.log(2 * np.pi)\
                 - 0.5 * torch.sum(torch.log(var) + (z - mean) ** 2 / var, 2)
         return log_p
-
 
 
 class Decoder(nn.Module):
