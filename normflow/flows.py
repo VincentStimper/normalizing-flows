@@ -366,18 +366,18 @@ class HamiltonianMonteCarlo(Flow):
     Flow layer using the HMC proposal in Stochastic Normalising Flows,
     see arXiv: 2002.06707
     """
-    def __init__(self, target, steps, step_size, log_mass):
+    def __init__(self, target, steps, log_step_size, log_mass):
         """
         Constructor
         :param target: The stationary distribution of this Markov transition. Should be logp
         :param steps: The number of leapfrog steps
-        :param step_size: The step size used in the leapfrog integrator. shape (dim)
+        :param log_step_size: The log step size used in the leapfrog integrator. shape (dim)
         :param log_mass: The log_mass determining the variance of the momentum samples. shape (dim)
         """
         super().__init__()
         self.target = target
         self.steps = steps
-        self.register_parameter('step_size', torch.nn.Parameter(step_size))
+        self.register_parameter('log_step_size', torch.nn.Parameter(log_step_size))
         self.register_parameter('log_mass', torch.nn.Parameter(log_mass))
 
     def forward(self, z):
@@ -387,10 +387,11 @@ class HamiltonianMonteCarlo(Flow):
         # leapfrog
         z_new = z.clone()
         p_new = p.clone()
+        step_size = torch.exp(self.log_step_size)
         for i in range(self.steps):
-            p_half = p_new - (self.step_size/2.0) * -self.gradlogP(z_new)
-            z_new = z_new + self.step_size * (p_half/torch.exp(self.log_mass))
-            p_new = p_half - (self.step_size/2.0) * -self.gradlogP(z_new)
+            p_half = p_new - (step_size/2.0) * -self.gradlogP(z_new)
+            z_new = z_new + step_size * (p_half/torch.exp(self.log_mass))
+            p_new = p_half - (step_size/2.0) * -self.gradlogP(z_new)
 
         # Metropolis Hastings correction
         probabilities = torch.exp(
