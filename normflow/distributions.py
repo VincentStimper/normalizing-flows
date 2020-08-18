@@ -89,23 +89,18 @@ class ResampledGaussian(BaseDistribution):
         z = torch.zeros(num_samples, self.d, dtype=self.loc.dtype, device=self.loc.device)
         s = 0
         n = 0
+        Z_sum = 0
         for i in range(self.T):
             eps = torch.randn((num_samples, self.d), dtype=self.loc.dtype, device=self.loc.device)
             z_ = self.loc + torch.exp(self.log_scale) * eps
             acc = self.a(z_)
-            """
             if self.training or self.Z == None:
-                if i == 0:
-                    Z_batch = torch.mean(acc)
-                    Z_sum = torch.sum(acc).detach()
-                else:
-                    Z_sum = Z_sum + torch.sum(acc).detach()
+                Z_sum = Z_sum + torch.sum(acc).detach()
                 n = n + num_samples
-            """
             dec = torch.rand_like(acc) < acc
-            for j, dec_ in enumerate(dec):
+            for j, dec_ in enumerate(dec[:, 0]):
                 if dec_ or t == self.T - 1:
-                    z[s] = z_[j]
+                    z[s, :] = z_[j, :]
                     s = s + 1
                     t = 0
                 else:
@@ -121,11 +116,12 @@ class ResampledGaussian(BaseDistribution):
             eps = torch.randn((num_samples, self.d), dtype=self.loc.dtype, device=self.loc.device)
             z_ = self.loc + torch.exp(self.log_scale) * eps
             Z_batch = torch.mean(self.a(z_))
+            Z_ = (Z_sum + Z_batch.detach() * num_samples) / (n + num_samples)
             if self.Z == None:
-                self.Z = Z_batch
+                self.Z = Z_
             else:
-                self.Z = ((1 - self.eps) * self.Z + self.eps * Z_batch).detach()
-                self.Z = Z_batch - Z_batch.detach() + self.Z
+                self.Z = ((1 - self.eps) * self.Z + self.eps * Z_).detach()
+            self.Z = Z_batch - Z_batch.detach() + self.Z
         alpha = (1 - self.Z) ** (self.T - 1)
         log_p = torch.log((1 - alpha) * acc[:, 0] / self.Z + alpha) + log_p_gauss
         return z, log_p
