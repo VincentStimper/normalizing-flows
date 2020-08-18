@@ -97,9 +97,9 @@ class ResampledGaussian(BaseDistribution):
                 if i == 0:
                     Z_batch = torch.mean(acc)
                     Z_sum = torch.sum(acc).detach()
-                    n = n + num_samples
                 else:
                     Z_sum = Z_sum + torch.sum(acc).detach()
+                n = n + num_samples
             dec = torch.rand_like(acc) < acc
             for j, dec_ in enumerate(dec):
                 if dec_ or t == self.T - 1:
