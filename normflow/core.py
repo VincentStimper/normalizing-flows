@@ -92,6 +92,22 @@ class NormalizingFlow(nn.Module):
                 math.log(log_p.shape[0])
         return loss
 
+    def reverse_kld_cov(self, num_samples=1):
+        """
+        Estimates reverse KL divergence, gradients through covariance
+        :param num_samples: Number of samples to draw from base distribution
+        :return: Estimate of the reverse KL divergence averaged over latent samples
+        """
+        z, log_q = self.q0(num_samples)
+        for flow in self.flows:
+            z, log_det = flow(z)
+            log_q -= log_det
+        log_p = self.p.log_prob(z).detach()
+        log_q_ = log_q.detach()
+        A = log_p - log_q_
+        A_ = A - torch.mean(A)
+        return -torch.sum(A_ * log_q) / (num_samples - 1)
+
     def sample(self, num_samples=1):
         """
         Samples from flow-based approximate distribution
