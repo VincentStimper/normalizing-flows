@@ -99,14 +99,20 @@ class NormalizingFlow(nn.Module):
         :return: Estimate of the reverse KL divergence averaged over latent samples
         """
         z, log_q = self.q0(num_samples)
+        zp = z.detach()
         for flow in self.flows:
             z, log_det = flow(z)
+            zp, _ = flow(zp)
             log_q -= log_det
-        log_p = self.p.log_prob(z).detach()
+        log_p = self.p.log_prob(zp)
+        log_p_ = log_p.detach()
         log_q_ = log_q.detach()
-        A = log_p - log_q_
+        A = log_p_ - log_q_
         A_ = A - torch.mean(A)
-        return -torch.sum(A_ * log_q) / (num_samples - 1)
+        grad_a = -torch.sum(A_ * log_q) / (num_samples - 1)
+        grad_f = -log_p
+        rkld = torch.mean(log_q_) - torch.mean(log_p_)
+        return rkld + grad_a - grad_a.detach() + grad_f - grad_f.detach()
 
     def sample(self, num_samples=1):
         """
