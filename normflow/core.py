@@ -110,7 +110,7 @@ class NormalizingFlow(nn.Module):
         A = log_p_ - log_q_
         A_ = A - torch.mean(A)
         grad_a = -torch.sum(A_ * log_q) / (num_samples - 1)
-        grad_f = -log_p
+        grad_f = -torch.mean(log_p)
         rkld = torch.mean(log_q_) - torch.mean(log_p_)
         return rkld + grad_a - grad_a.detach() + grad_f - grad_f.detach()
 
