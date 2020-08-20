@@ -201,10 +201,10 @@ class BatchNorm(Flow):
 
     
 class Invertible1x1Conv(Flow):
-    def __init__(self, shape):
+    def __init__(self, num_channels):
         super().__init__()
-        self.d_cpu = torch.prod(torch.tensor(shape))
-        Q = torch.nn.init.orthogonal_(torch.randn(self.d_cpu, self.d_cpu))
+        self.num_channels = num_channels
+        Q = torch.nn.init.orthogonal_(torch.randn(self.num_channels, self.num_channels))
         P, L, U = torch.lu_unpack(*Q.lu())
         self.register_buffer('P', P) # remains fixed during optimization
         self.L = nn.Parameter(L) # lower triangular portion
@@ -213,7 +213,8 @@ class Invertible1x1Conv(Flow):
 
     def _assemble_W(self):
         # assemble W from its components (P, L, U, S)
-        L = torch.tril(self.L, diagonal=-1) + torch.diag(torch.ones(self.d_cpu, device=self.P.device))
+        L = torch.tril(self.L, diagonal=-1) + torch.diag(torch.ones(self.num_channels,
+                                                                    device=self.P.device))
         U = torch.triu(self.U, diagonal=1)
         W = self.P @ L @ (U + torch.diag(self.S))
         return W
