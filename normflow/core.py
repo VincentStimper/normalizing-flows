@@ -99,7 +99,7 @@ class NormalizingFlow(nn.Module):
         :return: Estimate of the reverse KL divergence averaged over latent samples
         """
         z0, log_q = self.q0(num_samples)
-        log_det = 0
+        log_det = torch.tensor(0)
         z = z0.detach()
         for flow in self.flows:
             z, log_det_part = flow(z)
