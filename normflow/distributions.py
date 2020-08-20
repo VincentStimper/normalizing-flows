@@ -552,8 +552,8 @@ class ImagePrior(nn.Module):
         :param num_steps: Number of rejection sampling steps to perform
         :return: Accepted samples
         """
-        z_ = torch.rand((num_steps, 2), device=self.image.device)
-        prob = torch.rand(num_steps, device=self.image.device)
+        z_ = torch.rand((num_steps, 2), dtype=self.image.dtype, device=self.image.device)
+        prob = torch.rand(num_steps, dtype=self.image.dtype, device=self.image.device)
         ind = (z_ * (self.image_size - 1)).long()
         intensity = self.image[ind[:, 0], ind[:, 1]]
         accept = intensity > prob
@@ -566,7 +566,7 @@ class ImagePrior(nn.Module):
         :param num_samples: Number of samples to draw
         :return: Samples
         """
-        z = torch.ones((0, 2), device=self.image.device)
+        z = torch.ones((0, 2), dtype=self.image.dtype, device=self.image.device)
         while len(z) < num_samples:
             z_ = self.rejection_sampling(num_samples)
             ind = np.min([len(z_), num_samples - len(z)])
