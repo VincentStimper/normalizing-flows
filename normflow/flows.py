@@ -272,8 +272,9 @@ class ActNorm(AffineConstFlow):
         # first batch is used for initialization, c.f. batchnorm
         if not self.data_dep_init_done:
             assert self.s is not None and self.t is not None
-            self.s.data = (-torch.log(z.std(dim=0, keepdim=True))).data
-            self.t.data = (-z.mean(dim=0, keepdim=True) * torch.exp(self.s)).data
+            dim = [0] + list(range(2, z.dim()))
+            self.s.data = (-torch.log(z.std(dim=dim, keepdim=True))).data
+            self.t.data = (-z.mean(dim=dim, keepdim=True) * torch.exp(self.s)).data
             self.data_dep_init_done = torch.tensor(True)
         return super().forward(z)
 
@@ -281,11 +282,13 @@ class ActNorm(AffineConstFlow):
         # first batch is used for initialization, c.f. batchnorm
         if not self.data_dep_init_done:
             assert self.s is not None and self.t is not None
-            self.s.data = torch.log(z.std(dim=0, keepdim=True)).data
-            self.t.data = z.mean(dim=0, keepdim=True).data
+            dim = [0] + list(range(2, z.dim()))
+            self.s.data = torch.log(z.std(dim=dim, keepdim=True)).data
+            self.t.data = z.mean(dim=dim, keepdim=True).data
             self.data_dep_init_done = torch.tensor(True)
         return super().inverse(z)
-    
+
+
 class Glow(Flow):
     """
     Glow: Generative Flow with Invertible 1×1 Convolutions, arXiv: 1807.03039
