@@ -28,3 +28,16 @@ class ConstScaleLayer(nn.Module):
 
     def forward(self, input):
         return input * self.scale
+
+
+class LogitTransform():
+    """
+    Transform for dataloader
+    logit(alpha + (1 - alpha) * x) where logit(x) = log(x / (1 - x))
+    """
+    def __init__(self, alpha):
+        self.alpha = alpha
+
+    def __call__(self, x):
+        x_ = self.alpha + (1 - self.alpha) * x
+        return torch.log(x_ / (1 - x_))
