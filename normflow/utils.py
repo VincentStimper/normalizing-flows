@@ -57,7 +57,7 @@ class Jitter():
         Constructor
         :param scale: Scaling factor for noise
         """
-        self.scale
+        self.scale = scale
 
     def __call__(self, x):
         eps = (torch.rand_like(x) - 0.5) * self.scale
