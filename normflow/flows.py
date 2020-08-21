@@ -221,24 +221,26 @@ class Invertible1x1Conv(Flow):
 
     def forward(self, z):
         # Permute dimensions so channel dim is last and gets used for matmul
-        perm = [0] + list(range(2, z.dim())) + [1]
-        perm_inv = [0, z.dim() - 1] + list(range(1, z.dim() - 1))
+        n_dims = z.dim()
+        perm = [0] + list(range(2, n_dims)) + [1]
+        perm_inv = [0, n_dims - 1] + list(range(1, n_dims - 1))
         W = self._assemble_W()
         z_ = (z.permute(*perm) @ W).permute(perm_inv)
-        log_det = torch.sum(torch.log(torch.abs(self.S)))
-        if z.dim() > 2:
+        log_det = torch.sum(torch.log(torch.abs(self.S)), dim=list(range(1, n_dims)))
+        if n_dims > 2:
             log_det = log_det * torch.prod(torch.tensor(z.shape[2:]))
         return z_, log_det
 
     def inverse(self, z):
         # Permute dimensions so channel dim is last and gets used for matmul
-        perm = [0] + list(range(2, z.dim())) + [1]
-        perm_inv = [0, z.dim() - 1] + list(range(1, z.dim() - 1))
+        n_dims = z.dim()
+        perm = [0] + list(range(2, n_dims)) + [1]
+        perm_inv = [0, z.dim() - 1] + list(range(1, n_dims - 1))
         W = self._assemble_W()
         W_inv = torch.inverse(W)
         z_ = (z.permute(*perm) @ W_inv).permute(perm_inv)
-        log_det = -torch.sum(torch.log(torch.abs(self.S)))
-        if z.dim() > 2:
+        log_det = -torch.sum(torch.log(torch.abs(self.S)), dim=list(range(1, n_dims)))
+        if n_dims > 2:
             log_det = log_det * torch.prod(torch.tensor(z.shape[2:]))
         return z_, log_det
 
