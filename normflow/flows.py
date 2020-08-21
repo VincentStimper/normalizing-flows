@@ -152,12 +152,12 @@ class MaskedAffineFlow(Flow):
         if scale:
             self.add_module('s', s)
         else:
-            self.s = lambda x: x.new_zeros(*x.size())
+            self.s = lambda x: torch.zeros_like(x)
         
         if shift:
             self.add_module('t', t)
         else:
-            self.t = lambda x: x.new_zeros(*x.size())
+            self.t = lambda x: torch.zeros_like(x)
 
     def forward(self, z):
         z_masked = self.b * z
@@ -322,13 +322,15 @@ class GlowBlock(Flow):
     Invertible1x1Conv (dropped if there is only one channel)
     ActNorm (first batch used for initialization)
     """
-    def __init__(self, shape, channels, kernel_size, leaky=0.0, init_zeros=True):
+    def __init__(self, shape, channels, kernel_size, leaky=0.0, init_zeros=True,
+                 coupling='affine'):
         """
         :param shape: Shape of input data as tuple of ints in form CHW
         :param channels: List of number of channels of ConvNet2d
         :param kernel_size: List of kernel sizes of ConvNet2d
         :param leaky: Leaky parameter of LeakyReLUs of ConvNet2d
         :param init_zeros: Flag whether to initialize last conv layer with zeros
+        :param coupling: String, type of coupling, can be affine or additive
         """
         super().__init__()
         self.flows = nn.ModuleList([])
@@ -339,12 +341,22 @@ class GlowBlock(Flow):
         mm_ = [m_ if i % 2 == 0 else m for i in range(shape[1])]
         b = torch.tensor([mm if i % 2 == 0 else mm_ for i in range(shape[0])])
         # Coupling layers
-        s = nets.ConvNet2d(channels, kernel_size, leaky, init_zeros)
         t = nets.ConvNet2d(channels, kernel_size, leaky, init_zeros)
-        self.flows += [MaskedAffineFlow(b, s, t)]
-        s = nets.ConvNet2d(channels, kernel_size, leaky, init_zeros)
+        if coupling == 'affine':
+            s = nets.ConvNet2d(channels, kernel_size, leaky, init_zeros)
+            self.flows += [MaskedAffineFlow(b, s, t)]
+        elif coupling == 'additive':
+            self.flows += [MaskedAffineFlow(b, None, t, scale=False)]
+        else:
+            raise NotImplementedError('This coupling type is not implemented.')
         t = nets.ConvNet2d(channels, kernel_size, leaky, init_zeros)
-        self.flows += [MaskedAffineFlow(1 - b, s, t)]
+        if coupling == 'affine':
+            s = nets.ConvNet2d(channels, kernel_size, leaky, init_zeros)
+            self.flows += [MaskedAffineFlow(1 - b, s, t)]
+        elif coupling == 'additive':
+            self.flows += [MaskedAffineFlow(1 - b, None, t, scale=False)]
+        else:
+            raise NotImplementedError('This coupling type is not implemented.')
         # Invertible 1x1 convolution
         if shape[0] > 1:
             self.flows += [Invertible1x1Conv(channels[0])]
