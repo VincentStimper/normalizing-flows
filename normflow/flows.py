@@ -340,16 +340,15 @@ class GlowBlock(Flow):
         # Activation normalization
         self.flows += [ActNorm((shape[0],) + (1, 1))]
 
-
     def forward(self, z):
-        log_det_tot = torch.zeros(z.shape[0], device=z.device)
+        log_det_tot = torch.zeros(z.shape[0], dtype=z.dtype, device=z.device)
         for flow in self.flows:
             z, log_det = flow(z)
             log_det_tot += log_det
         return z, log_det_tot
 
     def inverse(self, z):
-        log_det_tot = torch.zeros(z.shape[0], device=z.device)
+        log_det_tot = torch.zeros(z.shape[0], dtype=z.dtype, device=z.device)
         for i in range(len(self.flows) - 1, -1, -1):
             z, log_det = self.flows[i].inverse(z)
             log_det_tot += log_det
