@@ -65,7 +65,7 @@ class ConvNet2d(nn.Module):
         net = nn.ModuleList([])
         for i in range(len(kernel_size)):
             net.append(nn.Conv2d(channels[i], channels[i + 1], kernel_size[i],
-                                 padding=1))
+                                 padding=kernel_size[i] // 2))
             net.append(nn.LeakyReLU(leaky))
         net = net[:-1]  # remove last ReLU
         if init_zeros:
