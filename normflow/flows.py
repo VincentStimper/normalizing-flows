@@ -287,7 +287,7 @@ class ActNorm(AffineConstFlow):
         # first batch is used for initialization, c.f. batchnorm
         if not self.data_dep_init_done:
             assert self.s is not None and self.t is not None
-            dim = (torch.tensor(self.s.shape) == 1).nonzero()[:, 0].lolist()
+            dim = (torch.tensor(self.s.shape) == 1).nonzero()[:, 0].tolist()
             self.s.data = (-torch.log(z.std(dim=dim, keepdim=True))).data
             self.t.data = (-z.mean(dim=dim, keepdim=True) * torch.exp(self.s)).data
             self.data_dep_init_done = torch.tensor(True)
@@ -297,7 +297,7 @@ class ActNorm(AffineConstFlow):
         # first batch is used for initialization, c.f. batchnorm
         if not self.data_dep_init_done:
             assert self.s is not None and self.t is not None
-            dim = (torch.tensor(self.s.shape) == 1).nonzero()[:, 0].lolist()
+            dim = (torch.tensor(self.s.shape) == 1).nonzero()[:, 0].tolist()
             self.s.data = torch.log(z.std(dim=dim, keepdim=True)).data
             self.t.data = z.mean(dim=dim, keepdim=True).data
             self.data_dep_init_done = torch.tensor(True)
