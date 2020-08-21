@@ -62,5 +62,5 @@ class Jitter():
     def __call__(self, x):
         eps = (torch.rand_like(x) - 0.5) * self.scale
         x_ = torch.abs(x + eps)
-        return x_ - 2 * torch.relu(1 - x_)
+        return x_ - 2 * torch.relu(x_ - 1)
 
