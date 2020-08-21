@@ -309,7 +309,7 @@ class GlowBlock(Flow):
     Glow: Generative Flow with Invertible 1×1 Convolutions, arXiv: 1807.03039
     One Block of the Glow model, comprised of
     MaskedAffineFlow (affine coupling layer
-    Invertible1x1Conv
+    Invertible1x1Conv (dropped if there is only one channel)
     ActNorm (first batch used for initialization)
     """
     def __init__(self, shape, channels, kernel_size, leaky=0.0, init_zeros=True):
@@ -336,7 +336,8 @@ class GlowBlock(Flow):
         t = nets.ConvNet2d(channels, kernel_size, leaky, init_zeros)
         self.flows += [MaskedAffineFlow(1 - b, s, t)]
         # Invertible 1x1 convolution
-        self.flows += [Invertible1x1Conv(channels[0])]
+        if shape[0] > 1:
+            self.flows += [Invertible1x1Conv(channels[0])]
         # Activation normalization
         self.flows += [ActNorm((shape[0],) + (1, 1))]
 
