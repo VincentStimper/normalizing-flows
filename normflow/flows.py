@@ -2,6 +2,8 @@ import numpy as np
 import torch
 import torch.nn as nn
 
+from . import nets
+
 
 ### Flow module ###
 class Flow(nn.Module):
@@ -285,7 +287,7 @@ class ActNorm(AffineConstFlow):
         # first batch is used for initialization, c.f. batchnorm
         if not self.data_dep_init_done:
             assert self.s is not None and self.t is not None
-            dim = [0] + list(range(2, z.dim()))
+            dim = (torch.tensor(self.s.shape) == 1).nonzero()[:, 0].lolist()
             self.s.data = (-torch.log(z.std(dim=dim, keepdim=True))).data
             self.t.data = (-z.mean(dim=dim, keepdim=True) * torch.exp(self.s)).data
             self.data_dep_init_done = torch.tensor(True)
@@ -295,28 +297,49 @@ class ActNorm(AffineConstFlow):
         # first batch is used for initialization, c.f. batchnorm
         if not self.data_dep_init_done:
             assert self.s is not None and self.t is not None
-            dim = [0] + list(range(2, z.dim()))
+            dim = (torch.tensor(self.s.shape) == 1).nonzero()[:, 0].lolist()
             self.s.data = torch.log(z.std(dim=dim, keepdim=True)).data
             self.t.data = z.mean(dim=dim, keepdim=True).data
             self.data_dep_init_done = torch.tensor(True)
         return super().inverse(z)
 
 
-class Glow(Flow):
+class GlowBlock(Flow):
     """
     Glow: Generative Flow with Invertible 1×1 Convolutions, arXiv: 1807.03039
-    It has a multi-scale architecture, each flow layer consists of three parts
+    One Block of the Glow model, comprised of
+    MaskedAffineFlow (affine coupling layer
+    Invertible1x1Conv
     ActNorm (first batch used for initialization)
-    Invertible1x1Conv (linear transform of variables)
-    AffineHalfFlow (checkboard pattern of bit mask)
     """
-    def __init__(self, b, s, t):
+    def __init__(self, shape, channels, kernel_size, leaky=0.0, init_zeros=True):
         """
-        :param shape: shape of the latent variable z
-        Need to reinitialize flows for Glow each training session as ActNorm initializes on first batch
+        :param shape: Shape of input data as tuple of ints in form CHW
+        :param channels: List of number of channels of ConvNet2d
+        :param kernel_size: List of kernel sizes of ConvNet2d
+        :param leaky: Leaky parameter of LeakyReLUs of ConvNet2d
+        :param init_zeros: Flag whether to initialize last conv layer with zeros
         """
         super().__init__()
-        self.flows = nn.ModuleList([ActNorm(b.size()), Invertible1x1Conv(b.size()), MaskedAffineFlow(b, s, t)])
+        self.flows = nn.ModuleList([])
+        # Checkerboard mask
+        m = [1 if i % 2 == 0 else 0 for i in range(shape[2])]
+        m_ = [0 if i % 2 == 0 else 1 for i in range(shape[2])]
+        mm = [m if i % 2 == 0 else m_ for i in range(shape[1])]
+        mm_ = [m_ if i % 2 == 0 else m for i in range(shape[1])]
+        b = torch.tensor([mm if i % 2 == 0 else mm_ for i in range(shape[0])])
+        # Coupling layers
+        s = nets.ConvNet2d(channels, kernel_size, leaky, init_zeros)
+        t = nets.ConvNet2d(channels, kernel_size, leaky, init_zeros)
+        self.flows += [MaskedAffineFlow(b, s, t)]
+        s = nets.ConvNet2d(channels, kernel_size, leaky, init_zeros)
+        t = nets.ConvNet2d(channels, kernel_size, leaky, init_zeros)
+        self.flows += [MaskedAffineFlow(1 - b, s, t)]
+        # Invertible 1x1 convolution
+        self.flows += [Invertible1x1Conv(channels[0])]
+        # Activation normalization
+        self.flows += [ActNorm((shape[0],) + (1, 1))]
+
 
     def forward(self, z):
         log_det_tot = torch.zeros(z.shape[0], device=z.device)
