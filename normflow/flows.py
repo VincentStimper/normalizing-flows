@@ -253,22 +253,34 @@ class AffineConstFlow(Flow):
     """
     def __init__(self, shape, scale=True, shift=True):
         super().__init__()
-        self.s = nn.Parameter(torch.zeros(shape)[None]) if scale else None
-        self.t = nn.Parameter(torch.zeros(shape)[None]) if shift else None
+        init = torch.zeros(shape)[None]
+        if scale:
+            self.s = nn.Parameter(init)
+        else:
+            self.register_buffer('s', init)
+        if shift:
+            self.t = nn.Parameter(init)
+        else:
+            self.register_buffer('t', init)
         self.n_dim = self.s.dim()
+        self.batch_dims = (torch.tensor(self.s.shape) == 1).nonzero()[:, 0].tolist()
         
     def forward(self, z):
-        s = self.s if self.s is not None else torch.zeros(z.shape, device=z.device)
-        t = self.t if self.t is not None else torch.zeros(z.shape, device=z.device)
-        z_ = z * torch.exp(s) + t
-        log_det = torch.sum(s, dim=list(range(1, self.n_dim)))
+        z_ = z * torch.exp(self.s) + self.t
+        if len(self.batch_dims) > 1:
+            prod_batch_dims = torch.prod(torch.tensor(z.shape(self.batch_dims[1:])))
+        else:
+            prod_batch_dims = 1
+        log_det = prod_batch_dims * torch.sum(self.s, dim=list(range(1, self.n_dim)))
         return z_, log_det
     
     def inverse(self, z):
-        s = self.s if self.s is not None else z.new_zeros(z.shape, device=z.device)
-        t = self.t if self.t is not None else z.new_zeros(z.shape, device=z.device)
-        z_ = (z - t) * torch.exp(-s)
-        log_det = torch.sum(-s, dim=list(range(1, self.n_dim)))
+        z_ = (z - self.t) * torch.exp(-self.s)
+        if len(self.batch_dims) > 1:
+            prod_batch_dims = torch.prod(torch.tensor(z.shape(self.batch_dims[1:])))
+        else:
+            prod_batch_dims = 1
+        log_det = -prod_batch_dims * torch.sum(self.s, dim=list(range(1, self.n_dim)))
         return z_, log_det
        
         
@@ -287,9 +299,8 @@ class ActNorm(AffineConstFlow):
         # first batch is used for initialization, c.f. batchnorm
         if not self.data_dep_init_done:
             assert self.s is not None and self.t is not None
-            dim = (torch.tensor(self.s.shape) == 1).nonzero()[:, 0].tolist()
-            self.s.data = (-torch.log(z.std(dim=dim, keepdim=True))).data
-            self.t.data = (-z.mean(dim=dim, keepdim=True) * torch.exp(self.s)).data
+            self.s.data = (-torch.log(z.std(dim=self.batch_dims, keepdim=True))).data
+            self.t.data = (-z.mean(dim=self.batch_dims, keepdim=True) * torch.exp(self.s)).data
             self.data_dep_init_done = torch.tensor(True)
         return super().forward(z)
 
@@ -297,9 +308,8 @@ class ActNorm(AffineConstFlow):
         # first batch is used for initialization, c.f. batchnorm
         if not self.data_dep_init_done:
             assert self.s is not None and self.t is not None
-            dim = (torch.tensor(self.s.shape) == 1).nonzero()[:, 0].tolist()
-            self.s.data = torch.log(z.std(dim=dim, keepdim=True)).data
-            self.t.data = z.mean(dim=dim, keepdim=True).data
+            self.s.data = torch.log(z.std(dim=self.batch_dims, keepdim=True)).data
+            self.t.data = z.mean(dim=self.batch_dims, keepdim=True).data
             self.data_dep_init_done = torch.tensor(True)
         return super().inverse(z)
 
