@@ -31,29 +31,36 @@ class DiagGaussian(BaseDistribution):
     """
     Multivariate Gaussian distribution with diagonal covariance matrix
     """
-    def __init__(self, d, trainable=True):
+    def __init__(self, shape, trainable=True):
         """
         Constructor
-        :param d: Dimension of Gaussian distribution
+        :param shape: Tuple with shape of data, if int shape has one dimension
         """
         super().__init__()
-        self.d = d
+        if isinstance(shape, int):
+            shape = (shape,)
+        self.shape = shape
+        self.n_dim = len(shape)
+        self.d = np.prod(shape)
         if trainable:
-            self.loc = nn.Parameter(torch.zeros(1, self.d))
-            self.log_scale = nn.Parameter(torch.zeros(1, self.d))
+            self.loc = nn.Parameter(torch.zeros(1, *self.shape))
+            self.log_scale = nn.Parameter(torch.zeros(1, *self.shape))
         else:
-            self.register_buffer("loc", torch.zeros(1, self.d))
-            self.register_buffer("log_scale", torch.zeros(1, self.d))
+            self.register_buffer("loc", torch.zeros(1, *self.shape))
+            self.register_buffer("log_scale", torch.zeros(1, *self.shape))
 
     def forward(self, num_samples=1):
-        eps = torch.randn((num_samples, self.d), dtype=self.loc.dtype, device=self.loc.device)
+        eps = torch.randn((num_samples,) + self.shape, dtype=self.loc.dtype,
+                          device=self.loc.device)
         z = self.loc + torch.exp(self.log_scale) * eps
-        log_p = - 0.5 * self.d * np.log(2 * np.pi) - torch.sum(self.log_scale + 0.5 * torch.pow(eps, 2), 1)
+        log_p = - 0.5 * self.d * np.log(2 * np.pi) \
+                - torch.sum(self.log_scale + 0.5 * torch.pow(eps, 2), list(range(1, self.n_dim)))
         return z, log_p
 
     def log_prob(self, z):
         log_p = - 0.5 * self.d * np.log(2 * np.pi)\
-                - torch.sum(self.log_scale + 0.5 * torch.pow((z - self.loc) / torch.exp(self.log_scale), 2), 1)
+                - torch.sum(self.log_scale + 0.5 * torch.pow((z - self.loc) / torch.exp(self.log_scale), 2),
+                            list(range(1, self.n_dim)))
         return log_p
 
 
