@@ -7,7 +7,7 @@ class MLP(nn.Module):
     A multilayer perceptron with Leaky ReLU nonlinearities
     """
 
-    def __init__(self, layers, leaky=0.0, output_fn=None, output_scale=1., init_zeros=False):
+    def __init__(self, layers, leaky=0.0, output_fn=None, output_scale=None, init_zeros=False):
         """
         :param layers: list of layer sizes from start to end
         :param leaky: slope of the leaky part of the ReLU,
@@ -29,7 +29,8 @@ class MLP(nn.Module):
             nn.init.zeros_(net[-1].weight)
             nn.init.zeros_(net[-1].bias)
         if output_fn is not None:
-            net.append(utils.ConstScaleLayer(1 / output_scale))
+            if output_scale is not None:
+                net.append(utils.ConstScaleLayer(1 / output_scale))
             if output_fn is "sigmoid":
                 net.append(nn.Sigmoid())
             elif output_fn is "relu":
@@ -38,7 +39,38 @@ class MLP(nn.Module):
                 net.append(nn.Tanh())
             else:
                 NotImplementedError("This output function is not implemented.")
-            net.append(utils.ConstScaleLayer(output_scale))
+            if output_scale is not None:
+                net.append(utils.ConstScaleLayer(output_scale))
+        self.net = nn.Sequential(*net)
+
+    def forward(self, x):
+        return self.net(x)
+
+
+class ConvNet2d(nn.Module):
+    """
+    Convolutional Neural Network with leaky ReLU nonlinearities
+    """
+
+    def __init__(self, channels, kernel_size, leaky=0.0, init_zeros=True):
+        """
+        Constructor
+        :param channels: List of channels of conv layers, first entry is in_channels
+        :param kernel_size: List of kernel sizes, same for height and width
+        :param leaky: Leaky part of ReLU
+        :param init_zeros: Flag whether last layer shall be initialized with zeros
+        """
+        super().__init__()
+        # Build network
+        net = nn.ModuleList([])
+        for i in range(len(kernel_size)):
+            net.append(nn.Conv2d(channels[i], channels[i + 1], kernel_size[i],
+                                 padding=1))
+            net.append(nn.LeakyReLU(leaky))
+        net = net[:-1]  # remove last ReLU
+        if init_zeros:
+            nn.init.zeros_(net[-1].weight)
+            nn.init.zeros_(net[-1].bias)
         self.net = nn.Sequential(*net)
 
     def forward(self, x):
