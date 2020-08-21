@@ -54,13 +54,13 @@ class DiagGaussian(BaseDistribution):
                           device=self.loc.device)
         z = self.loc + torch.exp(self.log_scale) * eps
         log_p = - 0.5 * self.d * np.log(2 * np.pi) \
-                - torch.sum(self.log_scale + 0.5 * torch.pow(eps, 2), list(range(1, self.n_dim)))
+                - torch.sum(self.log_scale + 0.5 * torch.pow(eps, 2), list(range(1, self.n_dim + 1)))
         return z, log_p
 
     def log_prob(self, z):
         log_p = - 0.5 * self.d * np.log(2 * np.pi)\
                 - torch.sum(self.log_scale + 0.5 * torch.pow((z - self.loc) / torch.exp(self.log_scale), 2),
-                            list(range(1, self.n_dim)))
+                            list(range(1, self.n_dim + 1)))
         return log_p
 
 
