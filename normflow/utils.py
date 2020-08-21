@@ -46,6 +46,9 @@ class Logit():
         x_ = self.alpha + (1 - self.alpha) * x
         return torch.log(x_ / (1 - x_))
 
+    def inverse(self, x):
+        return (torch.sigmoid(x) - self.alpha) / (1 - self.alpha)
+
 
 class Jitter():
     """
