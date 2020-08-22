@@ -5,7 +5,7 @@ import torch.nn as nn
 from . import nets
 
 
-### Flow module ###
+# Flow module
 class Flow(nn.Module):
     """
     Generic class for flow functions
@@ -25,7 +25,10 @@ class Flow(nn.Module):
 
         
 
-### Normalizing flows ###
+# Normalizing flows
+
+# Flows introduced in arXiv: 1505.05770
+
 class Planar(Flow):
     """
     Planar flow as introduced in arXiv: 1505.05770
@@ -129,6 +132,79 @@ class Radial(Flow):
         z_ = z + h_arr.unsqueeze(1) * dz
         log_det = (self.d - 1) * torch.log(1 + h_arr) + torch.log(1 + h_arr + h_arr_)
         return z_, log_det
+
+
+# Affine coupling layers
+
+class AffineConstFlow(Flow):
+    """
+    scales and shifts with learned constants per dimension. In the NICE paper there is a
+    scaling layer which is a special case of this where t is None
+    """
+
+    def __init__(self, shape, scale=True, shift=True):
+        super().__init__()
+        init = torch.zeros(shape)[None]
+        if scale:
+            self.s = nn.Parameter(init)
+        else:
+            self.register_buffer('s', init)
+        if shift:
+            self.t = nn.Parameter(init)
+        else:
+            self.register_buffer('t', init)
+        self.n_dim = self.s.dim()
+        self.batch_dims = (torch.tensor(self.s.shape) == 1).nonzero()[:, 0].tolist()
+
+    def forward(self, z):
+        z_ = z * torch.exp(self.s) + self.t
+        if len(self.batch_dims) > 1:
+            prod_batch_dims = torch.prod(torch.tensor(z.shape)[self.batch_dims[1:]])
+        else:
+            prod_batch_dims = 1
+        log_det = prod_batch_dims * torch.sum(self.s, dim=list(range(1, self.n_dim)))
+        return z_, log_det
+
+    def inverse(self, z):
+        z_ = (z - self.t) * torch.exp(-self.s)
+        if len(self.batch_dims) > 1:
+            prod_batch_dims = torch.prod(torch.tensor(z.shape)[self.batch_dims[1:]])
+        else:
+            prod_batch_dims = 1
+        log_det = -prod_batch_dims * torch.sum(self.s, dim=list(range(1, self.n_dim)))
+        return z_, log_det
+
+
+class ActNorm(AffineConstFlow):
+    """
+    An AffineConstFlow but with a data-dependent initialization,
+    where on the very first batch we clever initialize the s,t so that the output
+    is unit gaussian. As described in Glow paper.
+    """
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.data_dep_init_done_cpu = torch.tensor(False)
+        self.register_buffer('data_dep_init_done', self.data_dep_init_done_cpu)
+
+    def forward(self, z):
+        # first batch is used for initialization, c.f. batchnorm
+        if not self.data_dep_init_done:
+            assert self.s is not None and self.t is not None
+            self.s.data = (-torch.log(z.std(dim=self.batch_dims, keepdim=True))).data
+            self.t.data = (-z.mean(dim=self.batch_dims, keepdim=True) * torch.exp(self.s)).data
+            self.data_dep_init_done = torch.tensor(True)
+        return super().forward(z)
+
+    def inverse(self, z):
+        # first batch is used for initialization, c.f. batchnorm
+        if not self.data_dep_init_done:
+            assert self.s is not None and self.t is not None
+            self.s.data = torch.log(z.std(dim=self.batch_dims, keepdim=True)).data
+            self.t.data = z.mean(dim=self.batch_dims, keepdim=True).data
+            self.data_dep_init_done = torch.tensor(True)
+        return super().inverse(z)
+
 
 class MaskedAffineFlow(Flow):
     """
@@ -245,73 +321,6 @@ class Invertible1x1Conv(Flow):
         if n_dims > 2:
             log_det = log_det * torch.prod(torch.tensor(z.shape[2:]))
         return z_, log_det
-
-class AffineConstFlow(Flow):
-    """ 
-    scales and shifts with learned constants per dimension. In the NICE paper there is a 
-    scaling layer which is a special case of this where t is None
-    """
-    def __init__(self, shape, scale=True, shift=True):
-        super().__init__()
-        init = torch.zeros(shape)[None]
-        if scale:
-            self.s = nn.Parameter(init)
-        else:
-            self.register_buffer('s', init)
-        if shift:
-            self.t = nn.Parameter(init)
-        else:
-            self.register_buffer('t', init)
-        self.n_dim = self.s.dim()
-        self.batch_dims = (torch.tensor(self.s.shape) == 1).nonzero()[:, 0].tolist()
-        
-    def forward(self, z):
-        z_ = z * torch.exp(self.s) + self.t
-        if len(self.batch_dims) > 1:
-            prod_batch_dims = torch.prod(torch.tensor(z.shape)[self.batch_dims[1:]])
-        else:
-            prod_batch_dims = 1
-        log_det = prod_batch_dims * torch.sum(self.s, dim=list(range(1, self.n_dim)))
-        return z_, log_det
-    
-    def inverse(self, z):
-        z_ = (z - self.t) * torch.exp(-self.s)
-        if len(self.batch_dims) > 1:
-            prod_batch_dims = torch.prod(torch.tensor(z.shape)[self.batch_dims[1:]])
-        else:
-            prod_batch_dims = 1
-        log_det = -prod_batch_dims * torch.sum(self.s, dim=list(range(1, self.n_dim)))
-        return z_, log_det
-       
-        
-class ActNorm(AffineConstFlow):
-    """
-    An AffineConstFlow but with a data-dependent initialization,
-    where on the very first batch we clever initialize the s,t so that the output
-    is unit gaussian. As described in Glow paper.
-    """
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.data_dep_init_done_cpu = torch.tensor(False)
-        self.register_buffer('data_dep_init_done', self.data_dep_init_done_cpu)
-    
-    def forward(self, z):
-        # first batch is used for initialization, c.f. batchnorm
-        if not self.data_dep_init_done:
-            assert self.s is not None and self.t is not None
-            self.s.data = (-torch.log(z.std(dim=self.batch_dims, keepdim=True))).data
-            self.t.data = (-z.mean(dim=self.batch_dims, keepdim=True) * torch.exp(self.s)).data
-            self.data_dep_init_done = torch.tensor(True)
-        return super().forward(z)
-
-    def inverse(self, z):
-        # first batch is used for initialization, c.f. batchnorm
-        if not self.data_dep_init_done:
-            assert self.s is not None and self.t is not None
-            self.s.data = torch.log(z.std(dim=self.batch_dims, keepdim=True)).data
-            self.t.data = z.mean(dim=self.batch_dims, keepdim=True).data
-            self.data_dep_init_done = torch.tensor(True)
-        return super().inverse(z)
 
 
 class GlowBlock(Flow):
