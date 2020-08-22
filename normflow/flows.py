@@ -208,6 +208,20 @@ class Split(Flow):
         return [z1, z2], log_det
 
 
+class Merge(Split):
+    """
+    Same as Split but with forward and backward pass interchanged
+    """
+    def __init__(self, mode='channel'):
+        super().__init__(mode)
+
+    def forward(self, z):
+        return super().inverse(z)
+
+    def inverse(self, z):
+        return super().forward(z)
+
+
 # Affine coupling layers
 
 class AffineConstFlow(Flow):
