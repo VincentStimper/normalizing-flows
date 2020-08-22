@@ -134,6 +134,80 @@ class Radial(Flow):
         return z_, log_det
 
 
+# Split and merge operations
+
+class Split(Flow):
+    """
+    Split features into two sets
+    """
+    def __init__(self, mode='channel'):
+        """
+        Constructor
+        :param mode: Splitting mode, can be
+            channel: Splits first feature dimension, usually channels, into two halfs
+            channel_inv: Same as channel, but with z1 and z2 flipped
+            checkerboard: Splits features using a checkerboard pattern (last feature dimension must be even)
+            checkerboard_inv: Same as checkerboard, but with inverted coloring
+        """
+        super().__init__()
+        self.mode = mode
+
+    def forward(self, z):
+        if self.mode == 'channel':
+            nc = z.size(1)
+            z1 = z[:, :nc // 2, ...]
+            z2 = z[:, nc // 2:, ...]
+        elif self.mode == 'channel_inv':
+            nc = z.size(1)
+            z2 = z[:, :nc // 2, ...]
+            z1 = z[:, nc // 2:, ...]
+        elif 'checkerboard' in self.mode:
+            n_dims = z.dim()
+            cb0 = 0
+            cb1 = 1
+            for i in range(1, n_dims):
+                cb0_ = cb0
+                cb1_ = cb1
+                cb0 = [cb0_ if j % 2 == 0 else cb1_ for j in range(z.size(n_dims - i))]
+                cb1 = [cb1_ if j % 2 == 0 else cb0_ for j in range(z.size(n_dims - i))]
+            cb = cb1 if 'inv' in self.mode else cb0
+            cb = torch.tensor(cb)[None].repeat(len(z), *((n_dims - 1) * [1]))
+            z_size = z.size()
+            z1 = z.view(-1)[cb.view(-1).nonzero()].view(*z_size[:-1], -1)
+            z2 = z.view(-1)[(1 - cb).view(-1).nonzero()].view(*z_size[:-1], -1)
+        else:
+            raise NotImplementedError('Mode ' + self.mode + ' is not implemented.')
+        log_det = torch.zeros(len(z), dtype=z.dtype, device=z.device)
+        return [z1, z2], log_det
+
+    def inverse(self, z):
+        z1, z2 = z
+        if self.mode == 'channel':
+            z = torch.cat([z1, z2], 1)
+        elif self.mode == 'channel_inv':
+            z = torch.cat([z2, z1], 1)
+        elif 'checkerboard' in self.mode:
+            n_dims = z.dim()
+            cb0 = 0
+            cb1 = 1
+            for i in range(1, n_dims):
+                cb0_ = cb0
+                cb1_ = cb1
+                cb0 = [cb0_ if j % 2 == 0 else cb1_ for j in range(z.size(n_dims - i))]
+                cb1 = [cb1_ if j % 2 == 0 else cb0_ for j in range(z.size(n_dims - i))]
+            cb = cb1 if 'inv' in self.mode else cb0
+            cb = torch.tensor(cb)[None].repeat(len(z), *((n_dims - 1) * [1]))
+            z1_size = z1.size()
+            z1 = z1[..., None].repeat(*(len(z1_size) * [1]), 2).view(*z1_size[:-1], -1)
+            z2_size = z2.size()
+            z2 = z2[..., None].repeat(*(len(z2_size) * [1]), 2).view(*z2_size[:-1], -1)
+            z = cb * z1 + (1 - cb) * z2
+        else:
+            raise NotImplementedError('Mode ' + self.mode + ' is not implemented.')
+        log_det = torch.zeros(len(z), dtype=z.dtype, device=z.device)
+        return [z1, z2], log_det
+
+
 # Affine coupling layers
 
 class AffineConstFlow(Flow):
@@ -206,6 +280,72 @@ class ActNorm(AffineConstFlow):
         return super().inverse(z)
 
 
+class AffineCoupling(Flow):
+    """
+    Affine Coupling layer as introduced RealNVP paper, see arXiv: 1605.08803
+    """
+
+    def __init__(self, param_map, scale=True, scale_map='exp'):
+        """
+        Constructor
+        :param param_map: Maps features to shift and scale parameter (if applicable)
+        :param scale: Flag whether scale shall be applied
+        :param scale_map: Map to be applied to the scale parameter, can be 'exp' as in
+        RealNVP or 'sigmoid' as in Glow
+        """
+        super().__init__()
+        self.add_module('param_map', param_map)
+        self.scale = scale
+        self.scale_map = scale_map
+
+    def forward(self, z):
+        """
+        z is a list of z1 and z2; z = [z1, z2]
+        z1 is left constant and affine map is applied to z2 with parameters depending
+        on z1
+        """
+        z1, z2 = z
+        param = self.param_map(z1)
+        if self.scale:
+            nc = param.size(1)
+            shift = param[:, :nc // 2, ...]
+            scale_ = param[:, :nc // 2, ...]
+            if self.scale_map == 'exp':
+                z2 = z2 * torch.exp(scale_) + shift
+                log_det = torch.sum(scale_, dim=list(range(1, shift.dim())))
+            elif self.scale_map == 'sigmoid':
+                scale = torch.sigmoid(scale_ + 2)
+                z2 = z2 / scale + shift
+                log_det = -torch.sum(torch.log(scale), dim=list(range(1, shift.dim())))
+            else:
+                raise NotImplementedError('This scale map is not implemented.')
+        else:
+            z2 += param
+            log_det = torch.zeros(len(z1), dtype=z.dtype, device=z.device)
+        return [z1, z2], log_det
+
+    def inverse(self, z):
+        z1, z2 = z
+        param = self.param_map(z1)
+        if self.scale:
+            nc = param.size(1)
+            shift = param[:, :nc // 2, ...]
+            scale_ = param[:, :nc // 2, ...]
+            if self.scale_map == 'exp':
+                z2 = (z2 - shift) * torch.exp(-scale_)
+                log_det = -torch.sum(scale_, dim=list(range(1, shift.dim())))
+            elif self.scale_map == 'sigmoid':
+                scale = torch.sigmoid(scale_ + 2)
+                z2 = (z2 - shift) * scale
+                log_det = torch.sum(torch.log(scale), dim=list(range(1, shift.dim())))
+            else:
+                raise NotImplementedError('This scale map is not implemented.')
+        else:
+            z2 -= param
+            log_det = torch.zeros(len(z1), dtype=z.dtype, device=z.device)
+        return [z1, z2], log_det
+
+
 class MaskedAffineFlow(Flow):
     """
     RealNVP as introduced in arXiv: 1605.08803
@@ -219,7 +359,8 @@ class MaskedAffineFlow(Flow):
         :param b: mask for features, i.e. tensor of same size as latent data point filled with 0s and 1s
         :param s: scale mapping, i.e. neural network, where first input dimension is batch dim
         :param t: translation mapping, i.e. neural network, where first input dimension is batch dim
-        :param batch_shape: tuple of batch size and sample number
+        :param shift: Flag whether shift shall be applied
+        :param scale: Flag whether scale shall be applied
         """
         super().__init__()
         self.b_cpu = b.view(1, *b.size())
