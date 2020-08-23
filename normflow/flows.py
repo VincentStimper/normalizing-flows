@@ -335,7 +335,7 @@ class AffineCoupling(Flow):
                 raise NotImplementedError('This scale map is not implemented.')
         else:
             z2 += param
-            log_det = torch.zeros(len(z1), dtype=z.dtype, device=z.device)
+            log_det = torch.zeros(len(z1), dtype=z1.dtype, device=z1.device)
         return [z1, z2], log_det
 
     def inverse(self, z):
@@ -356,7 +356,7 @@ class AffineCoupling(Flow):
                 raise NotImplementedError('This scale map is not implemented.')
         else:
             z2 -= param
-            log_det = torch.zeros(len(z1), dtype=z.dtype, device=z.device)
+            log_det = torch.zeros(len(z1), dtype=z1.dtype, device=z1.device)
         return [z1, z2], log_det
 
 
