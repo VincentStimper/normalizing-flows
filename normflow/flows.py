@@ -187,20 +187,20 @@ class Split(Flow):
         elif self.mode == 'channel_inv':
             z = torch.cat([z2, z1], 1)
         elif 'checkerboard' in self.mode:
-            n_dims = z.dim()
+            n_dims = z1.dim()
+            z_size = z1.size()
+            z_size[-1] *= 2
             cb0 = 0
             cb1 = 1
             for i in range(1, n_dims):
                 cb0_ = cb0
                 cb1_ = cb1
-                cb0 = [cb0_ if j % 2 == 0 else cb1_ for j in range(z.size(n_dims - i))]
-                cb1 = [cb1_ if j % 2 == 0 else cb0_ for j in range(z.size(n_dims - i))]
+                cb0 = [cb0_ if j % 2 == 0 else cb1_ for j in range(z_size[n_dims - i])]
+                cb1 = [cb1_ if j % 2 == 0 else cb0_ for j in range(z_size[n_dims - i])]
             cb = cb1 if 'inv' in self.mode else cb0
             cb = torch.tensor(cb)[None].repeat(len(z), *((n_dims - 1) * [1]))
-            z1_size = z1.size()
-            z1 = z1[..., None].repeat(*(len(z1_size) * [1]), 2).view(*z1_size[:-1], -1)
-            z2_size = z2.size()
-            z2 = z2[..., None].repeat(*(len(z2_size) * [1]), 2).view(*z2_size[:-1], -1)
+            z1 = z1[..., None].repeat(*(n_dims * [1]), 2).view(*z_size[:-1], -1)
+            z2 = z2[..., None].repeat(*(n_dims * [1]), 2).view(*z_size[:-1], -1)
             z = cb * z1 + (1 - cb) * z2
         else:
             raise NotImplementedError('Mode ' + self.mode + ' is not implemented.')
