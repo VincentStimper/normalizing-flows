@@ -480,54 +480,29 @@ class Invertible1x1Conv(Flow):
         return z_, log_det
 
 
-class GlowBlock(Flow):
+# Combination of flow layers
+
+class AffineCouplingBlock(Flow):
     """
-    Glow: Generative Flow with Invertible 1×1 Convolutions, arXiv: 1807.03039
-    One Block of the Glow model, comprised of
-    MaskedAffineFlow (affine coupling layer
-    Invertible1x1Conv (dropped if there is only one channel)
-    ActNorm (first batch used for initialization)
+    Affine Coupling layer including split and merge operation
     """
-    def __init__(self, shape, channels, kernel_size, leaky=0.0, init_zeros=True,
-                 coupling='affine'):
+    def __init__(self, param_map, scale=True, scale_map='exp', split_mode='channel'):
         """
-        :param shape: Shape of input data as tuple of ints in form CHW
-        :param channels: List of number of channels of ConvNet2d
-        :param kernel_size: List of kernel sizes of ConvNet2d
-        :param leaky: Leaky parameter of LeakyReLUs of ConvNet2d
-        :param init_zeros: Flag whether to initialize last conv layer with zeros
-        :param coupling: String, type of coupling, can be affine or additive
+        Constructor
+        :param param_map: Maps features to shift and scale parameter (if applicable)
+        :param scale: Flag whether scale shall be applied
+        :param scale_map: Map to be applied to the scale parameter, can be 'exp' as in
+        RealNVP or 'sigmoid' as in Glow
+        :param split_mode: Splitting mode, for possible values see Split class
         """
         super().__init__()
         self.flows = nn.ModuleList([])
-        # Checkerboard mask
-        m = [1 if i % 2 == 0 else 0 for i in range(shape[2])]
-        m_ = [0 if i % 2 == 0 else 1 for i in range(shape[2])]
-        mm = [m if i % 2 == 0 else m_ for i in range(shape[1])]
-        mm_ = [m_ if i % 2 == 0 else m for i in range(shape[1])]
-        b = torch.tensor([mm if i % 2 == 0 else mm_ for i in range(shape[0])])
-        # Coupling layers
-        t = nets.ConvNet2d(channels, kernel_size, leaky, init_zeros)
-        if coupling == 'affine':
-            s = nets.ConvNet2d(channels, kernel_size, leaky, init_zeros)
-            self.flows += [MaskedAffineFlow(b, s, t)]
-        elif coupling == 'additive':
-            self.flows += [MaskedAffineFlow(b, None, t, scale=False)]
-        else:
-            raise NotImplementedError('This coupling type is not implemented.')
-        t = nets.ConvNet2d(channels, kernel_size, leaky, init_zeros)
-        if coupling == 'affine':
-            s = nets.ConvNet2d(channels, kernel_size, leaky, init_zeros)
-            self.flows += [MaskedAffineFlow(1 - b, s, t)]
-        elif coupling == 'additive':
-            self.flows += [MaskedAffineFlow(1 - b, None, t, scale=False)]
-        else:
-            raise NotImplementedError('This coupling type is not implemented.')
-        # Invertible 1x1 convolution
-        if shape[0] > 1:
-            self.flows += [Invertible1x1Conv(channels[0])]
-        # Activation normalization
-        self.flows += [ActNorm((shape[0],) + (1, 1))]
+        # Split layer
+        self.flows += [Split(split_mode)]
+        # Affine coupling layer
+        self.flows += [AffineCoupling(param_map, scale, scale_map)]
+        # Merge layer
+        self.flows += [Merge(split_mode)]
 
     def forward(self, z):
         log_det_tot = torch.zeros(z.shape[0], dtype=z.dtype, device=z.device)
@@ -543,6 +518,67 @@ class GlowBlock(Flow):
             log_det_tot += log_det
         return z, log_det_tot
 
+class GlowBlock(Flow):
+    """
+    Glow: Generative Flow with Invertible 1×1 Convolutions, arXiv: 1807.03039
+    One Block of the Glow model, comprised of
+    MaskedAffineFlow (affine coupling layer
+    Invertible1x1Conv (dropped if there is only one channel)
+    ActNorm (first batch used for initialization)
+    """
+    def __init__(self, channels, hidden_channels, scale=True, scale_map='exp',
+                 split_mode='channel', leaky=0.0, init_zeros=True):
+        """
+        Constructor
+        :param channels: Number of channels of the data
+        :param hidden_channels: number of channels in the hidden layer of the ConvNet
+        :param scale: Flag, whether to include scale in affine coupling layer
+        :param scale_map: Map to be applied to the scale parameter, can be 'exp' as in
+        RealNVP or 'sigmoid' as in Glow
+        :param split_mode: Splitting mode, for possible values see Split class
+        :param leaky: Leaky parameter of LeakyReLUs of ConvNet2d
+        :param init_zeros: Flag whether to initialize last conv layer with zeros
+        """
+        super().__init__()
+        self.flows = nn.ModuleList([])
+        # Coupling layer
+        kernel_size = (3, 1, 3)
+        num_param = 2 if scale else 1
+        if 'channel' == split_mode:
+            channels_ = (channels // 2,) + 2 * (hidden_channels,)
+            channels_ += (num_param * ((channels + 1) // 2),)
+        elif 'channel_inv' == split_mode:
+            channels_ = ((channels + 1) // 2,) + 2 * (hidden_channels,)
+            channels_ += (num_param * (channels // 2),)
+        elif 'checkerboard' in split_mode:
+            channels_ = (channels,) + 2 * (hidden_channels,)
+            channels_ += (num_param * channels,)
+        else:
+            raise NotImplementedError('Mode ' + split_mode + ' is not implemented.')
+        param_map = nets.ConvNet2d(channels_, kernel_size, leaky, init_zeros)
+        self.flows += [AffineCouplingBlock(param_map, scale, scale_map, split_mode)]
+        # Invertible 1x1 convolution
+        if channels > 1:
+            self.flows += [Invertible1x1Conv(channels)]
+        # Activation normalization
+        self.flows += [ActNorm((channels,) + (1, 1))]
+
+    def forward(self, z):
+        log_det_tot = torch.zeros(z.shape[0], dtype=z.dtype, device=z.device)
+        for flow in self.flows:
+            z, log_det = flow(z)
+            log_det_tot += log_det
+        return z, log_det_tot
+
+    def inverse(self, z):
+        log_det_tot = torch.zeros(z.shape[0], dtype=z.dtype, device=z.device)
+        for i in range(len(self.flows) - 1, -1, -1):
+            z, log_det = self.flows[i].inverse(z)
+            log_det_tot += log_det
+        return z, log_det_tot
+
+
+# Stochastic layers
 
 class MetropolisHastings(Flow):
     """
