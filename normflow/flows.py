@@ -526,7 +526,7 @@ class GlowBlock(Flow):
     Invertible1x1Conv (dropped if there is only one channel)
     ActNorm (first batch used for initialization)
     """
-    def __init__(self, channels, hidden_channels, scale=True, scale_map='exp',
+    def __init__(self, channels, hidden_channels, scale=True, scale_map='sigmoid',
                  split_mode='channel', leaky=0.0, init_zeros=True):
         """
         Constructor
