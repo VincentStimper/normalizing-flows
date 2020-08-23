@@ -205,7 +205,7 @@ class Split(Flow):
         else:
             raise NotImplementedError('Mode ' + self.mode + ' is not implemented.')
         log_det = torch.zeros(len(z), dtype=z.dtype, device=z.device)
-        return [z1, z2], log_det
+        return z, log_det
 
 
 class Merge(Split):
