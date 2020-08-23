@@ -188,7 +188,7 @@ class Split(Flow):
             z = torch.cat([z2, z1], 1)
         elif 'checkerboard' in self.mode:
             n_dims = z1.dim()
-            z_size = z1.size()
+            z_size = list(z1.size())
             z_size[-1] *= 2
             cb0 = 0
             cb1 = 1
