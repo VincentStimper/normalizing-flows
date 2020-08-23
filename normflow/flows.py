@@ -173,8 +173,8 @@ class Split(Flow):
             cb = cb1 if 'inv' in self.mode else cb0
             cb = torch.tensor(cb)[None].repeat(len(z), *((n_dims - 1) * [1]))
             z_size = z.size()
-            z1 = z.view(-1)[cb.view(-1).nonzero()].view(*z_size[:-1], -1)
-            z2 = z.view(-1)[(1 - cb).view(-1).nonzero()].view(*z_size[:-1], -1)
+            z1 = z.reshape(-1)[cb.view(-1).nonzero()].view(*z_size[:-1], -1)
+            z2 = z.reshape(-1)[(1 - cb).view(-1).nonzero()].view(*z_size[:-1], -1)
         else:
             raise NotImplementedError('Mode ' + self.mode + ' is not implemented.')
         log_det = torch.zeros(len(z), dtype=z.dtype, device=z.device)
