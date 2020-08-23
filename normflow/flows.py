@@ -322,6 +322,7 @@ class AffineCoupling(Flow):
         param = self.param_map(z1)
         if self.scale:
             nc = param.size(1)
+            assert nc == z2.size(1)
             shift = param[:, :nc // 2, ...]
             scale_ = param[:, nc // 2:, ...]
             if self.scale_map == 'exp':
