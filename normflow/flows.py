@@ -198,15 +198,9 @@ class Split(Flow):
                 cb0 = [cb0_ if j % 2 == 0 else cb1_ for j in range(z_size[n_dims - i])]
                 cb1 = [cb1_ if j % 2 == 0 else cb0_ for j in range(z_size[n_dims - i])]
             cb = cb1 if 'inv' in self.mode else cb0
-            cb = torch.tensor(cb)[None].repeat(len(z), *((n_dims - 1) * [1]))
+            cb = torch.tensor(cb)[None].repeat(z_size[0], *((n_dims - 1) * [1]))
             z1 = z1[..., None].repeat(*(n_dims * [1]), 2).view(*z_size[:-1], -1)
             z2 = z2[..., None].repeat(*(n_dims * [1]), 2).view(*z_size[:-1], -1)
-            print(cb)
-            print(cb.size())
-            print(z1)
-            print(z1.size())
-            print(z2)
-            print(z2.size())
             z = cb * z1 + (1 - cb) * z2
         else:
             raise NotImplementedError('Mode ' + self.mode + ' is not implemented.')
