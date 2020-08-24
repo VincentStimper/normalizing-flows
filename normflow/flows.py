@@ -238,7 +238,7 @@ class Squeeze(Flow):
         log_det = torch.zeros(len(z), dtype=z.dtype, device=z.device)
         s = z.size()
         z = z.reshape(s[0], s[1] // 4, 2, 2, s[2], s[3])
-        z = z.permute(0, 1, 4, 2, 5, 3)
+        z = z.permute(0, 1, 4, 2, 5, 3).contiguous()
         z = z.reshape(s[0], s[1] // 4, 2 * s[2], 2 * s[3])
         return z, log_det
 
@@ -246,7 +246,7 @@ class Squeeze(Flow):
         log_det = torch.zeros(len(z), dtype=z.dtype, device=z.device)
         s = z.size()
         z = z.reshape(*s[:2], s[2] // 2, 2, s[3] // 2, 2)
-        z = z.permute(0, 1, 3, 5, 2, 4)
+        z = z.permute(0, 1, 3, 5, 2, 4).contiguous()
         z = z.reshape(s[0], 4 * s[1], s[2] // 2, s[3] // 2)
         return z, log_det
 
