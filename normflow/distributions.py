@@ -88,6 +88,8 @@ class ClassCondDiagGaussian(BaseDistribution):
     def forward(self, num_samples=1, y=None):
         if y is not None:
             num_samples = len(y)
+        else:
+            y = torch.randint(self.num_classes, (num_samples,), device=self.loc.device)
         if y.dim() == 1:
             y_onehot = torch.zeros((self.num_classes, num_samples), dtype=self.loc.dtype,
                                    device=self.loc.device)
