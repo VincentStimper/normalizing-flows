@@ -64,6 +64,57 @@ class DiagGaussian(BaseDistribution):
         return log_p
 
 
+class ClassCondDiagGaussian(BaseDistribution):
+    """
+    Class conditional multivariate Gaussian distribution with diagonal covariance matrix
+    """
+    def __init__(self, shape, num_classes):
+        """
+        Constructor
+        :param shape: Tuple with shape of data, if int shape has one dimension
+        :param num_classes: Number of classes to condition on
+        """
+        super().__init__()
+        if isinstance(shape, int):
+            shape = (shape,)
+        self.shape = shape
+        self.n_dim = len(shape)
+        self.d = np.prod(shape)
+        self.num_classes = num_classes
+        self.loc = nn.Parameter(torch.zeros(num_classes, *self.shape))
+        self.log_scale = nn.Parameter(torch.zeros(num_classes, *self.shape))
+
+    def forward(self, num_samples=1, y=None):
+        if y is not None:
+            num_samples = len(y)
+        if y.dim() == 1:
+            y_onehot = torch.zeros((num_samples, self.num_classes), dtype=self.loc.dtype,
+                                   device=self.loc.device)
+            y_onehot.scatter_(1, y[None], 1)
+            y = y_onehot
+        eps = torch.randn((num_samples,) + self.shape, dtype=self.loc.dtype,
+                          device=self.loc.device)
+        loc = y @ self.loc
+        log_scale = y @ self.log_scale
+        z = loc + torch.exp(log_scale) * eps
+        log_p = - 0.5 * self.d * np.log(2 * np.pi) \
+                - torch.sum(log_scale + 0.5 * torch.pow(eps, 2), list(range(1, self.n_dim + 1)))
+        return z, log_p
+
+    def log_prob(self, z, y):
+        if y.dim() == 1:
+            y_onehot = torch.zeros((len(y), self.num_classes), dtype=self.loc.dtype,
+                                   device=self.loc.device)
+            y_onehot.scatter_(1, y[None], 1)
+            y = y_onehot
+        loc = y @ self.loc
+        log_scale = y @ self.log_scale
+        log_p = - 0.5 * self.d * np.log(2 * np.pi)\
+                - torch.sum(log_scale + 0.5 * torch.pow((z - loc) / torch.exp(log_scale), 2),
+                            list(range(1, self.n_dim + 1)))
+        return log_p
+
+
 class GaussianMixture(BaseDistribution):
     """
     Mixture of Gaussians with diagonal covariance matrix
