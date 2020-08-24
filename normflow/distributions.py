@@ -106,7 +106,7 @@ class ClassCondDiagGaussian(BaseDistribution):
 
     def log_prob(self, z, y):
         if y.dim() == 1:
-            y_onehot = torch.zeros((self.num_classes, num_samples), dtype=self.loc.dtype,
+            y_onehot = torch.zeros((self.num_classes, len(y)), dtype=self.loc.dtype,
                                    device=self.loc.device)
             y_onehot.scatter_(0, y[None], 1)
             y = y_onehot
