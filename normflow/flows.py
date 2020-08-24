@@ -155,12 +155,12 @@ class Split(Flow):
     def forward(self, z):
         if self.mode == 'channel':
             nc = z.size(1)
-            z1 = z[:, :nc // 2, ...]
-            z2 = z[:, nc // 2:, ...]
+            z1 = z[:, :nc // 2, ...].contiguous()
+            z2 = z[:, nc // 2:, ...].contiguous()
         elif self.mode == 'channel_inv':
             nc = z.size(1)
-            z2 = z[:, :nc // 2, ...]
-            z1 = z[:, nc // 2:, ...]
+            z2 = z[:, :nc // 2, ...].contiguous()
+            z1 = z[:, nc // 2:, ...].contiguous()
         elif 'checkerboard' in self.mode:
             n_dims = z.dim()
             cb0 = 0
@@ -184,9 +184,9 @@ class Split(Flow):
     def inverse(self, z):
         z1, z2 = z
         if self.mode == 'channel':
-            z = torch.cat([z1, z2], 1)
+            z = torch.cat([z1, z2], 1).contiguous()
         elif self.mode == 'channel_inv':
-            z = torch.cat([z2, z1], 1)
+            z = torch.cat([z2, z1], 1).contiguous()
         elif 'checkerboard' in self.mode:
             n_dims = z1.dim()
             z_size = list(z1.size())
