@@ -142,7 +142,6 @@ class ClassCondFlow(nn.Module):
         Constructor
         :param q0: Base distribution
         :param flows: List of flows
-        :param num_classes: Number of classes
         """
         super().__init__()
         self.q0 = q0
@@ -166,6 +165,7 @@ class ClassCondFlow(nn.Module):
         """
         Samples from flow-based approximate distribution
         :param num_samples: Number of samples to draw
+        :param y: Classes to sample from, will be sampled uniformly if None
         :return: Samples, log probability
         """
         z, log_q = self.q0(num_samples, y)
@@ -178,6 +178,7 @@ class ClassCondFlow(nn.Module):
         """
         Get log probability for batch
         :param x: Batch
+        :param y: Classes of x
         :return: log probability
         """
         log_q = torch.zeros(len(x), dtype=x.dtype, device=x.device)
@@ -186,6 +187,112 @@ class ClassCondFlow(nn.Module):
             z, log_det = self.flows[i].inverse(z)
             log_q += log_det
         log_q += self.q0.log_prob(z, y)
+        return log_q
+
+    def save(self, path):
+        """
+        Save state dict of model
+        :param path: Path including filename where to save model
+        """
+        torch.save(self.state_dict(), path)
+
+    def load(self, path):
+        """
+        Load model from state dict
+        :param path: Path including filename where to load model from
+        """
+        self.load_state_dict(torch.load(path))
+
+
+class MultiscaleFlow(nn.Module):
+    """
+    Normalizing Flow model with multiscale architecture, see RealNVP or Glow paper
+    """
+    def __init__(self, q0, flows, merges, class_cond=True):
+        """
+        Constructor
+        :param q0: List of base distribution
+        :param flows: List of list of flows for each level
+        :param merges: List of merge/split operations (forward pass must do merge)
+        :param class_cond: Flag, indicated whether model has class conditional
+        base distributions
+        """
+        super().__init__()
+        self.q0 = nn.ModuleList(q0)
+        self.num_levels = len(self.q0)
+        self.flows = torch.nn.ModuleList([nn.ModuleList(flow) for flow in flows])
+        self.merges = merges
+        self.class_cond = class_cond
+
+    def forward_kld(self, x, y=None):
+        """
+        Estimates forward KL divergence, see arXiv 1912.02762
+        :param x: Batch sampled from target distribution
+        :return: Estimate of forward KL divergence averaged over batch
+        """
+        log_q = torch.zeros(len(x), dtype=x.dtype, device=x.device)
+        z = x
+        for i in range(len(self.q0) - 1, -1, -1):
+            for j in range(len(self.flows[i]) - 1, -1, -1):
+                z, log_det = self.flows[i][j].inverse(z)
+                log_q += log_det
+            if i > 0:
+                [z, z_], log_det = self.merges[i - 1].inverse(z)
+                log_q += log_det
+            else:
+                z_ = z
+            if self.class_cond:
+                log_q += self.q0[i].log_prob(z_, y)
+            else:
+                log_q += self.q0[i].log_prob(z_)
+        return -torch.mean(log_q)
+
+    def sample(self, num_samples=1, y=None):
+        """
+        Samples from flow-based approximate distribution
+        :param num_samples: Number of samples to draw
+        :param y: Classes to sample from, will be sampled uniformly if None
+        :return: Samples, log probability
+        """
+        for i in range(len(self.q0)):
+            if self.class_cond:
+                z_, log_q_ = self.q0[i](num_samples, y)
+            else:
+                z_, log_q_ = self.q0[i](num_samples)
+            if i == 0:
+                log_q = log_q_
+                z = z_
+            else:
+                log_q += log_q_
+                z, log_det = self.merges[i]([z, z_])
+                log_q -= log_det
+            for flow in self.flows[i]:
+                z, log_det = flow(z)
+                log_q -= log_det
+        return z, log_q
+
+    def log_prob(self, x, y):
+        """
+        Get log probability for batch
+        :param x: Batch
+        :param y: Classes of x
+        :return: log probability
+        """
+        log_q = torch.zeros(len(x), dtype=x.dtype, device=x.device)
+        z = x
+        for i in range(len(self.q0) - 1, -1, -1):
+            for j in range(len(self.flows[i]) - 1, -1, -1):
+                z, log_det = self.flows[i][j].inverse(z)
+                log_q += log_det
+            if i > 0:
+                [z, z_], log_det = self.merges[i - 1].inverse(z)
+                log_q += log_det
+            else:
+                z_ = z
+            if self.class_cond:
+                log_q += self.q0[i].log_prob(z_, y)
+            else:
+                log_q += self.q0[i].log_prob(z_)
         return log_q
 
     def save(self, path):
