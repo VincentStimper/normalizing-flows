@@ -464,7 +464,7 @@ class Invertible1x1Conv(Flow):
         W = self._assemble_W()
         W_inv = torch.inverse(W)
         z_ = (z.permute(*perm) @ W_inv).permute(*perm_inv)
-        log_det = torch.sum(torch.log(torch.abs(self.S)), dim=0, keepdim=True)
+        log_det = -torch.sum(torch.log(torch.abs(self.S)), dim=0, keepdim=True)
         if n_dims > 2:
             log_det = log_det * torch.prod(torch.tensor(z.shape[2:]))
         return z_, log_det
@@ -476,7 +476,7 @@ class Invertible1x1Conv(Flow):
         perm_inv = [0, z.dim() - 1] + list(range(1, n_dims - 1))
         W = self._assemble_W()
         z_ = (z.permute(*perm) @ W).permute(*perm_inv)
-        log_det = -torch.sum(torch.log(torch.abs(self.S)), dim=0, keepdim=True)
+        log_det = torch.sum(torch.log(torch.abs(self.S)), dim=0, keepdim=True)
         if n_dims > 2:
             log_det = log_det * torch.prod(torch.tensor(z.shape[2:]))
         return z_, log_det
