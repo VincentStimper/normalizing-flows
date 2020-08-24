@@ -79,23 +79,26 @@ class ClassCondDiagGaussian(BaseDistribution):
             shape = (shape,)
         self.shape = shape
         self.n_dim = len(shape)
+        self.perm = [self.n_dim] + list(range(self.n_dim))
         self.d = np.prod(shape)
         self.num_classes = num_classes
-        self.loc = nn.Parameter(torch.zeros(num_classes, *self.shape))
-        self.log_scale = nn.Parameter(torch.zeros(num_classes, *self.shape))
+        self.loc = nn.Parameter(torch.zeros(*self.shape, num_classes))
+        self.log_scale = nn.Parameter(torch.zeros(*self.shape, num_classes))
 
     def forward(self, num_samples=1, y=None):
         if y is not None:
             num_samples = len(y)
         if y.dim() == 1:
-            y_onehot = torch.zeros((num_samples, self.num_classes), dtype=self.loc.dtype,
+            y_onehot = torch.zeros((self.num_classes, num_samples), dtype=self.loc.dtype,
                                    device=self.loc.device)
-            y_onehot.scatter_(1, y[:, None], 1)
+            y_onehot.scatter_(0, y[None], 1)
             y = y_onehot
+        else:
+            y = y.t()
         eps = torch.randn((num_samples,) + self.shape, dtype=self.loc.dtype,
                           device=self.loc.device)
-        loc = y @ self.loc
-        log_scale = y @ self.log_scale
+        loc = (self.loc @ y).permute(*self.perm)
+        log_scale = (self.log_scale @ y).permute(*self.perm)
         z = loc + torch.exp(log_scale) * eps
         log_p = - 0.5 * self.d * np.log(2 * np.pi) \
                 - torch.sum(log_scale + 0.5 * torch.pow(eps, 2), list(range(1, self.n_dim + 1)))
@@ -103,12 +106,14 @@ class ClassCondDiagGaussian(BaseDistribution):
 
     def log_prob(self, z, y):
         if y.dim() == 1:
-            y_onehot = torch.zeros((len(y), self.num_classes), dtype=self.loc.dtype,
+            y_onehot = torch.zeros((self.num_classes, num_samples), dtype=self.loc.dtype,
                                    device=self.loc.device)
-            y_onehot.scatter_(1, y[:, None], 1)
+            y_onehot.scatter_(0, y[None], 1)
             y = y_onehot
-        loc = y @ self.loc
-        log_scale = y @ self.log_scale
+        else:
+            y = y.t()
+        loc = (self.loc @ y).permute(*self.perm)
+        log_scale = (self.log_scale @ y).permute(*self.perm)
         log_p = - 0.5 * self.d * np.log(2 * np.pi)\
                 - torch.sum(log_scale + 0.5 * torch.pow((z - loc) / torch.exp(log_scale), 2),
                             list(range(1, self.n_dim + 1)))
