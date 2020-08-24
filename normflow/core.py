@@ -264,7 +264,7 @@ class MultiscaleFlow(nn.Module):
                 z = z_
             else:
                 log_q += log_q_
-                z, log_det = self.merges[i]([z, z_])
+                z, log_det = self.merges[i - 1].inverse([z, z_])
                 log_q -= log_det
             for flow in self.flows[i]:
                 z, log_det = flow(z)
