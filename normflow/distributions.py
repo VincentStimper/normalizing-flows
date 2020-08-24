@@ -90,7 +90,7 @@ class ClassCondDiagGaussian(BaseDistribution):
         if y.dim() == 1:
             y_onehot = torch.zeros((num_samples, self.num_classes), dtype=self.loc.dtype,
                                    device=self.loc.device)
-            y_onehot.scatter_(1, y[None], 1)
+            y_onehot.scatter_(1, y[:, None], 1)
             y = y_onehot
         eps = torch.randn((num_samples,) + self.shape, dtype=self.loc.dtype,
                           device=self.loc.device)
@@ -105,7 +105,7 @@ class ClassCondDiagGaussian(BaseDistribution):
         if y.dim() == 1:
             y_onehot = torch.zeros((len(y), self.num_classes), dtype=self.loc.dtype,
                                    device=self.loc.device)
-            y_onehot.scatter_(1, y[None], 1)
+            y_onehot.scatter_(1, y[:, None], 1)
             y = y_onehot
         loc = y @ self.loc
         log_scale = y @ self.log_scale
