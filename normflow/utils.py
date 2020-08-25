@@ -1,5 +1,6 @@
 import torch
 from torch import nn
+import numpy as np
 
 
 def set_requires_grad(module, flag):
@@ -29,6 +30,8 @@ class ConstScaleLayer(nn.Module):
     def forward(self, input):
         return input * self.scale
 
+
+# Dataset transforms
 
 class Logit():
     """
@@ -86,3 +89,30 @@ class ToDevice():
             raise NotImplementedError('This dtype is not implemented.')
         return x_.to(self.device)
 
+
+# Functions for model analysis
+
+def bitsPerDim(model, x, y=None, trans='logit', trans_param=[0.05]):
+    """
+    Computes the bits per dim for a batch of data
+    :param model: Model to compute bits per dim for
+    :param x: Batch of data
+    :param y: Class labels for batch of data if base distribution is class conditional
+    :param trans: Transformation to be applied to images during training 
+    :return: Bit per dim for data batch under model
+    """
+    dims = torch.prod(torch.tensor(x.size()[1:]))
+    if trans == 'logit':
+        if y is None:
+            log_q = model.log_prob(x)
+        else:
+            log_q = model.log_prob(x, y)
+        sum_dims = list(range(1, x.dims()))
+        sig = torch.sigmoid(x)
+        sig_ = torch.sum(torch.log2(sig), sum_dims)
+        sig_ += torch.sum(torch.log2(1 - sig), sum_dims)
+        b = - log_q / dims / np.log(2) - np.log2(1 - trans_param[0]) + 8
+        b += sig_ / dims
+    else:
+        raise NotImplementedError('The transformation ' + trans + ' is not implemented.')
+    return b
