@@ -100,7 +100,7 @@ def bitsPerDim(model, x, y=None, trans='logit', trans_param=[0.05]):
     :param y: Class labels for batch of data if base distribution is class conditional
     :param trans: Transformation to be applied to images during training
     :param trans_param: List of parameters of the transformation
-    :return: Bit per dim for data batch under model
+    :return: Bits per dim for data batch under model
     """
     dims = torch.prod(torch.tensor(x.size()[1:]))
     if trans == 'logit':
@@ -116,4 +116,26 @@ def bitsPerDim(model, x, y=None, trans='logit', trans_param=[0.05]):
         b += sig_ / dims
     else:
         raise NotImplementedError('The transformation ' + trans + ' is not implemented.')
+    return b
+
+
+def bitsPerDimDataset(model, data_loader, class_cond=True, trans='logit',
+                      trans_param=[0.05]):
+    """
+    Computes average bits per dim for an entire dataset given by a data loader
+    :param model: Model to compute bits per dim for
+    :param data_loader: Data loader of dataset
+    :param class_cond: Flag indicating whether model is class_conditional
+    :param trans: Transformation to be applied to images during training
+    :param trans_param: List of parameters of the transformation
+    :return: Average bits per dim for dataset
+    """
+    n = 0
+    b_cum = 0
+    with torch.no_grad():
+        for x, y in iter(data_loader):
+            b_ = bitsPerDim(model, x, y if class_cond else None, trans, trans_param)
+            b_cum += torch.sum(b_)
+            n += len(x)
+        b = b_cum.to('cpu').numpy() / n
     return b
