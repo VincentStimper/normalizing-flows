@@ -134,7 +134,8 @@ def bitsPerDimDataset(model, data_loader, class_cond=True, trans='logit',
     b_cum = 0
     with torch.no_grad():
         for x, y in iter(data_loader):
-            b_ = bitsPerDim(model, x, y if class_cond else None, trans, trans_param)
+            b_ = bitsPerDim(model, x, y.to(x.device) if class_cond else None,
+                            trans, trans_param)
             b_cum += torch.sum(b_)
             n += len(x)
         b = b_cum.to('cpu').numpy() / n
