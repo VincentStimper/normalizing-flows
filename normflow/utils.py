@@ -98,7 +98,8 @@ def bitsPerDim(model, x, y=None, trans='logit', trans_param=[0.05]):
     :param model: Model to compute bits per dim for
     :param x: Batch of data
     :param y: Class labels for batch of data if base distribution is class conditional
-    :param trans: Transformation to be applied to images during training 
+    :param trans: Transformation to be applied to images during training
+    :param trans_param: List of parameters of the transformation
     :return: Bit per dim for data batch under model
     """
     dims = torch.prod(torch.tensor(x.size()[1:]))
@@ -107,7 +108,7 @@ def bitsPerDim(model, x, y=None, trans='logit', trans_param=[0.05]):
             log_q = model.log_prob(x)
         else:
             log_q = model.log_prob(x, y)
-        sum_dims = list(range(1, x.dims()))
+        sum_dims = list(range(1, x.dim()))
         sig = torch.sigmoid(x)
         sig_ = torch.sum(torch.log2(sig), sum_dims)
         sig_ += torch.sum(torch.log2(1 - sig), sum_dims)
