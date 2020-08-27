@@ -174,8 +174,8 @@ class Split(Flow):
             cb = torch.tensor(cb)[None].repeat(len(z), *((n_dims - 1) * [1]))
             cb = cb.to(z.device)
             z_size = z.size()
-            z1 = z.reshape(-1)[cb.view(-1).nonzero()].view(*z_size[:-1], -1)
-            z2 = z.reshape(-1)[(1 - cb).view(-1).nonzero()].view(*z_size[:-1], -1)
+            z1 = z.reshape(-1)[torch.nonzero(cb.view(-1), as_tuple=False)].view(*z_size[:-1], -1)
+            z2 = z.reshape(-1)[torch.nonzero((1 - cb).view(-1), as_tuple=False)].view(*z_size[:-1], -1)
         else:
             raise NotImplementedError('Mode ' + self.mode + ' is not implemented.')
         log_det = torch.zeros(len(z), dtype=z.dtype, device=z.device)
@@ -272,7 +272,7 @@ class AffineConstFlow(Flow):
         else:
             self.register_buffer('t', init)
         self.n_dim = self.s.dim()
-        self.batch_dims = (torch.tensor(self.s.shape) == 1).nonzero()[:, 0].tolist()
+        self.batch_dims = torch.nonzero(torch.tensor(self.s.shape) == 1, as_tuple=False)[:, 0].tolist()
 
     def forward(self, z):
         z_ = z * torch.exp(self.s) + self.t
