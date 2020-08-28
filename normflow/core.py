@@ -309,6 +309,24 @@ class MultiscaleFlow(nn.Module):
         """
         self.load_state_dict(torch.load(path))
 
+    def set_temperature(self, temperature):
+        """
+        Set temperature for temperature a annealed sampling
+        :param temperature: Temperature parameter
+        """
+        for q0 in range(self.q0):
+            if hasattr(q0, 'temperature'):
+                q0.temperature = temperature
+            else:
+                raise NotImplementedError('One base function does not '
+                                          'support temperature annealed sampling')
+
+    def reset_temperature(self):
+        """
+        Set temperature values of base distributions back to None
+        """
+        self.set_temperature(None)
+
 
 class NormalizingFlowVAE(nn.Module):
     """
