@@ -247,13 +247,16 @@ class MultiscaleFlow(nn.Module):
                 log_q += self.q0[i].log_prob(z_)
         return -torch.mean(log_q)
 
-    def sample(self, num_samples=1, y=None):
+    def sample(self, num_samples=1, y=None, temperature=None):
         """
         Samples from flow-based approximate distribution
         :param num_samples: Number of samples to draw
         :param y: Classes to sample from, will be sampled uniformly if None
+        :param temperature: Temperature parameter for temp annealed sampling
         :return: Samples, log probability
         """
+        if temperature is not None:
+            self.set_temperature(temperature)
         for i in range(len(self.q0)):
             if self.class_cond:
                 z_, log_q_ = self.q0[i](num_samples, y)
@@ -269,6 +272,8 @@ class MultiscaleFlow(nn.Module):
             for flow in self.flows[i]:
                 z, log_det = flow(z)
                 log_q -= log_det
+        if temperature is not None:
+            self.reset_temperature()
         return z, log_q
 
     def log_prob(self, x, y):
