@@ -314,7 +314,7 @@ class MultiscaleFlow(nn.Module):
         Set temperature for temperature a annealed sampling
         :param temperature: Temperature parameter
         """
-        for q0 in range(self.q0):
+        for q0 in self.q0:
             if hasattr(q0, 'temperature'):
                 q0.temperature = temperature
             else:
