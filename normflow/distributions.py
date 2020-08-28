@@ -48,18 +48,27 @@ class DiagGaussian(BaseDistribution):
         else:
             self.register_buffer("loc", torch.zeros(1, *self.shape))
             self.register_buffer("log_scale", torch.zeros(1, *self.shape))
+        self.temperature = None  # Temperature parameter for annealed sampling
 
     def forward(self, num_samples=1):
         eps = torch.randn((num_samples,) + self.shape, dtype=self.loc.dtype,
                           device=self.loc.device)
-        z = self.loc + torch.exp(self.log_scale) * eps
+        if self.temperature is None:
+            log_scale = self.log_scale
+        else:
+            log_scale = self.log_scale + np.log(self.temperature)
+        z = self.loc + torch.exp(log_scale) * eps
         log_p = - 0.5 * self.d * np.log(2 * np.pi) \
-                - torch.sum(self.log_scale + 0.5 * torch.pow(eps, 2), list(range(1, self.n_dim + 1)))
+                - torch.sum(log_scale + 0.5 * torch.pow(eps, 2), list(range(1, self.n_dim + 1)))
         return z, log_p
 
     def log_prob(self, z):
+        if self.temperature is None:
+            log_scale = self.log_scale
+        else:
+            log_scale = self.log_scale + np.log(self.temperature)
         log_p = - 0.5 * self.d * np.log(2 * np.pi)\
-                - torch.sum(self.log_scale + 0.5 * torch.pow((z - self.loc) / torch.exp(self.log_scale), 2),
+                - torch.sum(log_scale + 0.5 * torch.pow((z - self.loc) / torch.exp(log_scale), 2),
                             list(range(1, self.n_dim + 1)))
         return log_p
 
@@ -84,6 +93,7 @@ class ClassCondDiagGaussian(BaseDistribution):
         self.num_classes = num_classes
         self.loc = nn.Parameter(torch.zeros(*self.shape, num_classes))
         self.log_scale = nn.Parameter(torch.zeros(*self.shape, num_classes))
+        self.temperature = None # Temperature parameter for annealed sampling
 
     def forward(self, num_samples=1, y=None):
         if y is not None:
@@ -101,6 +111,8 @@ class ClassCondDiagGaussian(BaseDistribution):
                           device=self.loc.device)
         loc = (self.loc @ y).permute(*self.perm)
         log_scale = (self.log_scale @ y).permute(*self.perm)
+        if self.temperature is not None:
+            log_scale = np.log(self.temperature) + log_scale
         z = loc + torch.exp(log_scale) * eps
         log_p = - 0.5 * self.d * np.log(2 * np.pi) \
                 - torch.sum(log_scale + 0.5 * torch.pow(eps, 2), list(range(1, self.n_dim + 1)))
@@ -116,6 +128,8 @@ class ClassCondDiagGaussian(BaseDistribution):
             y = y.t()
         loc = (self.loc @ y).permute(*self.perm)
         log_scale = (self.log_scale @ y).permute(*self.perm)
+        if self.temperature is not None:
+            log_scale = np.log(self.temperature) + log_scale
         log_p = - 0.5 * self.d * np.log(2 * np.pi)\
                 - torch.sum(log_scale + 0.5 * torch.pow((z - loc) / torch.exp(log_scale), 2),
                             list(range(1, self.n_dim + 1)))
