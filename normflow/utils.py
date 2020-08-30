@@ -76,7 +76,7 @@ class ToDevice():
     Transform for dataloader
     Moves data to device and makes it a float or double
     """
-    def __init__(self, device, dtype='double'):
+    def __init__(self, device, dtype='float'):
         self.device = device
         self.dtype = dtype
 
