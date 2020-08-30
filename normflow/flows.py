@@ -490,7 +490,10 @@ class Invertible1x1Conv(Flow):
         perm = [0] + list(range(2, n_dims)) + [1]
         perm_inv = [0, n_dims - 1] + list(range(1, n_dims - 1))
         W = self._assemble_W()
-        W_inv = torch.inverse(W)
+        if W.dtype == torch.float64:
+            W_inv = torch.inverse(W)
+        else:
+            W_inv = torch.inverse(W.double()).type(W.dtype)
         z_ = (z.permute(*perm) @ W_inv).permute(*perm_inv)
         log_det = -torch.sum(torch.log(torch.abs(self.S)), dim=0, keepdim=True)
         if n_dims > 2:
