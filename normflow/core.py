@@ -230,22 +230,16 @@ class MultiscaleFlow(nn.Module):
         :param x: Batch sampled from target distribution
         :return: Estimate of forward KL divergence averaged over batch
         """
-        log_q = torch.zeros(len(x), dtype=x.dtype, device=x.device)
-        z = x
-        for i in range(len(self.q0) - 1, -1, -1):
-            for j in range(len(self.flows[i]) - 1, -1, -1):
-                z, log_det = self.flows[i][j].inverse(z)
-                log_q += log_det
-            if i > 0:
-                [z, z_], log_det = self.merges[i - 1].inverse(z)
-                log_q += log_det
-            else:
-                z_ = z
-            if self.class_cond:
-                log_q += self.q0[i].log_prob(z_, y)
-            else:
-                log_q += self.q0[i].log_prob(z_)
-        return -torch.mean(log_q)
+        return -torch.mean(self.log_prob(x, y))
+
+    def forward(self, x, y=None):
+        """
+        Get negative log-likelihood for maximum likelihood training
+        :param x: Batch of data
+        :param y: Batch of targets, if applicable
+        :return: NLL
+        """
+        return -self.log_prob(x, y)
 
     def sample(self, num_samples=1, y=None, temperature=None):
         """
