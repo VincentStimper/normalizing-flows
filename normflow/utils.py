@@ -109,9 +109,9 @@ def bitsPerDim(model, x, y=None, trans='logit', trans_param=[0.05]):
         else:
             log_q = model.log_prob(x, y)
         sum_dims = list(range(1, x.dim()))
-        sig = torch.sigmoid(x)
-        sig_ = torch.sum(torch.log2(sig), sum_dims)
-        sig_ += torch.sum(torch.log2(1 - sig), sum_dims)
+        ls = torch.nn.LogSigmoid()
+        sig_ = torch.sum(ls(x) / np.log(2), sum_dims)
+        sig_ += torch.sum(ls(-x) / np.log(2), sum_dims)
         b = - log_q / dims / np.log(2) - np.log2(1 - trans_param[0]) + 8
         b += sig_ / dims
     else:
