@@ -71,25 +71,6 @@ class Jitter():
         return x_ - 2 * torch.relu(x_ - 1)
 
 
-class ToDevice():
-    """
-    Transform for dataloader
-    Moves data to device and makes it a float or double
-    """
-    def __init__(self, device, dtype='float'):
-        self.device = device
-        self.dtype = dtype
-
-    def __call__(self, x):
-        if self.dtype == 'double':
-            x_ = x.double()
-        elif self.dtype == 'float':
-            x_ = x.float()
-        else:
-            raise NotImplementedError('This dtype is not implemented.')
-        return x_.to(self.device)
-
-
 # Functions for model analysis
 
 def bitsPerDim(model, x, y=None, trans='logit', trans_param=[0.05]):
