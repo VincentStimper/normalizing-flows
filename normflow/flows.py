@@ -155,12 +155,12 @@ class Split(Flow):
     def forward(self, z):
         if self.mode == 'channel':
             nc = z.size(1)
-            z1 = z[:, :nc // 2, ...]#.contiguous()
-            z2 = z[:, nc // 2:, ...]#.contiguous()
+            z1 = z[:, :nc // 2, ...]
+            z2 = z[:, nc // 2:, ...]
         elif self.mode == 'channel_inv':
             nc = z.size(1)
-            z2 = z[:, :nc // 2, ...]#.contiguous()
-            z1 = z[:, nc // 2:, ...]#.contiguous()
+            z2 = z[:, :nc // 2, ...]
+            z1 = z[:, nc // 2:, ...]
         elif 'checkerboard' in self.mode:
             n_dims = z.dim()
             cb0 = 0
@@ -473,42 +473,41 @@ class Invertible1x1Conv(Flow):
         P, L, U = torch.lu_unpack(*Q.lu())
         self.register_buffer('P', P) # remains fixed during optimization
         self.L = nn.Parameter(L) # lower triangular portion
-        self.S = nn.Parameter(U.diag()) # "crop out" the diagonal to its own parameter
+        S = U.diag()# "crop out" the diagonal to its own parameter
+        self.register_buffer("sign_S", torch.sign(S))
+        self.log_S = nn.Parameter(torch.log(torch.abs(S)))
         self.U = nn.Parameter(torch.triu(U, diagonal=1)) # "crop out" diagonal, stored in S
+        self.register_buffer("eye", torch.diag(torch.ones(self.num_channels)))
 
-    def _assemble_W(self):
+    def _assemble_W(self, inverse=False):
         # assemble W from its components (P, L, U, S)
-        L = torch.tril(self.L, diagonal=-1) + torch.diag(torch.ones(self.num_channels,
-                                                                    device=self.P.device))
-        U = torch.triu(self.U, diagonal=1)
-        W = self.P @ L @ (U + torch.diag(self.S))
+        L = torch.tril(self.L, diagonal=-1) + self.eye
+        U = torch.triu(self.U, diagonal=1) + torch.diag(self.sign_S * torch.exp(self.log_S))
+        if inverse:
+            if L.dtype == torch.float64:
+                L_inv = torch.inverse(L)
+                U_inv = torch.inverse(U)
+            else:
+                L_inv = torch.inverse(L.double()).float()
+                U_inv = torch.inverse(U.double()).float()
+            W = U_inv @ L_inv @ self.P
+        else:
+            W = self.P @ L @ U
         return W
 
     def forward(self, z):
-        # Permute dimensions so channel dim is last and gets used for matmul
-        n_dims = z.dim()
-        perm = [0] + list(range(2, n_dims)) + [1]
-        perm_inv = [0, n_dims - 1] + list(range(1, n_dims - 1))
-        W = self._assemble_W()
-        if W.dtype == torch.float64:
-            W_inv = torch.inverse(W)
-        else:
-            W_inv = torch.inverse(W.double()).type(W.dtype)
-        z_ = (z.permute(*perm) @ W_inv).permute(*perm_inv)
+        W = self._assemble_W(inverse=True)
+        z_ = torch.nn.functional.conv2d(z, W)
         log_det = -torch.sum(torch.log(torch.abs(self.S)), dim=0, keepdim=True)
-        if n_dims > 2:
+        if z.dim() > 2:
             log_det = log_det * torch.prod(torch.tensor(z.shape[2:]))
         return z_, log_det
 
     def inverse(self, z):
-        # Permute dimensions so channel dim is last and gets used for matmul
-        n_dims = z.dim()
-        perm = [0] + list(range(2, n_dims)) + [1]
-        perm_inv = [0, z.dim() - 1] + list(range(1, n_dims - 1))
         W = self._assemble_W()
-        z_ = (z.permute(*perm) @ W).permute(*perm_inv)
+        z_ = torch.nn.functional.conv2d(z, W)
         log_det = torch.sum(torch.log(torch.abs(self.S)), dim=0, keepdim=True)
-        if n_dims > 2:
+        if z.dim() > 2:
             log_det = log_det * torch.prod(torch.tensor(z.shape[2:]))
         return z_, log_det
 
