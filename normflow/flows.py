@@ -493,6 +493,7 @@ class Invertible1x1Conv(Flow):
             W = U_inv @ L_inv @ self.P
         else:
             W = self.P @ L @ U
+        W = W.view(*W.size(), 1, 1)
         return W
 
     def forward(self, z):
