@@ -499,7 +499,7 @@ class Invertible1x1Conv(Flow):
     def forward(self, z):
         W = self._assemble_W(inverse=True)
         z_ = torch.nn.functional.conv2d(z, W)
-        log_det = -torch.sum(torch.log(torch.abs(self.S)), dim=0, keepdim=True)
+        log_det = -torch.sum(self.log_S, dim=0, keepdim=True)
         if z.dim() > 2:
             log_det = log_det * torch.prod(torch.tensor(z.shape[2:]))
         return z_, log_det
@@ -507,7 +507,7 @@ class Invertible1x1Conv(Flow):
     def inverse(self, z):
         W = self._assemble_W()
         z_ = torch.nn.functional.conv2d(z, W)
-        log_det = torch.sum(torch.log(torch.abs(self.S)), dim=0, keepdim=True)
+        log_det = torch.sum(self.log_S, dim=0, keepdim=True)
         if z.dim() > 2:
             log_det = log_det * torch.prod(torch.tensor(z.shape[2:]))
         return z_, log_det
