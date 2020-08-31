@@ -122,3 +122,13 @@ def bitsPerDimDataset(model, data_loader, class_cond=True, trans='logit',
             n += len(x) - np.sum(np.isnan(b_np))
         b = b_cum / n
     return b
+
+
+def clear_grad(model):
+    """
+    Set gradients of model parameter to None as this speeds up training,
+    see https://www.youtube.com/watch?v=9mS1fIYj1So
+    :param model: Model to clear gradients of
+    """
+    for param in model.parameters():
+        param.grad = None
