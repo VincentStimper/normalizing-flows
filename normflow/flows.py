@@ -521,6 +521,7 @@ class Invertible1x1Conv(Flow):
                 W = torch.inverse(self.W)
             else:
                 W = torch.inverse(self.W.double()).type(W_dtype)
+            W = W.view(*W.size(), 1, 1)
             log_det = -torch.slogdet(self.W).logabsdet.view(1)
         z_ = torch.nn.functional.conv2d(z, W)
         if z.dim() > 2:
@@ -532,7 +533,7 @@ class Invertible1x1Conv(Flow):
             W = self._assemble_W()
             log_det = torch.sum(self.log_S, dim=0, keepdim=True)
         else:
-            W = self.W
+            W = self.W.view(*self.W.size(), 1, 1)
             log_det = torch.slogdet(self.W).logabsdet.view(1)
         z_ = torch.nn.functional.conv2d(z, W)
         if z.dim() > 2:
