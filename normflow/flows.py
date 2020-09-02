@@ -464,20 +464,35 @@ class BatchNorm(Flow):
         log_det = torch.log(1 / torch.prod(torch.sqrt(std ** 2 + self.eps))).repeat(z.size()[0])
         return z_, log_det
 
+
+# Layers for feature/channel mixing
     
 class Invertible1x1Conv(Flow):
-    def __init__(self, num_channels):
+    """
+    Invertible 1x1 convolution introduced in the Glow paper
+    Assumes 4d input/output tensors of the form NCHW
+    """
+    def __init__(self, num_channels, use_lu=False):
+        """
+        Constructor
+        :param num_channels: Number of channels of the data
+        :param use_lu: Flag whether to parametrize weights through the LU decomposition
+        """
         super().__init__()
         self.num_channels = num_channels
+        self.use_lu = use_lu
         Q = torch.nn.init.orthogonal_(torch.randn(self.num_channels, self.num_channels))
-        P, L, U = torch.lu_unpack(*Q.lu())
-        self.register_buffer('P', P) # remains fixed during optimization
-        self.L = nn.Parameter(L) # lower triangular portion
-        S = U.diag()# "crop out" the diagonal to its own parameter
-        self.register_buffer("sign_S", torch.sign(S))
-        self.log_S = nn.Parameter(torch.log(torch.abs(S)))
-        self.U = nn.Parameter(torch.triu(U, diagonal=1)) # "crop out" diagonal, stored in S
-        self.register_buffer("eye", torch.diag(torch.ones(self.num_channels)))
+        if use_lu:
+            P, L, U = torch.lu_unpack(*Q.lu())
+            self.register_buffer('P', P) # remains fixed during optimization
+            self.L = nn.Parameter(L) # lower triangular portion
+            S = U.diag()# "crop out" the diagonal to its own parameter
+            self.register_buffer("sign_S", torch.sign(S))
+            self.log_S = nn.Parameter(torch.log(torch.abs(S)))
+            self.U = nn.Parameter(torch.triu(U, diagonal=1)) # "crop out" diagonal, stored in S
+            self.register_buffer("eye", torch.diag(torch.ones(self.num_channels)))
+        else:
+            self.W = nn.Parameter(Q)
 
     def _assemble_W(self, inverse=False):
         # assemble W from its components (P, L, U, S)
@@ -497,17 +512,29 @@ class Invertible1x1Conv(Flow):
         return W
 
     def forward(self, z):
-        W = self._assemble_W(inverse=True)
+        if self.use_lu:
+            W = self._assemble_W(inverse=True)
+            log_det = -torch.sum(self.log_S, dim=0, keepdim=True)
+        else:
+            W_dtype = self.W.dtype
+            if W_dtype == torch.float64:
+                W = torch.inverse(self.W)
+            else:
+                W = torch.inverse(self.W.double()).type(W_dtype)
+            log_det = -torch.slogdet(self.W).logabsdet.view(1)
         z_ = torch.nn.functional.conv2d(z, W)
-        log_det = -torch.sum(self.log_S, dim=0, keepdim=True)
         if z.dim() > 2:
             log_det = log_det * torch.prod(torch.tensor(z.shape[2:]))
         return z_, log_det
 
     def inverse(self, z):
-        W = self._assemble_W()
+        if self.use_lu:
+            W = self._assemble_W()
+            log_det = torch.sum(self.log_S, dim=0, keepdim=True)
+        else:
+            W = self.W
+            log_det = torch.slogdet(self.W).logabsdet.view(1)
         z_ = torch.nn.functional.conv2d(z, W)
-        log_det = torch.sum(self.log_S, dim=0, keepdim=True)
         if z.dim() > 2:
             log_det = log_det * torch.prod(torch.tensor(z.shape[2:]))
         return z_, log_det
