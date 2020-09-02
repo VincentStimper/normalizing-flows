@@ -484,13 +484,13 @@ class Invertible1x1Conv(Flow):
         L = torch.tril(self.L, diagonal=-1) + self.eye
         U = torch.triu(self.U, diagonal=1) + torch.diag(self.sign_S * torch.exp(self.log_S))
         if inverse:
-            if L.dtype == torch.float64:
+            if self.log_S.dtype == torch.float64:
                 L_inv = torch.inverse(L)
                 U_inv = torch.inverse(U)
             else:
-                L_inv = torch.inverse(L.double()).float()
-                U_inv = torch.inverse(U.double()).float()
-            W = U_inv @ L_inv @ self.P
+                L_inv = torch.inverse(L.double()).type(self.log_S.dtype)
+                U_inv = torch.inverse(U.double()).type(self.log_S.dtype)
+            W = U_inv @ L_inv @ self.P.t()
         else:
             W = self.P @ L @ U
         W = W.view(*W.size(), 1, 1)
