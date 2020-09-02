@@ -52,13 +52,16 @@ class ConvNet2d(nn.Module):
     Convolutional Neural Network with leaky ReLU nonlinearities
     """
 
-    def __init__(self, channels, kernel_size, leaky=0.0, init_zeros=True):
+    def __init__(self, channels, kernel_size, leaky=0.0, init_zeros=True,
+                 scale_output=True, logscale_factor=3.):
         """
         Constructor
         :param channels: List of channels of conv layers, first entry is in_channels
         :param kernel_size: List of kernel sizes, same for height and width
         :param leaky: Leaky part of ReLU
         :param init_zeros: Flag whether last layer shall be initialized with zeros
+        :param scale_output: Flag whether to scale output with a log scale parameter
+        :param logscale_factor: Constant factor to be multiplied to log scaling
         """
         super().__init__()
         # Build network
@@ -72,6 +75,14 @@ class ConvNet2d(nn.Module):
             nn.init.zeros_(net[-1].weight)
             nn.init.zeros_(net[-1].bias)
         self.net = nn.Sequential(*net)
+        # Perpare variables for output scaling if needed
+        self.scale_output = scale_output
+        if scale_output:
+            self.logs = torch.nn.Parameter(torch.zeros(1, channels[-1], 1, 1))
+            self.logscale_factor = logscale_factor
 
     def forward(self, x):
-        return self.net(x)
+        if self.scale_output:
+            return self.net(x) * torch.exp(self.logs * self.logscale_factor)
+        else:
+            return self.net(x)
