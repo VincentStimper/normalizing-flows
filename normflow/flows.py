@@ -472,7 +472,7 @@ class Invertible1x1Conv(Flow):
     Invertible 1x1 convolution introduced in the Glow paper
     Assumes 4d input/output tensors of the form NCHW
     """
-    def __init__(self, num_channels, use_lu=False):
+    def __init__(self, num_channels, use_lu=True):
         """
         Constructor
         :param num_channels: Number of channels of the data
