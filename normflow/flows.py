@@ -508,7 +508,6 @@ class Invertible1x1Conv(Flow):
             W = U_inv @ L_inv @ self.P.t()
         else:
             W = self.P @ L @ U
-        W = W.view(*W.size(), 1, 1)
         return W
 
     def forward(self, z):
@@ -522,10 +521,10 @@ class Invertible1x1Conv(Flow):
             else:
                 W = torch.inverse(self.W.double()).type(W_dtype)
             W = W.view(*W.size(), 1, 1)
-            log_det = -torch.slogdet(self.W).logabsdet.view(1)
+            log_det = -torch.slogdet(self.W)[1].view(1)
+        W = W.view(self.num_channels, self.num_channels, 1, 1)
         z_ = torch.nn.functional.conv2d(z, W)
-        if z.dim() > 2:
-            log_det = log_det * torch.prod(torch.tensor(z.shape[2:]))
+        log_det = log_det * z.size(2) * z.size(3)
         return z_, log_det
 
     def inverse(self, z):
@@ -533,18 +532,10 @@ class Invertible1x1Conv(Flow):
             W = self._assemble_W()
             log_det = torch.sum(self.log_S, dim=0, keepdim=True)
         else:
-            W = self.W.view(*self.W.size(), 1, 1)
-            #if W.device == torch.device('cpu'):
-            det = torch.det(self.W.double())
-            log_det = torch.log(torch.abs(det)).type(self.W.dtype).view(1)
-            #else:
-            #    W_cpu = self.W.to(torch.device('cpu'))
-            #    det_cpu = torch.det(W_cpu.double())
-            #    log_det_cpu = torch.log(torch.abs(det_cpu)).type(self.W.dtype)
-            #    log_det = log_det_cpu.to(self.W.device)
+            log_det = torch.slogdet(self.W)[1].view(1)
+        W = W.view(self.num_channels, self.num_channels, 1, 1)
         z_ = torch.nn.functional.conv2d(z, W)
-        if z.dim() > 2:
-            log_det = log_det * torch.prod(torch.tensor(z.shape[2:]))
+        log_det = log_det * z.size(2) * z.size(3)
         return z_, log_det
 
 
