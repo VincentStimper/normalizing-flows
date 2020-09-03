@@ -534,14 +534,14 @@ class Invertible1x1Conv(Flow):
             log_det = torch.sum(self.log_S, dim=0, keepdim=True)
         else:
             W = self.W.view(*self.W.size(), 1, 1)
-            if W.device == torch.device('cpu'):
-                det = torch.det(self.W.double())
-                log_det = torch.log(torch.abs(det)).type(self.W.dtype).view(1)
-            else:
-                W_cpu = self.W.to(torch.device('cpu'))
-                det_cpu = torch.det(W_cpu.double())
-                log_det_cpu = torch.log(torch.abs(det_cpu)).type(self.W.dtype)
-                log_det = log_det_cpu.to(self.W.device)
+            #if W.device == torch.device('cpu'):
+            det = torch.det(self.W.double())
+            log_det = torch.log(torch.abs(det)).type(self.W.dtype).view(1)
+            #else:
+            #    W_cpu = self.W.to(torch.device('cpu'))
+            #    det_cpu = torch.det(W_cpu.double())
+            #    log_det_cpu = torch.log(torch.abs(det_cpu)).type(self.W.dtype)
+            #    log_det = log_det_cpu.to(self.W.device)
         z_ = torch.nn.functional.conv2d(z, W)
         if z.dim() > 2:
             log_det = log_det * torch.prod(torch.tensor(z.shape[2:]))
