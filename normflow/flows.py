@@ -472,7 +472,7 @@ class Invertible1x1Conv(Flow):
     Invertible 1x1 convolution introduced in the Glow paper
     Assumes 4d input/output tensors of the form NCHW
     """
-    def __init__(self, num_channels, use_lu=True):
+    def __init__(self, num_channels, use_lu=False):
         """
         Constructor
         :param num_channels: Number of channels of the data
@@ -534,7 +534,14 @@ class Invertible1x1Conv(Flow):
             log_det = torch.sum(self.log_S, dim=0, keepdim=True)
         else:
             W = self.W.view(*self.W.size(), 1, 1)
-            log_det = torch.slogdet(self.W).logabsdet.view(1)
+            if W.device == torch.device('cpu'):
+                det = torch.det(self.W.double())
+                log_det = torch.log(torch.abs(det)).type(self.W.dtype).view(1)
+            else:
+                W_cpu = self.W.to(torch.device('cpu'))
+                det_cpu = torch.det(W_cpu.double())
+                log_det_cpu = torch.log(torch.abs(det_cpu)).type(self.W.dtype)
+                log_det = log_det_cpu.to(self.W.device)
         z_ = torch.nn.functional.conv2d(z, W)
         if z.dim() > 2:
             log_det = log_det * torch.prod(torch.tensor(z.shape[2:]))
