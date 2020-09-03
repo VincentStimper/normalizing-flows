@@ -82,7 +82,9 @@ class ConvNet2d(nn.Module):
             self.logscale_factor = logscale_factor
 
     def forward(self, x):
+        net_out = self.net(x)
         if self.scale_output:
-            return self.net(x) * torch.exp(self.logs * self.logscale_factor)
+            out = net_out * torch.exp(self.logs * self.logscale_factor)
         else:
-            return self.net(x)
+            out = net_out
+        return out
