@@ -513,7 +513,7 @@ class Invertible1x1Conv(Flow):
     def forward(self, z):
         if self.use_lu:
             W = self._assemble_W(inverse=True)
-            log_det = -torch.sum(self.log_S, dim=0, keepdim=True)
+            log_det = -torch.sum(self.log_S)
         else:
             W_dtype = self.W.dtype
             if W_dtype == torch.float64:
@@ -521,7 +521,7 @@ class Invertible1x1Conv(Flow):
             else:
                 W = torch.inverse(self.W.double()).type(W_dtype)
             W = W.view(*W.size(), 1, 1)
-            log_det = -torch.slogdet(self.W)[1].view(1)
+            log_det = -torch.slogdet(self.W)[1]
         W = W.view(self.num_channels, self.num_channels, 1, 1)
         z_ = torch.nn.functional.conv2d(z, W)
         log_det = log_det * z.size(2) * z.size(3)
@@ -530,9 +530,9 @@ class Invertible1x1Conv(Flow):
     def inverse(self, z):
         if self.use_lu:
             W = self._assemble_W()
-            log_det = torch.sum(self.log_S, dim=0, keepdim=True)
+            log_det = torch.sum(self.log_S)
         else:
-            log_det = torch.slogdet(self.W)[1].view(1)
+            log_det = torch.slogdet(self.W)[1]
         W = W.view(self.num_channels, self.num_channels, 1, 1)
         z_ = torch.nn.functional.conv2d(z, W)
         log_det = log_det * z.size(2) * z.size(3)
