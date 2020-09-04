@@ -36,7 +36,7 @@ class Logit(flows.Flow):
     def inverse(self, z):
         # Apply scale jittering if needed
         if self.jitter:
-            eps = torch.rand_like(z)
+            eps = torch.rand_like(z) * self.jitter_scale
             beta = (1 - self.alpha) / (1 + self.jitter_scale)
             z = self.alpha + beta * (z + eps)
         else:
