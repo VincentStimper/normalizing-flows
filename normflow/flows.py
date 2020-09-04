@@ -154,13 +154,9 @@ class Split(Flow):
 
     def forward(self, z):
         if self.mode == 'channel':
-            nc = z.size(1)
-            z1 = z[:, :nc // 2, ...]
-            z2 = z[:, nc // 2:, ...]
+            z1, z2 = z.chunk(2, dim=1)
         elif self.mode == 'channel_inv':
-            nc = z.size(1)
-            z2 = z[:, :nc // 2, ...]
-            z1 = z[:, nc // 2:, ...]
+            z2, z1 = z.chunk(2, dim=1)
         elif 'checkerboard' in self.mode:
             n_dims = z.dim()
             cb0 = 0
@@ -184,9 +180,9 @@ class Split(Flow):
     def inverse(self, z):
         z1, z2 = z
         if self.mode == 'channel':
-            z = torch.cat([z1, z2], 1).contiguous()
+            z = torch.cat([z1, z2], 1)
         elif self.mode == 'channel_inv':
-            z = torch.cat([z2, z1], 1).contiguous()
+            z = torch.cat([z2, z1], 1)
         elif 'checkerboard' in self.mode:
             n_dims = z1.dim()
             z_size = list(z1.size())
@@ -238,16 +234,16 @@ class Squeeze(Flow):
         log_det = torch.zeros(len(z), dtype=z.dtype, device=z.device)
         s = z.size()
         z = z.view(s[0], s[1] // 4, 2, 2, s[2], s[3])
-        z = z.permute(0, 1, 4, 2, 5, 3)
-        z = z.reshape(s[0], s[1] // 4, 2 * s[2], 2 * s[3])
+        z = z.permute(0, 1, 4, 2, 5, 3).contiguous()
+        z = z.view(s[0], s[1] // 4, 2 * s[2], 2 * s[3])
         return z, log_det
 
     def inverse(self, z):
         log_det = torch.zeros(len(z), dtype=z.dtype, device=z.device)
         s = z.size()
         z = z.view(*s[:2], s[2] // 2, 2, s[3] // 2, 2)
-        z = z.permute(0, 1, 3, 5, 2, 4)
-        z = z.reshape(s[0], 4 * s[1], s[2] // 2, s[3] // 2)
+        z = z.permute(0, 1, 3, 5, 2, 4).contiguous()
+        z = z.view(s[0], 4 * s[1], s[2] // 2, s[3] // 2)
         return z, log_det
 
 
@@ -351,10 +347,8 @@ class AffineCoupling(Flow):
         z1, z2 = z
         param = self.param_map(z1)
         if self.scale:
-            nc = param.size(1) // 2
-            assert nc == z2.size(1)
-            shift = param[:, :nc, ...]
-            scale_ = param[:, nc:, ...]
+            shift = param[:, 0::2, ...]
+            scale_ = param[:, 0::2, ...]
             if self.scale_map == 'exp':
                 z2 = z2 * torch.exp(scale_) + shift
                 log_det = torch.sum(scale_, dim=list(range(1, shift.dim())))
