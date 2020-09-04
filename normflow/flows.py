@@ -348,7 +348,7 @@ class AffineCoupling(Flow):
         param = self.param_map(z1)
         if self.scale:
             shift = param[:, 0::2, ...]
-            scale_ = param[:, 0::2, ...]
+            scale_ = param[:, 1::2, ...]
             if self.scale_map == 'exp':
                 z2 = z2 * torch.exp(scale_) + shift
                 log_det = torch.sum(scale_, dim=list(range(1, shift.dim())))
@@ -367,10 +367,8 @@ class AffineCoupling(Flow):
         z1, z2 = z
         param = self.param_map(z1)
         if self.scale:
-            nc = param.size(1) // 2
-            assert nc == z2.size(1)
-            shift = param[:, :nc, ...]
-            scale_ = param[:, nc:, ...]
+            shift = param[:, 0::2, ...]
+            scale_ = param[:, 1::2, ...]
             if self.scale_map == 'exp':
                 z2 = (z2 - shift) * torch.exp(-scale_)
                 log_det = -torch.sum(scale_, dim=list(range(1, shift.dim())))
