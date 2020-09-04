@@ -56,7 +56,7 @@ class Logit():
 class Jitter():
     """
     Transform for dataloader
-    Adds uniform jitter noise to data making sure that data stays in interval [0, 1
+    Adds uniform jitter noise to data
     """
     def __init__(self, scale=1./255):
         """
@@ -67,8 +67,8 @@ class Jitter():
 
     def __call__(self, x):
         eps = (torch.rand_like(x) - 0.5) * self.scale
-        x_ = torch.abs(x + eps)
-        return x_ - 2 * torch.relu(x_ - 1)
+        x_ = x + eps
+        return x_
 
 
 # Functions for model analysis

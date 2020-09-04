@@ -208,12 +208,13 @@ class MultiscaleFlow(nn.Module):
     """
     Normalizing Flow model with multiscale architecture, see RealNVP or Glow paper
     """
-    def __init__(self, q0, flows, merges, class_cond=True):
+    def __init__(self, q0, flows, merges, transform=None, class_cond=True):
         """
         Constructor
         :param q0: List of base distribution
         :param flows: List of list of flows for each level
         :param merges: List of merge/split operations (forward pass must do merge)
+        :param transform: Initial transformation of inputs
         :param class_cond: Flag, indicated whether model has class conditional
         base distributions
         """
@@ -222,6 +223,7 @@ class MultiscaleFlow(nn.Module):
         self.num_levels = len(self.q0)
         self.flows = torch.nn.ModuleList([nn.ModuleList(flow) for flow in flows])
         self.merges = merges
+        self.transform = transform
         self.class_cond = class_cond
 
     def forward_kld(self, x, y=None):
@@ -266,6 +268,9 @@ class MultiscaleFlow(nn.Module):
             for flow in self.flows[i]:
                 z, log_det = flow(z)
                 log_q -= log_det
+        if self.transform is not None:
+            z, log_det = self.transform(z)
+            log_q -= log_det
         if temperature is not None:
             self.reset_temperature()
         return z, log_q
@@ -279,6 +284,9 @@ class MultiscaleFlow(nn.Module):
         """
         log_q = torch.zeros(len(x), dtype=x.dtype, device=x.device)
         z = x
+        if self.transform is not None:
+            z, log_det = self.transform.inverse(z)
+            log_q += log_det
         for i in range(len(self.q0) - 1, -1, -1):
             for j in range(len(self.flows[i]) - 1, -1, -1):
                 z, log_det = self.flows[i][j].inverse(z)

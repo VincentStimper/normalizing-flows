@@ -277,7 +277,7 @@ class AffineConstFlow(Flow):
     def forward(self, z):
         z_ = z * torch.exp(self.s) + self.t
         if len(self.batch_dims) > 1:
-            prod_batch_dims = torch.prod(torch.tensor(z.shape)[self.batch_dims[1:]])
+            prod_batch_dims = np.prod([*z.shape[self.batch_dims[1:]]])
         else:
             prod_batch_dims = 1
         log_det = prod_batch_dims * torch.sum(self.s, dim=list(range(1, self.n_dim)))
@@ -286,7 +286,7 @@ class AffineConstFlow(Flow):
     def inverse(self, z):
         z_ = (z - self.t) * torch.exp(-self.s)
         if len(self.batch_dims) > 1:
-            prod_batch_dims = torch.prod(torch.tensor(z.shape)[self.batch_dims[1:]])
+            prod_batch_dims = np.prod([*z.shape[self.batch_dims[1:]]])
         else:
             prod_batch_dims = 1
         log_det = -prod_batch_dims * torch.sum(self.s, dim=list(range(1, self.n_dim)))
