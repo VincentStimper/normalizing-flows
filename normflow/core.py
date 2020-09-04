@@ -222,7 +222,7 @@ class MultiscaleFlow(nn.Module):
         self.q0 = nn.ModuleList(q0)
         self.num_levels = len(self.q0)
         self.flows = torch.nn.ModuleList([nn.ModuleList(flow) for flow in flows])
-        self.merges = merges
+        self.merges = torch.nn.ModuleList(merges)
         self.transform = transform
         self.class_cond = class_cond
 
