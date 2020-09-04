@@ -16,6 +16,7 @@ class Logit(flows.Flow):
         :param jitter: Flag whether to apply jittering
         :param jitter_scale: Scale of jittering if applicable
         """
+        super().__init__()
         self.alpha = alpha
         self.jitter = jitter
         self.jitter_scale = jitter_scale
