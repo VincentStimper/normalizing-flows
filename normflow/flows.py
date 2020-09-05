@@ -174,7 +174,7 @@ class Split(Flow):
             z2 = z.reshape(-1)[torch.nonzero((1 - cb).view(-1), as_tuple=False)].view(*z_size[:-1], -1)
         else:
             raise NotImplementedError('Mode ' + self.mode + ' is not implemented.')
-        log_det = torch.zeros(len(z), dtype=z.dtype, device=z.device)
+        log_det = 0
         return [z1, z2], log_det
 
     def inverse(self, z):
@@ -202,7 +202,7 @@ class Split(Flow):
             z = cb * z1 + (1 - cb) * z2
         else:
             raise NotImplementedError('Mode ' + self.mode + ' is not implemented.')
-        log_det = torch.zeros(len(z), dtype=z.dtype, device=z.device)
+        log_det = 0
         return z, log_det
 
 
@@ -231,7 +231,7 @@ class Squeeze(Flow):
         super().__init__()
 
     def forward(self, z):
-        log_det = torch.zeros(len(z), dtype=z.dtype, device=z.device)
+        log_det = 0
         s = z.size()
         z = z.view(s[0], s[1] // 4, 2, 2, s[2], s[3])
         z = z.permute(0, 1, 4, 2, 5, 3).contiguous()
@@ -239,7 +239,7 @@ class Squeeze(Flow):
         return z, log_det
 
     def inverse(self, z):
-        log_det = torch.zeros(len(z), dtype=z.dtype, device=z.device)
+        log_det = 0
         s = z.size()
         z = z.view(*s[:2], s[2] // 2, 2, s[3] // 2, 2)
         z = z.permute(0, 1, 3, 5, 2, 4).contiguous()
@@ -276,7 +276,7 @@ class AffineConstFlow(Flow):
             prod_batch_dims = np.prod([z.size(i) for i in self.batch_dims[1:]])
         else:
             prod_batch_dims = 1
-        log_det = prod_batch_dims * torch.sum(self.s, dim=list(range(1, self.n_dim)))
+        log_det = prod_batch_dims * torch.sum(self.s)
         return z_, log_det
 
     def inverse(self, z):
@@ -285,7 +285,7 @@ class AffineConstFlow(Flow):
             prod_batch_dims = np.prod([z.size(i) for i in self.batch_dims[1:]])
         else:
             prod_batch_dims = 1
-        log_det = -prod_batch_dims * torch.sum(self.s, dim=list(range(1, self.n_dim)))
+        log_det = -prod_batch_dims * torch.sum(self.s)
         return z_, log_det
 
 
@@ -360,7 +360,7 @@ class AffineCoupling(Flow):
                 raise NotImplementedError('This scale map is not implemented.')
         else:
             z2 += param
-            log_det = torch.zeros(len(z1), dtype=z1.dtype, device=z1.device)
+            log_det = 0
         return [z1, z2], log_det
 
     def inverse(self, z):
@@ -380,7 +380,7 @@ class AffineCoupling(Flow):
                 raise NotImplementedError('This scale map is not implemented.')
         else:
             z2 -= param
-            log_det = torch.zeros(len(z1), dtype=z1.dtype, device=z1.device)
+            log_det = 0
         return [z1, z2], log_det
 
 

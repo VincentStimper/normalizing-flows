@@ -282,7 +282,7 @@ class MultiscaleFlow(nn.Module):
         :param y: Classes of x
         :return: log probability
         """
-        log_q = torch.zeros(len(x), dtype=x.dtype, device=x.device)
+        log_q = 0
         z = x
         if self.transform is not None:
             z, log_det = self.transform.inverse(z)
