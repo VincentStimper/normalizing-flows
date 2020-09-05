@@ -579,7 +579,7 @@ class GlowBlock(Flow):
     ActNorm (first batch used for initialization)
     """
     def __init__(self, channels, hidden_channels, scale=True, scale_map='sigmoid',
-                 split_mode='channel', leaky=0.0, init_zeros=True):
+                 split_mode='channel', leaky=0.0, init_zeros=True, use_lu=False):
         """
         Constructor
         :param channels: Number of channels of the data
@@ -590,6 +590,8 @@ class GlowBlock(Flow):
         :param split_mode: Splitting mode, for possible values see Split class
         :param leaky: Leaky parameter of LeakyReLUs of ConvNet2d
         :param init_zeros: Flag whether to initialize last conv layer with zeros
+        :param use_lu: Flag whether to parametrize weights through the LU decomposition
+        in invertible 1x1 convolution layers
         """
         super().__init__()
         self.flows = nn.ModuleList([])
@@ -611,7 +613,7 @@ class GlowBlock(Flow):
         self.flows += [AffineCouplingBlock(param_map, scale, scale_map, split_mode)]
         # Invertible 1x1 convolution
         if channels > 1:
-            self.flows += [Invertible1x1Conv(channels)]
+            self.flows += [Invertible1x1Conv(channels, use_lu)]
         # Activation normalization
         self.flows += [ActNorm((channels,) + (1, 1))]
 
