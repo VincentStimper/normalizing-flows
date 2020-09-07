@@ -258,15 +258,14 @@ class AffineConstFlow(Flow):
 
     def __init__(self, shape, scale=True, shift=True):
         super().__init__()
-        init = torch.zeros(shape)[None]
         if scale:
-            self.s = nn.Parameter(init)
+            self.s = nn.Parameter(torch.zeros(shape)[None])
         else:
-            self.register_buffer('s', init)
+            self.register_buffer('s', torch.zeros(shape)[None])
         if shift:
-            self.t = nn.Parameter(init)
+            self.t = nn.Parameter(torch.zeros(shape)[None])
         else:
-            self.register_buffer('t', init)
+            self.register_buffer('t', torch.zeros(shape)[None])
         self.n_dim = self.s.dim()
         self.batch_dims = torch.nonzero(torch.tensor(self.s.shape) == 1, as_tuple=False)[:, 0].tolist()
 
