@@ -171,45 +171,50 @@ class GlowBase(BaseDistribution):
         self.temperature = None
 
     def forward(self, num_samples=1, y=None):
-        if y is not None:
-            num_samples = len(y)
-        else:
-            y = torch.randint(self.num_classes, (num_samples,), device=self.loc.device)
-        if y.dim() == 1:
-            y_onehot = torch.zeros((len(y), self.num_classes), dtype=self.loc.dtype,
-                                   device=self.loc.device)
-            y_onehot.scatter_(1, y[:, None], 1)
-            y = y_onehot
-        eps = torch.randn((num_samples,) + self.shape, dtype=self.loc.dtype,
-                          device=self.loc.device)
+        # Prepare parameter
         loc = self.loc
         log_scale = self.log_scale
         if self.class_cond:
+            if y is not None:
+                num_samples = len(y)
+            else:
+                y = torch.randint(self.num_classes, (num_samples,), device=self.loc.device)
+            if y.dim() == 1:
+                y_onehot = torch.zeros((len(y), self.num_classes), dtype=self.loc.dtype,
+                                       device=self.loc.device)
+                y_onehot.scatter_(1, y[:, None], 1)
+                y = y_onehot
             loc += y @ self.loc_cc
             log_scale += y @ self.log_scale_cc
         if self.temperature is not None:
             log_scale += np.log(self.temperature)
         if self.temperature is not None:
             log_scale = np.log(self.temperature) + log_scale
+        # Sample
+        eps = torch.randn((num_samples,) + self.shape, dtype=self.loc.dtype,
+                          device=self.loc.device)
         z = loc + torch.exp(log_scale) * eps
+        # Get log prob
         log_p = - 0.5 * self.d * np.log(2 * np.pi) \
                 - self.num_pix * torch.sum(log_scale, dim=self.sum_dim) \
                 - 0.5 * torch.sum(torch.pow(eps, 2), dim=self.sum_dim)
         return z, log_p
 
-    def log_prob(self, z, y):
-        if y.dim() == 1:
-            y_onehot = torch.zeros((len(y), self.num_classes), dtype=self.loc.dtype,
-                                   device=self.loc.device)
-            y_onehot.scatter_(1, y[:, None], 1)
-            y = y_onehot
+    def log_prob(self, z, y=None):
+        # Perpare parameter
         loc = self.loc
         log_scale = self.log_scale
         if self.class_cond:
-             loc += y @ self.loc_cc
-             log_scale += y @ self.log_scale_cc
+            if y.dim() == 1:
+                y_onehot = torch.zeros((len(y), self.num_classes), dtype=self.loc.dtype,
+                                       device=self.loc.device)
+                y_onehot.scatter_(1, y[:, None], 1)
+                y = y_onehot
+            loc += y @ self.loc_cc
+            log_scale += y @ self.log_scale_cc
         if self.temperature is not None:
             log_scale += np.log(self.temperature)
+        # Get log prob
         log_p = - 0.5 * self.d * np.log(2 * np.pi) \
                 - self.num_pix * torch.sum(log_scale, dim=self.sum_dim)\
                 - 0.5 * torch.sum(torch.pow((z - loc) / torch.exp(log_scale), 2),
