@@ -136,6 +136,87 @@ class ClassCondDiagGaussian(BaseDistribution):
         return log_p
 
 
+class GlowBase(BaseDistribution):
+    """
+    Base distribution of the Glow model, i.e. Diagonal Gaussian with one mean and
+    log scale for each channel
+    """
+    def __init__(self, shape, num_classes=None):
+        """
+        Constructor
+        :param shape: Shape of the variables
+        :param num_classes: Number of classes if the base is class conditional,
+        None otherwise
+        """
+        super().__init__()
+        # Save shape and related statistics
+        if isinstance(shape, int):
+            shape = (shape,)
+        self.shape = shape
+        self.n_dim = len(shape)
+        self.num_pix = np.prod(shape[1:])
+        self.d = np.prod(shape)
+        self.sum_dim = list(range(1, self.n_dim + 1))
+        self.num_classes = num_classes
+        self.class_cond = num_classes is not None
+        # Set up parameters
+        self.loc = nn.Parameter(torch.zeros(1, self.shape[0], *((self.n_dim - 1) * [1])))
+        self.log_scale = nn.Parameter(torch.zeros(1, self.shape[0],
+                                                  *((self.n_dim - 1) * [1])))
+        # Class conditional parameter if needed
+        if self.class_cond:
+            self.loc_cc = nn.Parameter(torch.zeros(self.num_classes, self.shape[0]))
+            self.log_scale_cc = nn.Parameter(torch.zeros(self.num_classes, self.shape[0]))
+        # Temperature parameter for annealed sampling
+        self.temperature = None
+
+    def forward(self, num_samples=1, y=None):
+        if y is not None:
+            num_samples = len(y)
+        else:
+            y = torch.randint(self.num_classes, (num_samples,), device=self.loc.device)
+        if y.dim() == 1:
+            y_onehot = torch.zeros((len(y), self.num_classes), dtype=self.loc.dtype,
+                                   device=self.loc.device)
+            y_onehot.scatter_(1, y[:, None], 1)
+            y = y_onehot
+        eps = torch.randn((num_samples,) + self.shape, dtype=self.loc.dtype,
+                          device=self.loc.device)
+        loc = self.loc
+        log_scale = self.log_scale
+        if self.class_cond:
+            loc += y @ self.loc_cc
+            log_scale += y @ self.log_scale_cc
+        if self.temperature is not None:
+            log_scale += np.log(self.temperature)
+        if self.temperature is not None:
+            log_scale = np.log(self.temperature) + log_scale
+        z = loc + torch.exp(log_scale) * eps
+        log_p = - 0.5 * self.d * np.log(2 * np.pi) \
+                - self.num_pix * torch.sum(log_scale, dim=self.sum_dim) \
+                - 0.5 * torch.sum(torch.pow(eps, 2), dim=self.sum_dim)
+        return z, log_p
+
+    def log_prob(self, z, y):
+        if y.dim() == 1:
+            y_onehot = torch.zeros((len(y), self.num_classes), dtype=self.loc.dtype,
+                                   device=self.loc.device)
+            y_onehot.scatter_(1, y[:, None], 1)
+            y = y_onehot
+        loc = self.loc
+        log_scale = self.log_scale
+        if self.class_cond:
+             loc += y @ self.loc_cc
+             log_scale += y @ self.log_scale_cc
+        if self.temperature is not None:
+            log_scale += np.log(self.temperature)
+        log_p = - 0.5 * self.d * np.log(2 * np.pi) \
+                - self.num_pix * torch.sum(log_scale, dim=self.sum_dim)\
+                - 0.5 * torch.sum(torch.pow((z - loc) / torch.exp(log_scale), 2),
+                                  dim=self.sum_dim)
+        return log_p
+
+
 class GaussianMixture(BaseDistribution):
     """
     Mixture of Gaussians with diagonal covariance matrix
