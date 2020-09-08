@@ -184,12 +184,12 @@ class GlowBase(BaseDistribution):
                                        device=self.loc.device)
                 y_onehot.scatter_(1, y[:, None], 1)
                 y = y_onehot
-            loc += y @ self.loc_cc
-            log_scale += y @ self.log_scale_cc
+            loc = loc + (y @ self.loc_cc).view(y.size(0), self.shape[0],
+                                               *((self.n_dim - 1) * [1]))
+            log_scale = log_scale + (y @ self.log_scale_cc).view(y.size(0), self.shape[0],
+                                                                 *((self.n_dim - 1) * [1]))
         if self.temperature is not None:
-            log_scale += np.log(self.temperature)
-        if self.temperature is not None:
-            log_scale = np.log(self.temperature) + log_scale
+            log_scale = log_scale + np.log(self.temperature)
         # Sample
         eps = torch.randn((num_samples,) + self.shape, dtype=self.loc.dtype,
                           device=self.loc.device)
@@ -210,10 +210,12 @@ class GlowBase(BaseDistribution):
                                        device=self.loc.device)
                 y_onehot.scatter_(1, y[:, None], 1)
                 y = y_onehot
-            loc += y @ self.loc_cc
-            log_scale += y @ self.log_scale_cc
+            loc = loc + (y @ self.loc_cc).view(y.size(0), self.shape[0],
+                                               *((self.n_dim - 1) * [1]))
+            log_scale = log_scale + (y @ self.log_scale_cc).view(y.size(0), self.shape[0],
+                                                                 *((self.n_dim - 1) * [1]))
         if self.temperature is not None:
-            log_scale += np.log(self.temperature)
+            log_scale = log_scale + np.log(self.temperature)
         # Get log prob
         log_p = - 0.5 * self.d * np.log(2 * np.pi) \
                 - self.num_pix * torch.sum(log_scale, dim=self.sum_dim)\
