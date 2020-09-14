@@ -457,6 +457,53 @@ class BatchNorm(Flow):
 
 
 # Layers for feature/channel mixing
+
+class Permute(Flow):
+    """
+    Permutation features along the channel dimension
+    """
+    def __init__(self, num_channels, mode='shuffle'):
+        """
+        Constructor
+        :param num_channel: Number of channels
+        :param mode: Mode of permuting features, can be shuffle for
+        random permutation of swap for interchanging upper and lower part
+        """
+        super().__init__()
+        self.mode = mode
+        self.num_channels = num_channels
+        if self.mode == 'shuffle':
+            perm = torch.randperm(self.num_channels)
+            inv_perm = torch.empty_like(perm).scatter_(dim=0, index=perm,
+                                                       src=torch.arange(self.num_channels))
+            self.register_buffer("perm", perm)
+            self.register_buffer("inv_perm", inv_perm)
+
+    def forward(self, z):
+        if self.mode == 'shuffle':
+            z = z[:, self.perm, ...]
+        elif self.mode == 'swap':
+            z1 = z[:, :self.num_channels // 2, ...]
+            z2 = z[:, self.num_channels // 2:, ...]
+            z = torch.cat([z2, z1], dim=1)
+        else:
+            raise NotImplementedError('The mode ' + self.mode + ' is not implemented.')
+        log_det = 0
+        return z, log_det
+
+    def inverse(self, z):
+        if self.mode == 'shuffle':
+            z = z[:, self.inv_perm, ...]
+        elif self.mode == 'swap':
+            z1 = z[:, :(self.num_channels + 1) // 2, ...]
+            z2 = z[:, (self.num_channels + 1) // 2:, ...]
+            z = torch.cat([z2, z1], dim=1)
+        else:
+            raise NotImplementedError('The mode ' + self.mode + ' is not implemented.')
+        log_det = 0
+        return z, log_det
+
+
     
 class Invertible1x1Conv(Flow):
     """
