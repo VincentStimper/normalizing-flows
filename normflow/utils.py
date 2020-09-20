@@ -73,7 +73,7 @@ class Jitter():
 
 # Nonlinearities
 
-class ClampExp():
+class ClampExp(torch.nn.Module):
     """
     Nonlinearity min(exp(lam * x), 1)
     """
@@ -82,9 +82,10 @@ class ClampExp():
         Constructor
         :param lam: Lambda parameter
         """
+        super(ClampExp, self).__init__()
         self.lam = lam
 
-    def __call__(self, x):
+    def forward(self, x):
         return torch.min(torch.exp(self.lam * x), torch.tensor(1.))
 
 
