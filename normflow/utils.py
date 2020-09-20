@@ -71,6 +71,23 @@ class Jitter():
         return x_
 
 
+# Nonlinearities
+
+class ClampExp():
+    """
+    Nonlinearity min(exp(lam * x), 1)
+    """
+    def __init__(self, lam=1.):
+        """
+        Constructor
+        :param lam: Lambda parameter
+        """
+        self.lam = lam
+
+    def __call__(self, x):
+        return torch.min(torch.exp(self.lam * x), torch.tensor(1.))
+
+
 # Functions for model analysis
 
 def bitsPerDim(model, x, y=None, trans='logit', trans_param=[0.05]):

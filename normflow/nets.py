@@ -13,7 +13,7 @@ class MLP(nn.Module):
         :param leaky: slope of the leaky part of the ReLU,
         if 0.0, standard ReLU is used
         :param output_fn: String, function to be applied to the output, either
-        None, "sigmoid", "relu", or "tanh"
+        None, "sigmoid", "relu", "tanh", or "clampexp"
         :param output_scale: Rescale outputs if output_fn is specified, i.e.
         scale * output_fn(out / scale)
         :param init_zeros: Flag, if true, weights and biases of last layer
@@ -37,6 +37,8 @@ class MLP(nn.Module):
                 net.append(nn.ReLU())
             elif output_fn is "tanh":
                 net.append(nn.Tanh())
+            elif output_fn is "clampexp":
+                net.append(utils.ClampExp())
             else:
                 NotImplementedError("This output function is not implemented.")
             if output_scale is not None:
