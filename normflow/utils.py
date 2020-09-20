@@ -77,17 +77,16 @@ class ClampExp(torch.nn.Module):
     """
     Nonlinearity min(exp(lam * x), 1)
     """
-    def __init__(self, lam=1.):
+    def __init__(self):
         """
         Constructor
         :param lam: Lambda parameter
         """
         super(ClampExp, self).__init__()
-        self.lam = lam
 
     def forward(self, x):
         one = torch.tensor(1., device=x.device, dtype=x.dtype)
-        return torch.min(torch.exp(self.lam * x), one)
+        return torch.min(torch.exp(x), one)
 
 
 # Functions for model analysis

@@ -7,11 +7,14 @@ class MLP(nn.Module):
     A multilayer perceptron with Leaky ReLU nonlinearities
     """
 
-    def __init__(self, layers, leaky=0.0, output_fn=None, output_scale=None, init_zeros=False):
+    def __init__(self, layers, leaky=0.0, score_scale=None, output_fn=None,
+                 output_scale=None, init_zeros=False):
         """
         :param layers: list of layer sizes from start to end
         :param leaky: slope of the leaky part of the ReLU,
         if 0.0, standard ReLU is used
+        :param score_scale: Factor to apply to the scores, i.e. output before
+        output_fn.
         :param output_fn: String, function to be applied to the output, either
         None, "sigmoid", "relu", "tanh", or "clampexp"
         :param output_scale: Rescale outputs if output_fn is specified, i.e.
@@ -29,8 +32,8 @@ class MLP(nn.Module):
             nn.init.zeros_(net[-1].weight)
             nn.init.zeros_(net[-1].bias)
         if output_fn is not None:
-            if output_scale is not None:
-                net.append(utils.ConstScaleLayer(1 / output_scale))
+            if score_scale is not None:
+                net.append(utils.ConstScaleLayer(score_scale))
             if output_fn is "sigmoid":
                 net.append(nn.Sigmoid())
             elif output_fn is "relu":
