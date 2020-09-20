@@ -86,7 +86,8 @@ class ClampExp(torch.nn.Module):
         self.lam = lam
 
     def forward(self, x):
-        return torch.min(torch.exp(self.lam * x), torch.tensor(1.))
+        one = torch.tensor(1., device=x.device, dtype=x.dtype)
+        return torch.min(torch.exp(self.lam * x), one)
 
 
 # Functions for model analysis
