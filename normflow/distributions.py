@@ -905,7 +905,7 @@ class CircularGaussianMixture(nn.Module):
         prob = 0.
         for i in range(self.n_modes):
             prob += torch.exp(-((z[:, 0] - 2 * np.sin(2 * np.pi / self.n_modes * i)) ** 2
-                                 + (z[:, 1] - 2 * np.cos(2 * np.pi / self.n_modes * i) ** 2))
+                                 + (z[:, 1] - 2 * np.cos(2 * np.pi / self.n_modes * i)) ** 2)
                               / (2 * self.scale ** 2)) / (2 * np.pi * self.scale ** 2 * self.n_modes)
         return torch.log(prob + 1e-10)
 
