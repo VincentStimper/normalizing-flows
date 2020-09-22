@@ -869,9 +869,9 @@ class TwoMoons(Target):
     Bimodal two-dimensional distribution
     """
     def __init__(self):
-        super().__init__(torch.tensor(6.), torch.tensor(3.))
+        super().__init__(torch.tensor(6.), torch.tensor(-3.))
         self.n_dims = 2
-        self.max_log_prob = np.log(2.)
+        self.max_log_prob = 0.
 
     def log_prob(self, z):
         """
