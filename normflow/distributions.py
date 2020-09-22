@@ -919,6 +919,25 @@ class CircularGaussianMixture(nn.Module):
         return eps * self.scale + loc
 
 
+class RingMixture(Target):
+    """
+    Mixture of ring distributions in two dimensions
+    """
+    def __init__(self, n_rings=2):
+        super().__init__()
+        self.n_dims = 2
+        self.max_log_prob = 0.
+        self.n_rings = n_rings
+        self.scale = 2 / 3 / self.n_rings
+
+    def log_prob(self, z):
+        d = torch.zeros((len(z), 0), dtype=z.dtype, device=z.device)
+        for i in range(self.n_modes):
+            d_ = ((torch.norm(z) - 2 / self.n_rings * (i + 1)) ** 2) \
+                 / (2 * self.scale ** 2)
+            d = torch.cat((d, d_[:, None]), 1)
+        return torch.logsumexp(-d, 1)
+
 
 
 class MHProposal(nn.Module):
