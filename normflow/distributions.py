@@ -910,7 +910,7 @@ class CircularGaussianMixture(nn.Module):
         return torch.log(prob + 1e-10)
 
     def sample(self, num_samples=1):
-        eps = torch.randn(num_samples, dtype=self.scale.dtype, device=self.scale.device)
+        eps = torch.randn((num_samples, 2), dtype=self.scale.dtype, device=self.scale.device)
         phi = 2 * np.pi / self.n_modes * torch.randint(0, self.n_modes, (num_samples,))
         loc = torch.stack((2 * torch.sin(phi), 2 * torch.cos(phi)), 1).type(eps.dtype)
         return eps * self.scale + loc
