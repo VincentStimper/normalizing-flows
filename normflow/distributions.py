@@ -899,7 +899,7 @@ class CircularGaussianMixture(nn.Module):
         """
         super(CircularGaussianMixture, self).__init__()
         self.n_modes = n_modes
-        self.register_buffer("scale", torch.tensor(2 / 3 * np.sin(np.pi / self.n_modes)))
+        self.register_buffer("scale", torch.tensor(2 / 3 * np.sin(np.pi / self.n_modes)).float())
 
     def log_prob(self, z):
         d = torch.zeros((len(z), 0), dtype=z.dtype, device=z.device)
