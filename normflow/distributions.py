@@ -933,7 +933,7 @@ class RingMixture(Target):
     def log_prob(self, z):
         d = torch.zeros((len(z), 0), dtype=z.dtype, device=z.device)
         for i in range(self.n_rings):
-            d_ = ((torch.norm(z) - 2 / self.n_rings * (i + 1)) ** 2) \
+            d_ = ((torch.norm(z, dim=1) - 2 / self.n_rings * (i + 1)) ** 2) \
                  / (2 * self.scale ** 2)
             d = torch.cat((d, d_[:, None]), 1)
         return torch.logsumexp(-d, 1)
