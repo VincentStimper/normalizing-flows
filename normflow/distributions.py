@@ -892,7 +892,7 @@ class CircularGaussianMixture(nn.Module):
     """
     Two-dimensional Gaussian mixture arranged in a circle
     """
-    def __init__(self, n_modes=6):
+    def __init__(self, n_modes=8):
         """
         Constructor
         :param n_modes: Number of modes
@@ -902,12 +902,15 @@ class CircularGaussianMixture(nn.Module):
         self.register_buffer("scale", torch.tensor(2 / 3 * np.sin(np.pi / self.n_modes)))
 
     def log_prob(self, z):
-        prob = 0.
+        d = torch.zeros((len(z), 0), dtype=self.z.dtype, device=self.z.device)
         for i in range(self.n_modes):
-            prob += torch.exp(-((z[:, 0] - 2 * np.sin(2 * np.pi / self.n_modes * i)) ** 2
-                                 + (z[:, 1] - 2 * np.cos(2 * np.pi / self.n_modes * i)) ** 2)
-                              / (2 * self.scale ** 2)) / (2 * np.pi * self.scale ** 2 * self.n_modes)
-        return torch.log(prob + 1e-10)
+            d_ = ((z[:, 0] - 2 * np.sin(2 * np.pi / self.n_modes * i)) ** 2
+                  + (z[:, 1] - 2 * np.cos(2 * np.pi / self.n_modes * i)) ** 2)\
+                 / (2 * self.scale ** 2)
+            d = torch.cat((d, d_), 1)
+        log_p = - torch.log(2 * np.pi * self.scale ** 2 * self.n_modes) \
+                - torch.logsumexp(-d, 1)
+        return log_p
 
     def sample(self, num_samples=1):
         eps = torch.randn((num_samples, 2), dtype=self.scale.dtype, device=self.scale.device)
