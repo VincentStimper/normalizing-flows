@@ -815,8 +815,8 @@ class Target(nn.Module):
     """
     Sample target distributions to test models
     """
-    def __init__(self, prop_scale=torch.tensor(1.),
-                 prop_shift=torch.tensor(0.)):
+    def __init__(self, prop_scale=torch.tensor(6.),
+                 prop_shift=torch.tensor(-3.)):
         """
         Constructor
         :param prop_scale: Scale for the uniform proposal
@@ -869,7 +869,7 @@ class TwoMoons(Target):
     Bimodal two-dimensional distribution
     """
     def __init__(self):
-        super().__init__(torch.tensor(6.), torch.tensor(-3.))
+        super().__init__()
         self.n_dims = 2
         self.max_log_prob = 0.
 
