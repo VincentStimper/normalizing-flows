@@ -902,7 +902,7 @@ class CircularGaussianMixture(nn.Module):
         self.register_buffer("scale", torch.tensor(2 / 3 * np.sin(np.pi / self.n_modes)))
 
     def log_prob(self, z):
-        d = torch.zeros((len(z), 0), dtype=self.z.dtype, device=self.z.device)
+        d = torch.zeros((len(z), 0), dtype=z.dtype, device=z.device)
         for i in range(self.n_modes):
             d_ = ((z[:, 0] - 2 * np.sin(2 * np.pi / self.n_modes * i)) ** 2
                   + (z[:, 1] - 2 * np.cos(2 * np.pi / self.n_modes * i)) ** 2)\
