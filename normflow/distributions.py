@@ -909,7 +909,7 @@ class CircularGaussianMixture(nn.Module):
                  / (2 * self.scale ** 2)
             d = torch.cat((d, d_[:, None]), 1)
         log_p = - torch.log(2 * np.pi * self.scale ** 2 * self.n_modes) \
-                - torch.logsumexp(-d, 1)
+                + torch.logsumexp(-d, 1)
         return log_p
 
     def sample(self, num_samples=1):
