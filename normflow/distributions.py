@@ -888,6 +888,35 @@ class TwoMoons(Target):
         return log_prob
 
 
+class CircularGaussianMixture(nn.Module):
+    """
+    Two-dimensional Gaussian mixture arranged in a circle
+    """
+    def __init__(self, n_modes=6):
+        """
+        Constructor
+        :param n_modes: Number of modes
+        """
+        super(CircularGaussianMixture, self).__init__()
+        self.n_modes = n_modes
+        self.register_buffer("scale", torch.tensor(2 / 3 * np.sin(np.pi / self.n_modes)))
+
+    def log_prob(self, z):
+        prob = 0.
+        for i in range(self.n_modes):
+            prob += torch.exp(-((z[:, 0] - 2 * np.sin(2 * np.pi / self.n_modes * i)) ** 2
+                                 + (z[:, 1] - 2 * np.cos(2 * np.pi / self.n_modes * i) ** 2))
+                              / (2 * self.scale)) / (2 * np.pi * self.scale ** 2 * self.n_modes)
+        return torch.log(prob + 1e-10)
+
+    def sample(self, num_samples=1):
+        eps = torch.randn(num_samples, dtype=self.scale.dtype, device=self.scale.device)
+        phi = 2 * np.pi / self.n_modes * torch.randint(0, self.n_modes, (num_samples,))
+        loc = torch.stack((2 * torch.sin(phi), 2 * torch.cos(phi)), 1).type(eps.dtype)
+        return eps * self.scale + loc
+
+
+
 
 class MHProposal(nn.Module):
     """
