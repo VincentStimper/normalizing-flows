@@ -928,7 +928,7 @@ class RingMixture(Target):
         self.n_dims = 2
         self.max_log_prob = 0.
         self.n_rings = n_rings
-        self.scale = 1 / 3 / self.n_rings
+        self.scale = 1 / 4 / self.n_rings
 
     def log_prob(self, z):
         d = torch.zeros((len(z), 0), dtype=z.dtype, device=z.device)
