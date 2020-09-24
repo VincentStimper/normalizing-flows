@@ -256,14 +256,15 @@ class AffineGaussian(BaseDistribution):
         self.temperature = None
 
     def forward(self, num_samples=1, y=None):
+        dtype = self.transform.s.dtype
+        device = self.transform.s.device
         if self.class_cond:
             if y is not None:
                 num_samples = len(y)
             else:
-                y = torch.randint(self.num_classes, (num_samples,), device=self.loc.device)
+                y = torch.randint(self.num_classes, (num_samples,), device=device)
             if y.dim() == 1:
-                y_onehot = torch.zeros((len(y), self.num_classes), dtype=self.loc.dtype,
-                                       device=self.loc.device)
+                y_onehot = torch.zeros((len(y), self.num_classes), dtype=dtype, device=device)
                 y_onehot.scatter_(1, y[:, None], 1)
                 y = y_onehot
         if self.temperature is not None:
@@ -271,8 +272,7 @@ class AffineGaussian(BaseDistribution):
         else:
             log_scale = 0.
         # Sample
-        eps = torch.randn((num_samples,) + self.shape, dtype=self.loc.dtype,
-                          device=self.loc.device)
+        eps = torch.randn((num_samples,) + self.shape, dtype=dtype, device=device)
         z = np.exp(log_scale) * eps
         # Get log prob
         log_p = - 0.5 * self.d * np.log(2 * np.pi) \
@@ -290,8 +290,9 @@ class AffineGaussian(BaseDistribution):
         # Perpare parameter
         if self.class_cond:
             if y.dim() == 1:
-                y_onehot = torch.zeros((len(y), self.num_classes), dtype=self.loc.dtype,
-                                       device=self.loc.device)
+                y_onehot = torch.zeros((len(y), self.num_classes),
+                                       dtype=self.transform.s.dtype,
+                                       device=self.transform.s.device)
                 y_onehot.scatter_(1, y[:, None], 1)
                 y = y_onehot
         if self.temperature is not None:
