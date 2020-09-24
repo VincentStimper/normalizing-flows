@@ -287,7 +287,7 @@ class AffineGaussian(BaseDistribution):
         return z, log_p
 
     def log_prob(self, z, y=None):
-        # Perpare parameter
+        # Perpare onehot encoding of class if needed
         if self.class_cond:
             if y.dim() == 1:
                 y_onehot = torch.zeros((len(y), self.num_classes),
