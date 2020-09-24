@@ -305,9 +305,9 @@ class AffineGaussian(BaseDistribution):
         else:
             z, log_p = self.transform.inverse(z)
         z = z / np.exp(log_scale)
-        log_p += - 0.5 * self.d * np.log(2 * np.pi) \
-                 - self.d * log_scale\
-                 - 0.5 * torch.sum(torch.pow(z, 2), dim=self.sum_dim)
+        log_p = log_p - self.d * log_scale \
+                - 0.5 * self.d * np.log(2 * np.pi) \
+                - 0.5 * torch.sum(torch.pow(z, 2), dim=self.sum_dim)
         return log_p
 
 
