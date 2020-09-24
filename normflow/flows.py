@@ -319,6 +319,43 @@ class ActNorm(AffineConstFlow):
         return super().inverse(z)
 
 
+class CCAffineConst(Flow):
+    """
+    Affine constant flow layer with class-conditional parameters
+    """
+    def __init__(self, shape, num_classes):
+        super().__init__()
+        self.shape = shape
+        self.s = nn.Parameter(torch.zeros(shape)[None])
+        self.t = nn.Parameter(torch.zeros(shape)[None])
+        self.s_cc = nn.Parameter(torch.zeros(num_classes, np.prod(shape)))
+        self.t_cc = nn.Parameter(torch.zeros(num_classes, np.prod(shape)))
+        self.n_dim = self.s.dim()
+        self.batch_dims = torch.nonzero(torch.tensor(self.s.shape) == 1, as_tuple=False)[:, 0].tolist()
+
+    def forward(self, z, y):
+        s = self.s + (y @ self.s_cc).view(-1, *self.shape)
+        t = self.t + (y @ self.t_cc).view(-1, *self.shape)
+        z_ = z * torch.exp(s) + t
+        if len(self.batch_dims) > 1:
+            prod_batch_dims = np.prod([z.size(i) for i in self.batch_dims[1:]])
+        else:
+            prod_batch_dims = 1
+        log_det = prod_batch_dims * torch.sum(s, dim=list(range(1, self.n_dim)))
+        return z_, log_det
+
+    def inverse(self, z, y):
+        s = self.s + (y @ self.s_cc).view(-1, *self.shape)
+        t = self.t + (y @ self.t_cc).view(-1, *self.shape)
+        z_ = (z - t) * torch.exp(-s)
+        if len(self.batch_dims) > 1:
+            prod_batch_dims = np.prod([z.size(i) for i in self.batch_dims[1:]])
+        else:
+            prod_batch_dims = 1
+        log_det = -prod_batch_dims * torch.sum(s, dim=list(range(1, self.n_dim)))
+        return z_, log_det
+
+
 class AffineCoupling(Flow):
     """
     Affine Coupling layer as introduced RealNVP paper, see arXiv: 1605.08803
