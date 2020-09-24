@@ -2,6 +2,8 @@ import torch
 import torch.nn as nn
 import numpy as np
 
+from . import flows
+
 class BaseDistribution(nn.Module):
     """
     Base distribution of a flow-based model
@@ -221,6 +223,90 @@ class GlowBase(BaseDistribution):
                 - self.num_pix * torch.sum(log_scale, dim=self.sum_dim)\
                 - 0.5 * torch.sum(torch.pow((z - loc) / torch.exp(log_scale), 2),
                                   dim=self.sum_dim)
+        return log_p
+
+
+class AffineGaussian(BaseDistribution):
+    """
+    Diagonal Gaussian an affine constant transformation applied to it,
+    can be class conditional or not
+    """
+    def __init__(self, shape, affine_shape, num_classes=None):
+        """
+        Constructor
+        :param shape: Shape of the variables
+        :param affine_shape: Shape of the parameters in the affine transformation
+        :param num_classes: Number of classes if the base is class conditional,
+        None otherwise
+        """
+        super().__init__()
+        self.shape = shape
+        self.n_dim = len(shape)
+        self.d = np.prod(shape)
+        self.sum_dim = list(range(1, self.n_dim + 1))
+        self.affine_shape = affine_shape
+        self.num_classes = num_classes
+        self.class_cond = num_classes is not None
+        # Affine transformation
+        if self.class_cond:
+            self.transform = flows.CCAffineConst(self.affine_shape, self.num_classes)
+        else:
+            self.transform = flows.AffineConstFlow(self.affine_shape)
+        # Temperature parameter for annealed sampling
+        self.temperature = None
+
+    def forward(self, num_samples=1, y=None):
+        if self.class_cond:
+            if y is not None:
+                num_samples = len(y)
+            else:
+                y = torch.randint(self.num_classes, (num_samples,), device=self.loc.device)
+            if y.dim() == 1:
+                y_onehot = torch.zeros((len(y), self.num_classes), dtype=self.loc.dtype,
+                                       device=self.loc.device)
+                y_onehot.scatter_(1, y[:, None], 1)
+                y = y_onehot
+        if self.temperature is not None:
+            log_scale = np.log(self.temperature)
+        else:
+            log_scale = 0.
+        # Sample
+        eps = torch.randn((num_samples,) + self.shape, dtype=self.loc.dtype,
+                          device=self.loc.device)
+        z = np.exp(log_scale) * eps
+        # Get log prob
+        log_p = - 0.5 * self.d * np.log(2 * np.pi) \
+                - self.d * log_scale \
+                - 0.5 * torch.sum(torch.pow(eps, 2), dim=self.sum_dim)
+        # Apply transform
+        if self.class_cond:
+            z, log_det = self.transform(z, y)
+        else:
+            z, log_det = self.transform(z)
+        log_p -= log_det
+        return z, log_p
+
+    def log_prob(self, z, y=None):
+        # Perpare parameter
+        if self.class_cond:
+            if y.dim() == 1:
+                y_onehot = torch.zeros((len(y), self.num_classes), dtype=self.loc.dtype,
+                                       device=self.loc.device)
+                y_onehot.scatter_(1, y[:, None], 1)
+                y = y_onehot
+        if self.temperature is not None:
+            log_scale = np.log(self.temperature)
+        else:
+            log_scale = 0.
+        # Get log prob
+        if self.class_cond:
+            z, log_p = self.transform.inverse(z, y)
+        else:
+            z, log_p = self.transform.inverse(z)
+        z = z / np.exp(log_scale)
+        log_p += - 0.5 * self.d * np.log(2 * np.pi) \
+                 - self.d * log_scale\
+                 - 0.5 * torch.sum(torch.pow(z, 2), dim=self.sum_dim)
         return log_p
 
 
