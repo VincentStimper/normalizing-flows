@@ -50,3 +50,36 @@ class Logit(flows.Flow):
                   - torch.sum(logz, dim=sum_dims) \
                   - torch.sum(log1mz, dim=sum_dims)
         return z, log_det
+
+
+class Shift(flows.Flow):
+    """
+    Shift data by a fixed constant, default is -0.5 to shift data from
+    interval [0, 1] to [-0.5, 0.5]
+    Also applies jittering if desired
+    """
+    def __init__(self, shift=-0.5, jitter=True, jitter_scale=1./255):
+        """
+        Constructor
+        :param shift: Shift to apply to the data
+        :param jitter: Flag whether to apply jittering
+        :param jitter_scale: Scale of jittering if applicable
+        """
+        super().__init__()
+        self.shift = shift
+        self.jitter = jitter
+        self.jitter_scale = jitter_scale
+
+    def forward(self, z):
+        z -= self.shift
+        log_det = 0.
+        return z, log_det
+
+    def inverse(self, z):
+        # Apply scale jittering if needed
+        if self.jitter:
+            eps = torch.rand_like(z) * self.jitter_scale
+            z += eps
+        z += self.shift
+        log_det = 0.
+        return z, log_det
