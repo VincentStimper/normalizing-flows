@@ -33,11 +33,11 @@ class ConstScaleLayer(nn.Module):
         return input * self.scale
 
 
-class Actnorm(nn.Module):
+class ActNorm(nn.Module):
     """
     ActNorm layer with just one forward pass
     """
-    def __int__(self, shape):
+    def __init__(self, shape):
         """
         Constructor
         :param shape: Same as shape in flows.ActNorm
