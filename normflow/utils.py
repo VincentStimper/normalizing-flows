@@ -2,6 +2,8 @@ import torch
 from torch import nn
 import numpy as np
 
+from . import flows
+
 
 def set_requires_grad(module, flag):
     """
@@ -29,6 +31,23 @@ class ConstScaleLayer(nn.Module):
 
     def forward(self, input):
         return input * self.scale
+
+
+class ActNorm(nn.Module):
+    """
+    ActNorm layer with just one forward pass
+    """
+    def __int__(self, shape):
+        """
+        Constructor
+        :param shape: Same as shape in flows.ActNorm
+        """
+        super(ActNorm, self).__int__()
+        self.actNorm = flows.ActNorm(shape)
+
+    def forward(self, input):
+        out, _ = self.actNorm(input)
+        return out
 
 
 # Dataset transforms
