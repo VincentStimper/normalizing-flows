@@ -42,7 +42,7 @@ class ActNorm(nn.Module):
         Constructor
         :param shape: Same as shape in flows.ActNorm
         """
-        super(ActNorm, self).__int__()
+        super().__int__()
         self.actNorm = flows.ActNorm(shape)
 
     def forward(self, input):
