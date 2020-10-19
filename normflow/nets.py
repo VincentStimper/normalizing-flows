@@ -77,7 +77,7 @@ class ConvNet2d(nn.Module):
             net.append(nn.Conv2d(channels[i], channels[i + 1], kernel_size[i],
                                  padding=kernel_size[i] // 2))
             if actnorm:
-                net.append(utils.ActNorm((channels[i + 1],) + (1, 1)))
+                net.append(utils.Actnorm((channels[i + 1],) + (1, 1)))
             net.append(nn.LeakyReLU(leaky))
         i = len(kernel_size)
         net.append(nn.Conv2d(channels[i - 1], channels[i], kernel_size[i - 1],

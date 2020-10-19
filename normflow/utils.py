@@ -33,7 +33,7 @@ class ConstScaleLayer(nn.Module):
         return input * self.scale
 
 
-class ActNorm(nn.Module):
+class Actnorm(nn.Module):
     """
     ActNorm layer with just one forward pass
     """
