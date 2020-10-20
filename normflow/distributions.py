@@ -143,12 +143,13 @@ class GlowBase(BaseDistribution):
     Base distribution of the Glow model, i.e. Diagonal Gaussian with one mean and
     log scale for each channel
     """
-    def __init__(self, shape, num_classes=None):
+    def __init__(self, shape, num_classes=None, logscale_factor=3.):
         """
         Constructor
         :param shape: Shape of the variables
         :param num_classes: Number of classes if the base is class conditional,
         None otherwise
+        :param logscale_factor: Scaling factor for mean and log variance
         """
         super().__init__()
         # Save shape and related statistics
@@ -161,10 +162,15 @@ class GlowBase(BaseDistribution):
         self.sum_dim = list(range(1, self.n_dim + 1))
         self.num_classes = num_classes
         self.class_cond = num_classes is not None
+        self.logscale_factor = logscale_factor
         # Set up parameters
         self.loc = nn.Parameter(torch.zeros(1, self.shape[0], *((self.n_dim - 1) * [1])))
+        self.loc_logs = nn.Parameter(torch.zeros(1, self.shape[0],
+                                                 *((self.n_dim - 1) * [1])))
         self.log_scale = nn.Parameter(torch.zeros(1, self.shape[0],
                                                   *((self.n_dim - 1) * [1])))
+        self.log_scale_logs = nn.Parameter(torch.zeros(1, self.shape[0],
+                                                       *((self.n_dim - 1) * [1])))
         # Class conditional parameter if needed
         if self.class_cond:
             self.loc_cc = nn.Parameter(torch.zeros(self.num_classes, self.shape[0]))
@@ -174,8 +180,8 @@ class GlowBase(BaseDistribution):
 
     def forward(self, num_samples=1, y=None):
         # Prepare parameter
-        loc = self.loc
-        log_scale = self.log_scale
+        loc = self.loc * torch.exp(self.loc_logs * self.logscale_factor)
+        log_scale = self.log_scale * torch.exp(self.log_scale_logs * self.logscale_factor)
         if self.class_cond:
             if y is not None:
                 num_samples = len(y)
@@ -204,8 +210,8 @@ class GlowBase(BaseDistribution):
 
     def log_prob(self, z, y=None):
         # Perpare parameter
-        loc = self.loc
-        log_scale = self.log_scale
+        loc = self.loc * torch.exp(self.loc_logs * self.logscale_factor)
+        log_scale = self.log_scale * torch.exp(self.log_scale_logs * self.logscale_factor)
         if self.class_cond:
             if y.dim() == 1:
                 y_onehot = torch.zeros((len(y), self.num_classes), dtype=self.loc.dtype,

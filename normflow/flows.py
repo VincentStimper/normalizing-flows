@@ -256,7 +256,15 @@ class AffineConstFlow(Flow):
     scaling layer which is a special case of this where t is None
     """
 
-    def __init__(self, shape, scale=True, shift=True):
+    def __init__(self, shape, scale=True, shift=True, logscale_factor=None):
+        """
+        Constructor
+        :param shape: Shape of the coupling layer
+        :param scale: Flag whether to apply scaling
+        :param shift: Flag whether to apply shift
+        :param logscale_factor: Optional factor which can be used to control
+        the scale of the log scale factor
+        """
         super().__init__()
         if scale:
             self.s = nn.Parameter(torch.zeros(shape)[None])
@@ -268,23 +276,32 @@ class AffineConstFlow(Flow):
             self.register_buffer('t', torch.zeros(shape)[None])
         self.n_dim = self.s.dim()
         self.batch_dims = torch.nonzero(torch.tensor(self.s.shape) == 1, as_tuple=False)[:, 0].tolist()
+        self.logscale_factor = logscale_factor
 
     def forward(self, z):
-        z_ = z * torch.exp(self.s) + self.t
+        if self.logscale_factor is not None:
+            s = self.s * self.logscale_factor
+        else:
+            s = self.s
+        z_ = z * torch.exp(s) + self.t
         if len(self.batch_dims) > 1:
             prod_batch_dims = np.prod([z.size(i) for i in self.batch_dims[1:]])
         else:
             prod_batch_dims = 1
-        log_det = prod_batch_dims * torch.sum(self.s)
+        log_det = prod_batch_dims * torch.sum(s)
         return z_, log_det
 
     def inverse(self, z):
-        z_ = (z - self.t) * torch.exp(-self.s)
+        if self.logscale_factor is not None:
+            s = self.s * self.logscale_factor
+        else:
+            s = self.s
+        z_ = (z - self.t) * torch.exp(-s)
         if len(self.batch_dims) > 1:
             prod_batch_dims = np.prod([z.size(i) for i in self.batch_dims[1:]])
         else:
             prod_batch_dims = 1
-        log_det = -prod_batch_dims * torch.sum(self.s)
+        log_det = -prod_batch_dims * torch.sum(s)
         return z_, log_det
 
 
@@ -304,7 +321,12 @@ class ActNorm(AffineConstFlow):
         # first batch is used for initialization, c.f. batchnorm
         if not self.data_dep_init_done > 0.:
             assert self.s is not None and self.t is not None
-            self.s.data = (-torch.log(z.std(dim=self.batch_dims, keepdim=True))).data
+            if self.logscale_factor is not None:
+                s_init = -torch.log(z.std(dim=self.batch_dims, keepdim=True) + 1e-6) \
+                         / self.logscale_factor
+            else:
+                s_init = -torch.log(z.std(dim=self.batch_dims, keepdim=True) + 1e-6)
+            self.s.data = s_init.data
             self.t.data = (-z.mean(dim=self.batch_dims, keepdim=True) * torch.exp(self.s)).data
             self.data_dep_init_done = torch.tensor(1.)
         return super().forward(z)
@@ -313,7 +335,12 @@ class ActNorm(AffineConstFlow):
         # first batch is used for initialization, c.f. batchnorm
         if not self.data_dep_init_done:
             assert self.s is not None and self.t is not None
-            self.s.data = torch.log(z.std(dim=self.batch_dims, keepdim=True)).data
+            if self.logscale_factor is not None:
+                s_init = torch.log(z.std(dim=self.batch_dims, keepdim=True) + 1e-6) \
+                         / self.logscale_factor
+            else:
+                s_init = torch.log(z.std(dim=self.batch_dims, keepdim=True) + 1e-6)
+            self.s.data = s_init.data
             self.t.data = z.mean(dim=self.batch_dims, keepdim=True).data
             self.data_dep_init_done = torch.tensor(1.)
         return super().inverse(z)

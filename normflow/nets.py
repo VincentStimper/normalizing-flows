@@ -58,7 +58,8 @@ class ConvNet2d(nn.Module):
     """
 
     def __init__(self, channels, kernel_size, leaky=0.0, init_zeros=True,
-                 scale_output=True, logscale_factor=3., actnorm=True):
+                 scale_output=True, logscale_factor=3., actnorm=True,
+                 weight_std=None):
         """
         Constructor
         :param channels: List of channels of conv layers, first entry is in_channels
@@ -69,15 +70,20 @@ class ConvNet2d(nn.Module):
         :param logscale_factor: Constant factor to be multiplied to log scaling
         :param actnorm: Flag whether activation normalization shall be done after
         each conv layer except output
+        :param weight_std: Fixed std used to initialize every layer
         """
         super().__init__()
         # Build network
         net = nn.ModuleList([])
         for i in range(len(kernel_size) - 1):
-            net.append(nn.Conv2d(channels[i], channels[i + 1], kernel_size[i],
-                                 padding=kernel_size[i] // 2))
+            conv = nn.Conv2d(channels[i], channels[i + 1], kernel_size[i],
+                             padding=kernel_size[i] // 2, bias=(not actnorm))
+            if weight_std is not None:
+                conv.weight.data.normal_(mean=0.0, std=weight_std)
+            net.append(conv)
             if actnorm:
-                net.append(utils.ActNorm((channels[i + 1],) + (1, 1)))
+                net.append(utils.ActNorm((channels[i + 1],) + (1, 1),
+                                         logscale_factor))
             net.append(nn.LeakyReLU(leaky))
         i = len(kernel_size)
         net.append(nn.Conv2d(channels[i - 1], channels[i], kernel_size[i - 1],
