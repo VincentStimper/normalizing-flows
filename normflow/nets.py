@@ -58,7 +58,7 @@ class ConvNet2d(nn.Module):
     """
 
     def __init__(self, channels, kernel_size, leaky=0.0, init_zeros=True,
-                 scale_output=True, logscale_factor=3., actnorm=True,
+                 scale_output=True, logscale_factor=1., actnorm=True,
                  weight_std=None):
         """
         Constructor

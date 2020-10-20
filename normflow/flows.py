@@ -689,7 +689,8 @@ class GlowBlock(Flow):
     ActNorm (first batch used for initialization)
     """
     def __init__(self, channels, hidden_channels, scale=True, scale_map='sigmoid',
-                 split_mode='channel', leaky=0.0, init_zeros=True, use_lu=False):
+                 split_mode='channel', leaky=0.0, init_zeros=True, use_lu=False,
+                 logscale_factor=3.):
         """
         Constructor
         :param channels: Number of channels of the data
@@ -702,6 +703,8 @@ class GlowBlock(Flow):
         :param init_zeros: Flag whether to initialize last conv layer with zeros
         :param use_lu: Flag whether to parametrize weights through the LU decomposition
         in invertible 1x1 convolution layers
+        :param logscale_factor: Factor which can be used to control the scale of
+        the log scale factor, see https://github.com/openai/glow
         """
         super().__init__()
         self.flows = nn.ModuleList([])
@@ -719,13 +722,14 @@ class GlowBlock(Flow):
             channels_ += (num_param * channels,)
         else:
             raise NotImplementedError('Mode ' + split_mode + ' is not implemented.')
-        param_map = nets.ConvNet2d(channels_, kernel_size, leaky, init_zeros)
+        param_map = nets.ConvNet2d(channels_, kernel_size, leaky, init_zeros,
+                                   logscale_factor=logscale_factor, weight_std=0.05)
         self.flows += [AffineCouplingBlock(param_map, scale, scale_map, split_mode)]
         # Invertible 1x1 convolution
         if channels > 1:
             self.flows += [Invertible1x1Conv(channels, use_lu)]
         # Activation normalization
-        self.flows += [ActNorm((channels,) + (1, 1))]
+        self.flows += [ActNorm((channels,) + (1, 1), logscale_factor=logscale_factor)]
 
     def forward(self, z):
         log_det_tot = torch.zeros(z.shape[0], dtype=z.dtype, device=z.device)
