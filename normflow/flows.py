@@ -690,7 +690,7 @@ class GlowBlock(Flow):
     """
     def __init__(self, channels, hidden_channels, scale=True, scale_map='sigmoid',
                  split_mode='channel', leaky=0.0, init_zeros=True, use_lu=False,
-                 logscale_factor=3.):
+                 logscale_factor=3., net_actnorm=True):
         """
         Constructor
         :param channels: Number of channels of the data
@@ -723,13 +723,15 @@ class GlowBlock(Flow):
         else:
             raise NotImplementedError('Mode ' + split_mode + ' is not implemented.')
         param_map = nets.ConvNet2d(channels_, kernel_size, leaky, init_zeros,
-                                   logscale_factor=logscale_factor, weight_std=0.05)
+                                   logscale_factor=logscale_factor, actnorm=net_actnorm,
+                                   weight_std=(0.05 if net_actnorm else None))
         self.flows += [AffineCouplingBlock(param_map, scale, scale_map, split_mode)]
         # Invertible 1x1 convolution
         if channels > 1:
             self.flows += [Invertible1x1Conv(channels, use_lu)]
         # Activation normalization
-        self.flows += [ActNorm((channels,) + (1, 1), logscale_factor=logscale_factor)]
+        self.flows += [ActNorm((channels,) + (1, 1),
+                               logscale_factor=(1. if logscale_factor < 2. else logscale_factor))]
 
     def forward(self, z):
         log_det_tot = torch.zeros(z.shape[0], dtype=z.dtype, device=z.device)
