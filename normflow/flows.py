@@ -731,7 +731,7 @@ class GlowBlock(Flow):
             self.flows += [Invertible1x1Conv(channels, use_lu)]
         # Activation normalization
         self.flows += [ActNorm((channels,) + (1, 1),
-                               logscale_factor=(1. if logscale_factor < 2. else logscale_factor))]
+                               logscale_factor=(None if logscale_factor < 2. else logscale_factor))]
 
     def forward(self, z):
         log_det_tot = torch.zeros(z.shape[0], dtype=z.dtype, device=z.device)
