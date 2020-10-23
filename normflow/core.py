@@ -63,7 +63,7 @@ class NormalizingFlow(nn.Module):
         """
         Alpha divergence when sampling from q
         :param num_samples: Number of samples to draw
-        :param dreg: Flag whether to use Double REparametrized Gradient estimator,
+        :param dreg: Flag whether to use Double Reparametrized Gradient estimator,
         see arXiv 1810.04152
         :return: Alpha divergence
         """
