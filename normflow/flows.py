@@ -696,7 +696,6 @@ class InvertibleAffine(Flow):
                 W = torch.inverse(self.W)
             else:
                 W = torch.inverse(self.W.double()).type(W_dtype)
-            W = W.view(*W.size(), 1, 1)
             log_det = -torch.slogdet(self.W)[1]
         z_ = z @ W
         return z_, log_det
