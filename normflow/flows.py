@@ -531,7 +531,7 @@ class Permute(Flow):
         Constructor
         :param num_channel: Number of channels
         :param mode: Mode of permuting features, can be shuffle for
-        random permutation of swap for interchanging upper and lower part
+        random permutation or swap for interchanging upper and lower part
         """
         super().__init__()
         self.mode = mode
