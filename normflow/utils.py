@@ -78,7 +78,7 @@ class Jitter():
     Transform for dataloader
     Adds uniform jitter noise to data
     """
-    def __init__(self, scale=1./255):
+    def __init__(self, scale=1./256):
         """
         Constructor
         :param scale: Scaling factor for noise
@@ -86,9 +86,25 @@ class Jitter():
         self.scale = scale
 
     def __call__(self, x):
-        eps = (torch.rand_like(x) - 0.5) * self.scale
+        eps = torch.rand_like(x) * self.scale
         x_ = x + eps
         return x_
+
+
+class Scale():
+    """
+    Transform for dataloader
+    Adds uniform jitter noise to data
+    """
+    def __init__(self, scale=255./256.):
+        """
+        Constructor
+        :param scale: Scaling factor for noise
+        """
+        self.scale = scale
+
+    def __call__(self, x):
+        return x * self.scale
 
 
 # Nonlinearities
