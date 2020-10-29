@@ -256,7 +256,7 @@ class AffineConstFlow(Flow):
     scaling layer which is a special case of this where t is None
     """
 
-    def __init__(self, shape, scale=True, shift=True, logscale_factor=None):
+    def __init__(self, shape, scale=True, shift=True):
         """
         Constructor
         :param shape: Shape of the coupling layer
@@ -276,32 +276,23 @@ class AffineConstFlow(Flow):
             self.register_buffer('t', torch.zeros(shape)[None])
         self.n_dim = self.s.dim()
         self.batch_dims = torch.nonzero(torch.tensor(self.s.shape) == 1, as_tuple=False)[:, 0].tolist()
-        self.logscale_factor = logscale_factor
 
     def forward(self, z):
-        if self.logscale_factor is not None:
-            s = self.s * self.logscale_factor
-        else:
-            s = self.s
-        z_ = z * torch.exp(s) + self.t
+        z_ = z * torch.exp(self.s) + self.t
         if len(self.batch_dims) > 1:
             prod_batch_dims = np.prod([z.size(i) for i in self.batch_dims[1:]])
         else:
             prod_batch_dims = 1
-        log_det = prod_batch_dims * torch.sum(s)
+        log_det = prod_batch_dims * torch.sum(self.s)
         return z_, log_det
 
     def inverse(self, z):
-        if self.logscale_factor is not None:
-            s = self.s * self.logscale_factor
-        else:
-            s = self.s
-        z_ = (z - self.t) * torch.exp(-s)
+        z_ = (z - self.t) * torch.exp(-self.s)
         if len(self.batch_dims) > 1:
             prod_batch_dims = np.prod([z.size(i) for i in self.batch_dims[1:]])
         else:
             prod_batch_dims = 1
-        log_det = -prod_batch_dims * torch.sum(s)
+        log_det = -prod_batch_dims * torch.sum(self.s)
         return z_, log_det
 
 
@@ -321,11 +312,7 @@ class ActNorm(AffineConstFlow):
         # first batch is used for initialization, c.f. batchnorm
         if not self.data_dep_init_done > 0.:
             assert self.s is not None and self.t is not None
-            if self.logscale_factor is not None:
-                s_init = -torch.log(z.std(dim=self.batch_dims, keepdim=True) + 1e-6) \
-                         / self.logscale_factor
-            else:
-                s_init = -torch.log(z.std(dim=self.batch_dims, keepdim=True) + 1e-6)
+            s_init = -torch.log(z.std(dim=self.batch_dims, keepdim=True) + 1e-6)
             self.s.data = s_init.data
             self.t.data = (-z.mean(dim=self.batch_dims, keepdim=True) * torch.exp(self.s)).data
             self.data_dep_init_done = torch.tensor(1.)
@@ -335,11 +322,7 @@ class ActNorm(AffineConstFlow):
         # first batch is used for initialization, c.f. batchnorm
         if not self.data_dep_init_done:
             assert self.s is not None and self.t is not None
-            if self.logscale_factor is not None:
-                s_init = torch.log(z.std(dim=self.batch_dims, keepdim=True) + 1e-6) \
-                         / self.logscale_factor
-            else:
-                s_init = torch.log(z.std(dim=self.batch_dims, keepdim=True) + 1e-6)
+            s_init = torch.log(z.std(dim=self.batch_dims, keepdim=True) + 1e-6)
             self.s.data = s_init.data
             self.t.data = z.mean(dim=self.batch_dims, keepdim=True).data
             self.data_dep_init_done = torch.tensor(1.)
@@ -758,8 +741,8 @@ class GlowBlock(Flow):
     ActNorm (first batch used for initialization)
     """
     def __init__(self, channels, hidden_channels, scale=True, scale_map='sigmoid',
-                 split_mode='channel', leaky=0.0, init_zeros=True, use_lu=False,
-                 logscale_factor=3., net_actnorm=True):
+                 split_mode='channel', leaky=0.0, init_zeros=True, use_lu=True,
+                 net_actnorm=False):
         """
         Constructor
         :param channels: Number of channels of the data
@@ -792,15 +775,13 @@ class GlowBlock(Flow):
         else:
             raise NotImplementedError('Mode ' + split_mode + ' is not implemented.')
         param_map = nets.ConvNet2d(channels_, kernel_size, leaky, init_zeros,
-                                   logscale_factor=logscale_factor, actnorm=net_actnorm,
-                                   weight_std=(0.05 if net_actnorm else None))
+                                   actnorm=net_actnorm)
         self.flows += [AffineCouplingBlock(param_map, scale, scale_map, split_mode)]
         # Invertible 1x1 convolution
         if channels > 1:
             self.flows += [Invertible1x1Conv(channels, use_lu)]
         # Activation normalization
-        self.flows += [ActNorm((channels,) + (1, 1),
-                               logscale_factor=(None if logscale_factor < 2. else logscale_factor))]
+        self.flows += [ActNorm((channels,) + (1, 1))]
 
     def forward(self, z):
         log_det_tot = torch.zeros(z.shape[0], dtype=z.dtype, device=z.device)

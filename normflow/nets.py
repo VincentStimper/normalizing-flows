@@ -58,8 +58,7 @@ class ConvNet2d(nn.Module):
     """
 
     def __init__(self, channels, kernel_size, leaky=0.0, init_zeros=True,
-                 scale_output=True, logscale_factor=1., actnorm=True,
-                 weight_std=None):
+                 actnorm=False, weight_std=None):
         """
         Constructor
         :param channels: List of channels of conv layers, first entry is in_channels
@@ -82,8 +81,7 @@ class ConvNet2d(nn.Module):
                 conv.weight.data.normal_(mean=0.0, std=weight_std)
             net.append(conv)
             if actnorm:
-                net.append(utils.ActNorm((channels[i + 1],) + (1, 1),
-                                         logscale_factor))
+                net.append(utils.ActNorm((channels[i + 1],) + (1, 1)))
             net.append(nn.LeakyReLU(leaky))
         i = len(kernel_size)
         net.append(nn.Conv2d(channels[i - 1], channels[i], kernel_size[i - 1],
@@ -92,16 +90,6 @@ class ConvNet2d(nn.Module):
             nn.init.zeros_(net[-1].weight)
             nn.init.zeros_(net[-1].bias)
         self.net = nn.Sequential(*net)
-        # Perpare variables for output scaling if needed
-        self.scale_output = scale_output
-        if scale_output:
-            self.logs = torch.nn.Parameter(torch.zeros(1, channels[-1], 1, 1))
-            self.logscale_factor = logscale_factor
 
     def forward(self, x):
-        net_out = self.net(x)
-        if self.scale_output:
-            out = net_out * torch.exp(self.logs * self.logscale_factor)
-        else:
-            out = net_out
-        return out
+        return self.net(x)
