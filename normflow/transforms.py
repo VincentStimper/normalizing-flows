@@ -9,7 +9,7 @@ class Logit(flows.Flow):
     Logit mapping of image tensor, see RealNVP paper
     logit(alpha + (1 - alpha) * x) where logit(x) = log(x / (1 - x))
     """
-    def __init__(self, alpha=0.05, jitter=True, jitter_scale=1./255):
+    def __init__(self, alpha=0.05, jitter=False, jitter_scale=1./255):
         """
         Constructor
         :param alpha: Alpha parameter, see above
@@ -21,9 +21,9 @@ class Logit(flows.Flow):
 
     def forward(self, z):
         if self.jitter:
-            beta = (1 - self.alpha) / (1 + self.jitter_scale)
+            beta = (1 - 2 * self.alpha) / (1 + self.jitter_scale)
         else:
-            beta = 1 - self.alpha
+            beta = 1 - 2 * self.alpha
         #beta = 1 - self.alpha
         sum_dims = list(range(1, z.dim()))
         ls = torch.sum(torch.nn.functional.logsigmoid(z), dim=sum_dims)
@@ -36,10 +36,10 @@ class Logit(flows.Flow):
         # Apply scale jittering if needed
         if self.jitter:
             eps = torch.rand_like(z) * self.jitter_scale
-            beta = (1 - self.alpha) / (1 + self.jitter_scale)
+            beta = (1 -  2 * self.alpha) / (1 + self.jitter_scale)
             z = self.alpha + beta * (z + eps)
         else:
-            beta = 1 - self.alpha
+            beta = 1 - 2 * self.alpha
             z = self.alpha + beta * z
         #beta = 1 - self.alpha
         #z = self.alpha + beta * z
