@@ -9,7 +9,7 @@ class Logit(flows.Flow):
     Logit mapping of image tensor, see RealNVP paper
     logit(alpha + (1 - alpha) * x) where logit(x) = log(x / (1 - x))
     """
-    def __init__(self, alpha=0.05, jitter=True, jitter_scale=1./255):
+    def __init__(self, alpha=0.05, jitter=False, jitter_scale=1./255):
         """
         Constructor
         :param alpha: Alpha parameter, see above
