@@ -4,6 +4,16 @@ import torch.nn as nn
 
 from . import nets
 
+# Import ResFlow repository
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parents[0] / "submodules"))
+try:
+    from residual_flows.lib.layers import iResBlock
+finally:
+    sys.path.pop(0)
+
 
 # Flow module
 class Flow(nn.Module):
@@ -502,6 +512,36 @@ class BatchNorm(Flow):
         log_det = torch.log(1 / torch.prod(torch.sqrt(std ** 2 + self.eps))).repeat(z.size()[0])
         return z_, log_det
 
+
+# Residual flow layers
+
+class Residual(Flow):
+    """
+    Invertible residual net block, wrapper to the implementation of Chen et al.,
+    see https://github.com/rtqichen/residual-flows
+    """
+    def __init__(self, net, n_exact_terms=2, n_samples=1, reduce_memory=True):
+        """
+        Constructor
+        :param net: Neural network, must be Lipschitz continuous with L < 1
+        :param n_exact_terms: Number of terms always included in the power series
+        :param n_samples: Number of samples used to estimate power series
+        :param reduce_memory: Flag, if true Neumann series and precomputations
+        for backward pass in forward pass are done
+        """
+        super().__init__()
+        self.iresblock = iResBlock(net, n_samples=n_samples,
+                                   n_exact_terms=n_exact_terms,
+                                   neumann_grad=reduce_memory,
+                                   grad_in_forward=reduce_memory)
+
+    def forward(self, z):
+        z, log_det = self.iresblock.inverse(z, 0)
+        return z, log_det
+
+    def inverse(self, z):
+        z, log_det = self.iresblock.forward(z, 0)
+        return z, log_det
 
 # Layers for feature/channel mixing
 
