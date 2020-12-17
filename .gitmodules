@@ -1,0 +1,3 @@
+[submodule "submodules/residual_flows"]
+	path = submodules/residual_flows
+	url = git@github.com:rtqichen/residual-flows.git
