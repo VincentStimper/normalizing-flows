@@ -6,10 +6,12 @@ from . import utils
 import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parents[0] / "submodules"))
+print(sys.path)
 try:
     from residual_flows.lib.layers.base import Swish, InducedNormLinear, InducedNormConv2d
 finally:
-    sys.path.pop(0)
+    pass
+    #sys.path.pop(0)
 
 class MLP(nn.Module):
     """
