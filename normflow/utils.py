@@ -4,6 +4,8 @@ import numpy as np
 
 from . import flows
 
+from residual_flows.layers.base import InducedNormLinear, InducedNormConv2d
+
 
 def set_requires_grad(module, flag):
     """
@@ -186,3 +188,9 @@ def clear_grad(model):
     """
     for param in model.parameters():
         param.grad = None
+
+
+def update_lipschitz(model, n_iterations):
+    for m in model.modules():
+        if isinstance(m, InducedNormConv2d) or isinstance(m, InducedNormLinear):
+            m.compute_weight(update=True, n_iterations=n_iterations)
