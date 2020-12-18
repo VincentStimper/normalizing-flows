@@ -7,7 +7,6 @@ from . import nets
 # Import ResFlow repository
 import sys
 from pathlib import Path
-
 sys.path.insert(0, str(Path(__file__).parents[0] / "submodules"))
 try:
     from residual_flows.lib.layers import iResBlock
