@@ -120,7 +120,7 @@ class LipschitzMLP(nn.Module):
         :param init_zeros: Flag, whether to initialize last layer
         approximately with zeros
         """
-        super.__init__()
+        super().__init__()
 
         self.n_layers = len(channels) - 1
         self.channels = channels
@@ -166,7 +166,7 @@ class LipschitzCNN(nn.Module):
         :param init_zeros: Flag, whether to initialize last layer
         approximately with zeros
         """
-        super.__init__()
+        super().__init__()
 
         self.n_layers = len(kernel_size)
         self.channels = channels
