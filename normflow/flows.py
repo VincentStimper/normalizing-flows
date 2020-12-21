@@ -529,11 +529,11 @@ class Residual(Flow):
 
     def forward(self, z):
         z, log_det = self.iresblock.inverse(z, 0)
-        return z, log_det
+        return z, log_det.view(-1)
 
     def inverse(self, z):
         z, log_det = self.iresblock.forward(z, 0)
-        return z, log_det
+        return z, log_det.view(-1)
 
 # Layers for feature/channel mixing
 
