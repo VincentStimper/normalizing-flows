@@ -136,7 +136,7 @@ class LipschitzMLP(nn.Module):
                     out_features=channels[i + 1], coeff=lipschitz_const,
                     domain=2, codomain=2, n_iterations=max_lipschitz_iter,
                     atol=lipschitz_tolerance, rtol=lipschitz_tolerance,
-                    zero_init=init_zeros if i == self.n_layers - 1 else False)]
+                    zero_init=init_zeros if i == (self.n_layers - 1) else False)]
 
         self.net = nn.Sequential(*layers)
 
