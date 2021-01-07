@@ -4,7 +4,12 @@ import torch.nn as nn
 
 from . import nets
 
-from residual_flows.layers import iResBlock
+# Try importing Resflow dependencies
+try:
+    from residual_flows.layers import iResBlock
+except:
+    print('Warning: Dependencies for Residual Flows could '
+          'not be loaded. Other models can still be used.')
 
 
 # Flow module

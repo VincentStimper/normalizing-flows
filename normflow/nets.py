@@ -2,7 +2,12 @@ import torch
 from torch import nn
 from . import utils
 
-from residual_flows.layers.base import Swish, InducedNormLinear, InducedNormConv2d
+# Try importing ResNet dependencies
+try:
+    from residual_flows.layers.base import Swish, InducedNormLinear, InducedNormConv2d
+except:
+    print('Warning: Dependencies for Residual Networks could '
+          'not be loaded. Other models can still be used.')
 
 
 class MLP(nn.Module):

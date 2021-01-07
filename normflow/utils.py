@@ -4,7 +4,12 @@ import numpy as np
 
 from . import flows
 
-from residual_flows.layers.base import InducedNormLinear, InducedNormConv2d
+# Try importing ResNet dependencies
+try:
+    from residual_flows.layers.base import InducedNormLinear, InducedNormConv2d
+except:
+    print('Warning: Dependencies for Residual Networks could '
+          'not be loaded. Other models can still be used.')
 
 
 def set_requires_grad(module, flag):
