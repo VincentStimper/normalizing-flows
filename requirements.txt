@@ -1,4 +1,4 @@
 numpy
 torch
 matplotlib
-residual-flows @ git+https://github.com/VincentStimper/residual-flows.git@2bbbf70570f1ce4ec8de21da3423fcc773f48f98
+residual-flows @ git+https://github.com/VincentStimper/residual-flows@2bbbf70570f1ce4ec8de21da3423fcc773f48f98
