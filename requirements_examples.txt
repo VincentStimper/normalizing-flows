@@ -1,0 +1,4 @@
+matplotlib
+jupyterlab
+tqdm
+sklearn
