@@ -2,7 +2,8 @@
 
 ## Introduction
 
-This is a PyTorch implementation of several normalizing flow, including a variational autoencoder.
+This is a PyTorch implementation of several normalizing flows, including 
+a variational autoencoder.
 
 
 ## Implemented Flows
@@ -23,7 +24,7 @@ The latest version of the package can be installed via pip
 pip install --upgrade git+https://github.com/VincentStimper/normalizing-flows.git
 ```
 
-If you want to use a GPU, make sure that pytorch is set up correctly by
+If you want to use a GPU, make sure that PyTorch is set up correctly by
 by following the instructions at the
 [PyTorch website](https://pytorch.org/get-started/locally/).
 
