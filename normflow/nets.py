@@ -46,13 +46,13 @@ class MLP(nn.Module):
         if output_fn is not None:
             if score_scale is not None:
                 net.append(utils.ConstScaleLayer(score_scale))
-            if output_fn is "sigmoid":
+            if output_fn == "sigmoid":
                 net.append(nn.Sigmoid())
-            elif output_fn is "relu":
+            elif output_fn == "relu":
                 net.append(nn.ReLU())
-            elif output_fn is "tanh":
+            elif output_fn == "tanh":
                 net.append(nn.Tanh())
-            elif output_fn is "clampexp":
+            elif output_fn == "clampexp":
                 net.append(utils.ClampExp())
             else:
                 NotImplementedError("This output function is not implemented.")
