@@ -1,9 +1,9 @@
 # Normalizing Flows
 
-## Introduction
-
 This is a PyTorch implementation of several normalizing flows, including 
-a variational autoencoder.
+a variational autoencoder. It is used in the articles 
+[A Gradient Based Strategy for Hamiltonian Monte Carlo Hyperparameter Optimization](https://proceedings.mlr.press/v139/campbell21a.html)
+and [Resampling Base Distributions of Normalizing Flows](https://arxiv.org/abs/2110.15828).
 
 
 ## Implemented Flows
