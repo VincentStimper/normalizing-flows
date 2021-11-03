@@ -1,8 +1,9 @@
-# Variational Inference with Normalizing Flows
+# Normalizing Flows
 
 ## Introduction
 
-This is a PyTorch implementation of several normalizing flow, including a variational autoencoder.
+This is a PyTorch implementation of several normalizing flows, including 
+a variational autoencoder.
 
 
 ## Implemented Flows
@@ -23,8 +24,21 @@ The latest version of the package can be installed via pip
 pip install --upgrade git+https://github.com/VincentStimper/normalizing-flows.git
 ```
 
-Alternatively, download the repository and run
+If you want to use a GPU, make sure that PyTorch is set up correctly by
+by following the instructions at the
+[PyTorch website](https://pytorch.org/get-started/locally/).
+
+To run the example notebooks clone the repository first
 
 ```
-python setup.py install
+git clone https://github.com/VincentStimper/normalizing-flows.git
 ```
+
+and then install the dependencies.
+
+```
+pip install -r requirements_examples.txt
+```
+
+
+

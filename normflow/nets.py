@@ -16,7 +16,7 @@ class MLP(nn.Module):
     """
 
     def __init__(self, layers, leaky=0.0, score_scale=None, output_fn=None,
-                 output_scale=None, init_zeros=False):
+                 output_scale=None, init_zeros=False, dropout=None):
         """
         :param layers: list of layer sizes from start to end
         :param leaky: slope of the leaky part of the ReLU,
@@ -29,26 +29,30 @@ class MLP(nn.Module):
         scale * output_fn(out / scale)
         :param init_zeros: Flag, if true, weights and biases of last layer
         are initialized with zeros (helpful for deep models, see arXiv 1807.03039)
+        :param dropout: Float, if specified, dropout is done before last layer;
+        if None, no dropout is done
         """
         super().__init__()
         net = nn.ModuleList([])
-        for k in range(len(layers)-1):
+        for k in range(len(layers)-2):
             net.append(nn.Linear(layers[k], layers[k+1]))
             net.append(nn.LeakyReLU(leaky))
-        net = net[:-1] # remove last ReLU
+        if dropout is not None:
+            net.append(nn.Dropout(p=dropout))
+        net.append(nn.Linear(layers[-2], layers[-1]))
         if init_zeros:
             nn.init.zeros_(net[-1].weight)
             nn.init.zeros_(net[-1].bias)
         if output_fn is not None:
             if score_scale is not None:
                 net.append(utils.ConstScaleLayer(score_scale))
-            if output_fn is "sigmoid":
+            if output_fn == "sigmoid":
                 net.append(nn.Sigmoid())
-            elif output_fn is "relu":
+            elif output_fn == "relu":
                 net.append(nn.ReLU())
-            elif output_fn is "tanh":
+            elif output_fn == "tanh":
                 net.append(nn.Tanh())
-            elif output_fn is "clampexp":
+            elif output_fn == "clampexp":
                 net.append(utils.ClampExp())
             else:
                 NotImplementedError("This output function is not implemented.")
