@@ -4,7 +4,7 @@ from torch import nn
 
 
 
-class Decoder(nn.Module):
+class BaseDecoder(nn.Module):
     def __init__(self):
         super().__init__()
 
@@ -25,9 +25,9 @@ class Decoder(nn.Module):
         raise NotImplementedError
 
 
-class NNDiagGaussianDecoder(Decoder):
+class NNDiagGaussianDecoder(BaseDecoder):
     """
-    Decoder representing a diagonal Gaussian distribution with mean and std parametrized by a NN
+    BaseDecoder representing a diagonal Gaussian distribution with mean and std parametrized by a NN
     """
     def __init__(self, net):
         """
@@ -55,9 +55,9 @@ class NNDiagGaussianDecoder(Decoder):
         return log_p
 
 
-class NNBernoulliDecoder(Decoder):
+class NNBernoulliDecoder(BaseDecoder):
     """
-    Decoder representing a Bernoulli distribution with mean parametrized by a NN
+    BaseDecoder representing a Bernoulli distribution with mean parametrized by a NN
     """
 
     def __init__(self, net):
