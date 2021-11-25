@@ -8,12 +8,14 @@ a variational autoencoder.
 
 ## Implemented Flows
 
-* Planar flow ([Rezende & Mohamed, 2015](https://arxiv.org/abs/1505.05770))
-* Radial flow ([Rezende & Mohamed, 2015](https://arxiv.org/abs/1505.05770))
+* Planar Flow ([Rezende & Mohamed, 2015](https://arxiv.org/abs/1505.05770))
+* Radial Flow ([Rezende & Mohamed, 2015](https://arxiv.org/abs/1505.05770))
 * NICE ([Dinh et al., 2014](https://arxiv.org/abs/1410.8516))
 * Real NVP ([Dinh et al., 2016](https://arxiv.org/abs/1605.08803))
 * Glow ([Kingma & Dhariwal, 2018](https://arxiv.org/abs/1807.03039))
-* Residual flow ([Chen et al., 2019](https://arxiv.org/abs/1906.02735))
+* Neural Spline Flow ([Durkan et al., 2019](https://arxiv.org/abs/1906.04032))
+* Residual Flow ([Chen et al., 2019](https://arxiv.org/abs/1906.02735))
+* Stochastic Normalizing Flows ([Wu et al., 2020](https://arxiv.org/abs/2002.06707))
 
 
 ## Methods of Installation
