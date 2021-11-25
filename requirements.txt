@@ -1,4 +1,4 @@
 numpy
 torch
 residual-flows @ git+https://github.com/VincentStimper/residual-flows.git
-nsf @ git+https://github.com/VincentStimper/nsf.git
+neural-spline-flows @ git+https://github.com/VincentStimper/nsf.git
