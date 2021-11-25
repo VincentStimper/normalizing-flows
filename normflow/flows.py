@@ -620,7 +620,7 @@ class CoupledRationalQuadraticSpline(Flow):
         return z, log_det.view(-1)
 
 
-class AutoregressiveRationalQuadraticSplineBijection(Flow):
+class AutoregressiveRationalQuadraticSpline(Flow):
     def __init__(
             self,
             num_input_channels,
