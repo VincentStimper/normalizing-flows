@@ -564,10 +564,14 @@ class Residual(Flow):
 # Neural Spline Flow layers
 
 class CoupledRationalQuadraticSpline(Flow):
+    """
+    Neural spline flow coupling layer, wrapper for the implementation
+    of Durkan et al., see https://github.com/bayesiains/nsf
+    """
     def __init__(
             self,
             num_input_channels,
-            num_hidden_layers,
+            num_blocks,
             num_hidden_channels,
             num_bins=8,
             tail_bound=3,
@@ -576,6 +580,27 @@ class CoupledRationalQuadraticSpline(Flow):
             reverse_mask=False,
             reverse=True
     ):
+        """
+        Constructor
+        :param num_input_channels: Flow dimension
+        :type num_input_channels: Int
+        :param num_blocks: Number of residual blocks of the parameter NN
+        :type num_blocks: Int
+        :param num_hidden_channels: Number of hidden units of the NN
+        :type num_hidden_channels: Int
+        :param num_bins: Number of bins
+        :type num_bins: Int
+        :param tail_bound: Bound of the spline tails
+        :type tail_bound: Int
+        :param activation: Activation function
+        :type activation: torch module
+        :param dropout_probability: Dropout probability of the NN
+        :type dropout_probability: Float
+        :param reverse_mask: Flag whether the reverse mask should be used
+        :type reverse_mask: Boolean
+        :param reverse: Flag whether forward and backward pass shall be swapped
+        :type reverse: Boolean
+        """
         super().__init__()
         self.reverse = reverse
 
@@ -585,7 +610,7 @@ class CoupledRationalQuadraticSpline(Flow):
                 out_features=out_features,
                 context_features=None,
                 hidden_features=num_hidden_channels,
-                num_blocks=num_hidden_layers,
+                num_blocks=num_blocks,
                 activation=activation(),
                 dropout_probability=dropout_probability,
                 use_batch_norm=False
@@ -621,10 +646,14 @@ class CoupledRationalQuadraticSpline(Flow):
 
 
 class AutoregressiveRationalQuadraticSpline(Flow):
+    """
+    Neural spline flow coupling layer, wrapper for the implementation
+    of Durkan et al., see https://github.com/bayesiains/nsf
+    """
     def __init__(
             self,
             num_input_channels,
-            num_hidden_layers,
+            num_blocks,
             num_hidden_channels,
             num_bins=8,
             tail_bound=3,
@@ -632,6 +661,25 @@ class AutoregressiveRationalQuadraticSpline(Flow):
             dropout_probability=0.,
             reverse=True
     ):
+        """
+        Constructor
+        :param num_input_channels: Flow dimension
+        :type num_input_channels: Int
+        :param num_blocks: Number of residual blocks of the parameter NN
+        :type num_blocks: Int
+        :param num_hidden_channels: Number of hidden units of the NN
+        :type num_hidden_channels: Int
+        :param num_bins: Number of bins
+        :type num_bins: Int
+        :param tail_bound: Bound of the spline tails
+        :type tail_bound: Int
+        :param activation: Activation function
+        :type activation: torch module
+        :param dropout_probability: Dropout probability of the NN
+        :type dropout_probability: Float
+        :param reverse: Flag whether forward and backward pass shall be swapped
+        :type reverse: Boolean
+        """
         super().__init__()
         self.reverse = reverse
 
@@ -642,7 +690,7 @@ class AutoregressiveRationalQuadraticSpline(Flow):
             num_bins=num_bins,
             tails='linear',
             tail_bound=tail_bound,
-            num_blocks=num_hidden_layers,
+            num_blocks=num_blocks,
             use_residual_blocks=True,
             random_mask=False,
             activation=activation(),
