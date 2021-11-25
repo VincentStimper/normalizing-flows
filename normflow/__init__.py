@@ -9,4 +9,4 @@ from . import nets
 from . import utils
 from . import HAIS
 
-__version__ = '0.1'
+__version__ = '1.0'

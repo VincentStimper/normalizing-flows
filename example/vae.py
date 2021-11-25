@@ -6,12 +6,11 @@ from torch.distributions.normal import Normal
 from torch.nn import functional as F
 from torchvision import datasets, transforms
 from tqdm import tqdm
-from flows import Planar, Radial, MaskedAffineFlow, BatchNorm
-from simple_flow_model import SimpleFlowModel
+from normflow.flows import Planar, Radial, MaskedAffineFlow, BatchNorm
 import argparse
 from datetime import datetime
 import os
-import nets
+from normflow import nets
 import pandas as pd
 import random
 
@@ -46,6 +45,20 @@ args.cuda = not args.no_cuda and torch.cuda.is_available()
 torch.manual_seed(args.seed)
 
 device = torch.device("cuda" if args.cuda else "cpu")
+
+
+class SimpleFlowModel(nn.Module):
+    def __init__(self, flows):
+        super().__init__()
+        self.flows = nn.ModuleList(flows)
+
+    def forward(self, z):
+        ld = 0.
+        for flow in self.flows:
+            z, ld_ = flow(z)
+            ld += ld_
+
+        return z, ld
 
 
 class BinaryTransform():
