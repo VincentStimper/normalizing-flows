@@ -227,17 +227,17 @@ class LULinearPermute(Flow):
     def forward(self, z):
         if self.reverse:
             z, log_det = self.linear.inverse(z)
-            z, log_det_ = self.permutation.inverse(z)
+            z, _ = self.permutation.inverse(z)
         else:
-            z, log_det = self.permutation(z)
-            z, log_det_ = self.linear(z)
-        return z, (log_det + log_det_).view(-1)
+            z, _ = self.permutation(z)
+            z, log_det = self.linear(z)
+        return z, log_det.view(-1)
 
     def inverse(self, z):
         if self.reverse:
-            z, log_det = self.permutation(z)
-            z, log_det_ = self.linear(z)
+            z, _ = self.permutation(z)
+            z, log_det = self.linear(z)
         else:
             z, log_det = self.linear.inverse(z)
-            z, log_det_ = self.permutation.inverse(z)
-        return z, (log_det + log_det_).view(-1)
+            z, _ = self.permutation.inverse(z)
+        return z, log_det.view(-1)
