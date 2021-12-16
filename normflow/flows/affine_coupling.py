@@ -158,33 +158,33 @@ class AffineCoupling(Flow):
 class MaskedAffineFlow(Flow):
     """
     RealNVP as introduced in arXiv: 1605.08803
-    Masked affine autoregressive flow f(z) = b * z + (1 - b) * (z * exp(s(b * z)) + t)
+    Masked affine flow f(z) = b * z + (1 - b) * (z * exp(s(b * z)) + t)
     class AffineHalfFlow(Flow): is MaskedAffineFlow with alternating bit mask
     NICE is AffineFlow with only shifts (volume preserving)
     """
 
-    def __init__(self, b, s, t, shift=True, scale=True):
+    def __init__(self, b, t=None, s=None):
         """
         Constructor
         :param b: mask for features, i.e. tensor of same size as latent data point filled with 0s and 1s
-        :param s: scale mapping, i.e. neural network, where first input dimension is batch dim
-        :param t: translation mapping, i.e. neural network, where first input dimension is batch dim
-        :param shift: Flag whether shift shall be applied
-        :param scale: Flag whether scale shall be applied
+        :param t: translation mapping, i.e. neural network, where first input dimension is batch dim,
+        if None no translation is applied
+        :param s: scale mapping, i.e. neural network, where first input dimension is batch dim,
+        if None no scale is applied
         """
         super().__init__()
         self.b_cpu = b.view(1, *b.size())
         self.register_buffer('b', self.b_cpu)
 
-        if scale:
-            self.add_module('s', s)
-        else:
+        if s is None:
             self.s = lambda x: torch.zeros_like(x)
-
-        if shift:
-            self.add_module('t', t)
         else:
+            self.add_module('s', s)
+
+        if t is None:
             self.t = lambda x: torch.zeros_like(x)
+        else:
+            self.add_module('t', t)
 
     def forward(self, z):
         z_masked = self.b * z
