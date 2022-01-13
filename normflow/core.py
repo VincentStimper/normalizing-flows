@@ -243,6 +243,38 @@ class MultiscaleFlow(nn.Module):
         """
         return -self.log_prob(x, y)
 
+    def sample_prior(self, num_samples):
+        samples = []
+        for i in range(len(self.q0)):
+            if self.class_cond:
+                z_, log_q_ = self.q0[i](num_samples, y)
+            else:
+                z_, log_q_ = self.q0[i](num_samples)
+            samples.append((z_, log_q_))
+        return samples
+
+    def generate(self, latents, y=None, temperature=None):
+        if temperature is not None:
+            self.set_temperature(temperature)
+        for i in range(len(self.q0)):
+            z_, log_q_ = latents[i]
+            if i == 0:
+                log_q = log_q_
+                z = z_
+            else:
+                log_q += log_q_
+                z, log_det = self.merges[i - 1]([z, z_])
+                log_q -= log_det
+            for flow in self.flows[i]:
+                z, log_det = flow(z)
+                log_q -= log_det
+        if self.transform is not None:
+            z, log_det = self.transform(z)
+            log_q -= log_det
+        if temperature is not None:
+            self.reset_temperature()
+        return z, log_q
+
     def sample(self, num_samples=1, y=None, temperature=None):
         """
         Samples from flow-based approximate distribution
@@ -290,6 +322,7 @@ class MultiscaleFlow(nn.Module):
         for i in range(len(self.q0) - 1, -1, -1):
             for j in range(len(self.flows[i]) - 1, -1, -1):
                 z, log_det = self.flows[i][j].inverse(z)
+                # z, log_det = torch.utils.checkpoint.checkpoint(self.flows[i][j].inverse, z)
                 log_q += log_det
             if i > 0:
                 [z, z_], log_det = self.merges[i - 1].inverse(z)
