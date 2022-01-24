@@ -102,7 +102,8 @@ class AffineCoupling(Flow):
         :param param_map: Maps features to shift and scale parameter (if applicable)
         :param scale: Flag whether scale shall be applied
         :param scale_map: Map to be applied to the scale parameter, can be 'exp' as in
-        RealNVP or 'sigmoid' as in Glow
+        RealNVP or 'sigmoid' as in Glow, 'sigmoid_inv' uses multiplicative sigmoid
+        scale when sampling from the model
         """
         super().__init__()
         self.add_module('param_map', param_map)
@@ -126,7 +127,13 @@ class AffineCoupling(Flow):
             elif self.scale_map == 'sigmoid':
                 scale = torch.sigmoid(scale_ + 2)
                 z2 = z2 / scale + shift
-                log_det = -torch.sum(torch.log(scale), dim=list(range(1, shift.dim())))
+                log_det = -torch.sum(torch.log(scale),
+                                     dim=list(range(1, shift.dim())))
+            elif self.scale_map == 'sigmoid_inv':
+                scale = torch.sigmoid(scale_ + 2)
+                z2 = z2 * scale + shift
+                log_det = torch.sum(torch.log(scale),
+                                    dim=list(range(1, shift.dim())))
             else:
                 raise NotImplementedError('This scale map is not implemented.')
         else:
@@ -146,7 +153,13 @@ class AffineCoupling(Flow):
             elif self.scale_map == 'sigmoid':
                 scale = torch.sigmoid(scale_ + 2)
                 z2 = (z2 - shift) * scale
-                log_det = torch.sum(torch.log(scale), dim=list(range(1, shift.dim())))
+                log_det = torch.sum(torch.log(scale),
+                                    dim=list(range(1, shift.dim())))
+            elif self.scale_map == 'sigmoid_inv':
+                scale = torch.sigmoid(scale_ + 2)
+                z2 = (z2 - shift) / scale
+                log_det = -torch.sum(torch.log(scale),
+                                     dim=list(range(1, shift.dim())))
             else:
                 raise NotImplementedError('This scale map is not implemented.')
         else:
