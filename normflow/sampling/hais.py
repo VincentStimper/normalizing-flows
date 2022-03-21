@@ -1,8 +1,8 @@
 ### Implementation of Hamiltonian Annealed Importance Sampling ###
 
 import torch
-from . import distributions
-from . import flows
+from .. import distributions
+from .. import flows
 
 class HAIS():
     """
