@@ -3,6 +3,14 @@ from torch import nn
 
 from .base import Flow
 
+# Try importing Neural Spline Flow dependencies
+try:
+    from neural_spline_flows.nde.transforms.permutations import RandomPermutation
+    from neural_spline_flows.nde.transforms.lu import LULinear
+except:
+    print('Warning: Dependencies for Neural Spline Flows could '
+          'not be loaded. Other models can still be used.')
+
 
 class Permute(Flow):
     """
@@ -193,3 +201,43 @@ class InvertibleAffine(Flow):
             log_det = torch.slogdet(self.W)[1]
         z_ = z @ W
         return z_, log_det
+
+
+class LULinearPermute(Flow):
+    """
+    Fixed permutation combined with a linear transformation parametrized
+    using the LU decomposition, used in https://arxiv.org/abs/1906.04032
+    """
+    def __init__(self, num_channels, identity_init=True, reverse=True):
+        """
+        Constructor
+        :param num_channels: Number of dimensions of the data
+        :param identity_init: Flag, whether to initialize linear
+        transform as identity matrix
+        :param reverse: Flag, change forward and inverse transform
+        """
+        # Initialize
+        super().__init__()
+        self.reverse = reverse
+
+        # Define modules
+        self.permutation = RandomPermutation(num_channels)
+        self.linear = LULinear(num_channels, identity_init=identity_init)
+
+    def forward(self, z):
+        if self.reverse:
+            z, log_det = self.linear.inverse(z)
+            z, _ = self.permutation.inverse(z)
+        else:
+            z, _ = self.permutation(z)
+            z, log_det = self.linear(z)
+        return z, log_det.view(-1)
+
+    def inverse(self, z):
+        if self.reverse:
+            z, _ = self.permutation(z)
+            z, log_det = self.linear(z)
+        else:
+            z, log_det = self.linear.inverse(z)
+            z, _ = self.permutation.inverse(z)
+        return z, log_det.view(-1)

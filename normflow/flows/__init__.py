@@ -2,7 +2,7 @@ from .base import Flow
 from .reverse import Reverse
 
 from .reshape import Merge, Split, Squeeze
-from .mixing import Permute, InvertibleAffine, Invertible1x1Conv
+from .mixing import Permute, InvertibleAffine, Invertible1x1Conv, LULinearPermute
 from .normalization import BatchNorm, ActNorm
 
 from .planar import Planar

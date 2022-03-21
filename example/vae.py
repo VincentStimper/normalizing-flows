@@ -188,9 +188,9 @@ elif args.flow == 'RealNVP':
         s = nets.MLP([args.latent_size, 8, args.latent_size])
         t = nets.MLP([args.latent_size, 8, args.latent_size])
         if i % 2 == 0:
-            flows += [MaskedAffineFlow(b, s, t)]
+            flows += [MaskedAffineFlow(b, t, s)]
         else:
-            flows += [MaskedAffineFlow(1 - b, s, t), BatchNorm()]
+            flows += [MaskedAffineFlow(1 - b, t, s), BatchNorm()]
     flows = SimpleFlowModel(flows[:-1])  # Remove last Batch Norm layer to allow arbitrary output
 
 model = FlowVAE(flows).to(device)
