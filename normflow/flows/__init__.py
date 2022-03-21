@@ -1,4 +1,5 @@
 from .base import Flow
+from .reverse import Reverse
 
 from .reshape import Merge, Split, Squeeze
 from .mixing import Permute, InvertibleAffine, Invertible1x1Conv
