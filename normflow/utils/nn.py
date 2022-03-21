@@ -1,7 +1,7 @@
 import torch
 from torch import nn
 
-from . import flows
+from .. import flows
 
 
 
@@ -54,3 +54,12 @@ class ClampExp(torch.nn.Module):
     def forward(self, x):
         one = torch.tensor(1., device=x.device, dtype=x.dtype)
         return torch.min(torch.exp(x), one)
+
+
+def tile(x, n):
+    x_ = x.reshape(-1)
+    x_ = x_.repeat(n)
+    x_ = x_.reshape(n, -1)
+    x_ = x_.transpose(1, 0)
+    x_ = x_.reshape(-1)
+    return x_

@@ -8,6 +8,6 @@ from . import transforms
 from . import nets
 from . import utils
 from . import sampling
-from sampling import HAIS
+from .sampling import HAIS
 
 __version__ = '1.2'
