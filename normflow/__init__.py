@@ -7,6 +7,7 @@ from . import distributions
 from . import transforms
 from . import nets
 from . import utils
-from . import HAIS
+from . import sampling
+from sampling import HAIS
 
 __version__ = '1.1'
