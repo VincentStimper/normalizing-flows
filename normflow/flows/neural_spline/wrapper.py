@@ -45,7 +45,6 @@ class CoupledRationalQuadraticSpline(Flow):
         :type reverse_mask: Boolean
         """
         super().__init__()
-        self.reverse = reverse
 
         def transform_net_create_fn(in_features, out_features):
             return ResidualNet(
@@ -115,7 +114,6 @@ class AutoregressiveRationalQuadraticSpline(Flow):
         :type dropout_probability: Float
         """
         super().__init__()
-        self.reverse = reverse
 
         self.mprqat=MaskedPiecewiseRationalQuadraticAutoregressive(
             features=num_input_channels,
