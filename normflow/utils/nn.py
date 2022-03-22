@@ -63,3 +63,9 @@ def tile(x, n):
     x_ = x_.transpose(1, 0)
     x_ = x_.reshape(-1)
     return x_
+
+
+def sum_except_batch(x, num_batch_dims=1):
+    """Sums all elements of `x` except for the first `num_batch_dims` dimensions."""
+    reduce_dims = list(range(num_batch_dims, x.ndimension()))
+    return torch.sum(x, dim=reduce_dims)

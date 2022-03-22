@@ -1,5 +1,4 @@
-from .base import Flow
-from .reverse import Reverse
+from .base import Flow, Reverse, Composite
 
 from .reshape import Merge, Split, Squeeze
 from .mixing import Permute, InvertibleAffine, Invertible1x1Conv, LULinearPermute
@@ -12,6 +11,6 @@ from .affine_coupling import AffineConstFlow, CCAffineConst, AffineCoupling, Mas
 from .glow import GlowBlock
 
 from .residual import Residual
-from .neural_spline import CoupledRationalQuadraticSpline, AutoregressiveRationalQuadraticSpline
+#from .neural_spline import CoupledRationalQuadraticSpline, AutoregressiveRationalQuadraticSpline
 
 from .stochastic import MetropolisHastings, HamiltonianMonteCarlo
