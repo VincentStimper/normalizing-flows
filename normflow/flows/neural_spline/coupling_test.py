@@ -56,7 +56,7 @@ batch_size = 10
 
 
 class PiecewiseCouplingTransformTest(FlowTest):
-    classes = [coupling.PiecewiseRationalQuadraticCouplingTransform]
+    classes = [coupling.PiecewiseRationalQuadraticCoupling]
 
     shapes = [[20],
               [2, 4, 4]]

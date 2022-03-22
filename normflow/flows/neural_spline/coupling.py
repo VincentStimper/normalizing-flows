@@ -15,7 +15,7 @@ from ...utils import splines
 
 
 
-class CouplingTransform(Flow):
+class Coupling(Flow):
     """A base class for coupling layers. Supports 2D inputs (NxD), as well as 4D inputs for
     images (NxCxHxW). For images the splitting is done on the channel dimension, using the
     provided 1D mask."""
@@ -137,7 +137,7 @@ class CouplingTransform(Flow):
         raise NotImplementedError()
 
 
-class PiecewiseCouplingTransform(CouplingTransform):
+class PiecewiseCoupling(Coupling):
     def _coupling_transform_forward(self, inputs, transform_params):
         return self._coupling_transform(inputs, transform_params, inverse=False)
 
@@ -238,7 +238,7 @@ class PiecewiseRationalQuadraticCDF(Flow):
         return self._spline(inputs, inverse=True)
 
 
-class PiecewiseRationalQuadraticCouplingTransform(PiecewiseCouplingTransform):
+class PiecewiseRationalQuadraticCoupling(PiecewiseCoupling):
     def __init__(self, mask, transform_net_create_fn,
                  num_bins=10,
                  tails=None,
