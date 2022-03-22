@@ -1,7 +1,7 @@
 import torch
 
 from .base import Flow
-from .affine_coupling import AffineConstFlow
+from .affine.coupling import AffineConstFlow
 
 
 

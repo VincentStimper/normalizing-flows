@@ -1,11 +1,11 @@
 import torch
 from torch import nn
 
-from .base import Flow
-from .affine_coupling import AffineCouplingBlock
-from .mixing import Invertible1x1Conv
-from .normalization import ActNorm
-from .. import nets
+from ..base import Flow
+from .coupling import AffineCouplingBlock
+from ..mixing import Invertible1x1Conv
+from ..normalization import ActNorm
+from ... import nets
 
 
 

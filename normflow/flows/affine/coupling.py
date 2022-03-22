@@ -2,8 +2,8 @@ import numpy as np
 import torch
 from torch import nn
 
-from .base import Flow
-from .reshape import Split, Merge
+from ..base import Flow
+from ..reshape import Split, Merge
 
 
 
