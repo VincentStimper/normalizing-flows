@@ -13,7 +13,7 @@ from .affine.autoregressive import MaskedAffineAutoregressive
 
 from .normalization import BatchNorm, ActNorm
 
-from .residual import Residualc
+from .residual import Residual
 
 from . import neural_spline
 from .neural_spline import CoupledRationalQuadraticSpline, AutoregressiveRationalQuadraticSpline
