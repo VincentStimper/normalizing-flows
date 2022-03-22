@@ -1,16 +1,11 @@
 from torch import nn
 
-from .base import Flow
+from ..base import Flow
 
-# Try importing Neural Spline Flow dependencies
-try:
-    from neural_spline_flows.nde.transforms.coupling import PiecewiseRationalQuadraticCouplingTransform
-    from neural_spline_flows.nde.transforms.autoregressive import MaskedPiecewiseRationalQuadraticAutoregressiveTransform
-    from neural_spline_flows.nn import ResidualNet
-    from neural_spline_flows.utils import create_alternating_binary_mask
-except:
-    print('Warning: Dependencies for Neural Spline Flows could '
-          'not be loaded. Other models can still be used.')
+from .coupling import PiecewiseRationalQuadraticCoupling
+from .autoregressive import MaskedPiecewiseRationalQuadraticAutoregressive
+from ...nets.resnet import ResidualNet
+from ...utils.masks import create_alternating_binary_mask
 
 
 
@@ -28,8 +23,7 @@ class CoupledRationalQuadraticSpline(Flow):
             tail_bound=3,
             activation=nn.ReLU,
             dropout_probability=0.,
-            reverse_mask=False,
-            reverse=True
+            reverse_mask=False
     ):
         """
         Constructor
@@ -49,8 +43,6 @@ class CoupledRationalQuadraticSpline(Flow):
         :type dropout_probability: Float
         :param reverse_mask: Flag whether the reverse mask should be used
         :type reverse_mask: Boolean
-        :param reverse: Flag whether forward and backward pass shall be swapped
-        :type reverse: Boolean
         """
         super().__init__()
         self.reverse = reverse
@@ -67,7 +59,7 @@ class CoupledRationalQuadraticSpline(Flow):
                 use_batch_norm=False
             )
 
-        self.prqct=PiecewiseRationalQuadraticCouplingTransform(
+        self.prqct=PiecewiseRationalQuadraticCoupling(
             mask=create_alternating_binary_mask(
                 num_input_channels,
                 even=reverse_mask
@@ -82,17 +74,11 @@ class CoupledRationalQuadraticSpline(Flow):
         )
 
     def forward(self, z):
-        if self.reverse:
-            z, log_det = self.prqct.inverse(z)
-        else:
-            z, log_det = self.prqct(z)
+        z, log_det = self.prqct.inverse(z)
         return z, log_det.view(-1)
 
     def inverse(self, z):
-        if self.reverse:
-            z, log_det = self.prqct(z)
-        else:
-            z, log_det = self.prqct.inverse(z)
+        z, log_det = self.prqct(z)
         return z, log_det.view(-1)
 
 
@@ -109,8 +95,7 @@ class AutoregressiveRationalQuadraticSpline(Flow):
             num_bins=8,
             tail_bound=3,
             activation=nn.ReLU,
-            dropout_probability=0.,
-            reverse=True
+            dropout_probability=0.
     ):
         """
         Constructor
@@ -128,13 +113,11 @@ class AutoregressiveRationalQuadraticSpline(Flow):
         :type activation: torch module
         :param dropout_probability: Dropout probability of the NN
         :type dropout_probability: Float
-        :param reverse: Flag whether forward and backward pass shall be swapped
-        :type reverse: Boolean
         """
         super().__init__()
         self.reverse = reverse
 
-        self.mprqat=MaskedPiecewiseRationalQuadraticAutoregressiveTransform(
+        self.mprqat=MaskedPiecewiseRationalQuadraticAutoregressive(
             features=num_input_channels,
             hidden_features=num_hidden_channels,
             context_features=None,
@@ -149,15 +132,9 @@ class AutoregressiveRationalQuadraticSpline(Flow):
             use_batch_norm=False)
 
     def forward(self, z):
-        if self.reverse:
-            z, log_det = self.mprqat.inverse(z)
-        else:
-            z, log_det = self.mprqat(z)
+        z, log_det = self.mprqat.inverse(z)
         return z, log_det.view(-1)
 
     def inverse(self, z):
-        if self.reverse:
-            z, log_det = self.mprqat(z)
-        else:
-            z, log_det = self.mprqat.inverse(z)
+        z, log_det = self.mprqat(z)
         return z, log_det.view(-1)

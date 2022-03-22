@@ -13,20 +13,8 @@ from normflow import nets as nn_
 
 from normflow.flows.neural_spline import coupling
 from normflow.flows.neural_spline.flow_test import FlowTest
+from normflow import utils
 
-
-
-def create_mid_split_binary_mask(features):
-    """
-    Creates a binary mask of a given dimension which splits its masking at the midpoint.
-
-    :param features: Dimension of mask.
-    :return: Binary mask split at midpoint of type torch.Tensor
-    """
-    mask = torch.zeros(features).byte()
-    midpoint = features // 2 if features % 2 == 0 else features // 2 + 1
-    mask[:midpoint] += 1
-    return mask
 
 
 def create_coupling_transform(cls, shape, **kwargs):
@@ -44,7 +32,7 @@ def create_coupling_transform(cls, shape, **kwargs):
                 hidden_channels=16
             )
 
-    mask = create_mid_split_binary_mask(shape[0])
+    mask = utils.masks.create_mid_split_binary_mask(shape[0])
 
     return cls(
         mask=mask,
