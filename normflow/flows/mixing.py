@@ -206,8 +206,6 @@ class _Permutation(Flow):
     def __init__(self, permutation, dim=1):
         if permutation.ndimension() != 1:
             raise ValueError('Permutation must be a 1D tensor.')
-        if not utils.is_positive_int(dim):
-            raise ValueError('dim must be a positive integer.')
 
         super().__init__()
         self._dim = dim
@@ -240,8 +238,6 @@ class _RandomPermutation(_Permutation):
     """Permutes using a random, but fixed, permutation. Only works with 1D inputs."""
 
     def __init__(self, features, dim=1):
-        if not utils.is_positive_int(features):
-            raise ValueError('Number of features must be a positive integer.')
         super().__init__(torch.randperm(features), dim)
 
 
@@ -266,8 +262,6 @@ class _Linear(Flow):
     """Abstract base class for linear transforms that parameterize a weight matrix."""
 
     def __init__(self, features, using_cache=False):
-        if not utils.is_positive_int(features):
-            raise TypeError('Number of features must be a positive integer.')
         super().__init__()
 
         self.features = features
@@ -322,8 +316,6 @@ class _Linear(Flow):
         return super().train(mode)
 
     def use_cache(self, mode=True):
-        if not utils.is_bool(mode):
-            raise TypeError('Mode must be boolean.')
         self.using_cache = mode
 
     def weight_and_logabsdet(self):
