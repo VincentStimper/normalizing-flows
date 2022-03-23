@@ -40,7 +40,7 @@ class ActNorm(nn.Module):
         return out
 
 
-class ClampExp(torch.nn.Module):
+class ClampExp(nn.Module):
     """
     Nonlinearity min(exp(lam * x), 1)
     """
@@ -54,6 +54,66 @@ class ClampExp(torch.nn.Module):
     def forward(self, x):
         one = torch.tensor(1., device=x.device, dtype=x.dtype)
         return torch.min(torch.exp(x), one)
+
+
+class PeriodicFeatures(nn.Module):
+    """
+    Converts a specified part of the input to periodic features
+    """
+    def __init__(self, ndim, ind, scale=1., bias=False, activation=None):
+        """
+        Constructor
+        :param ndim: Int, number of dimensions
+        :param ind: Iterable, indices of input elements to convert to
+        periodic features
+        :param scale: Scalar or iterable, used to scale inputs before
+        converting them to periodic features
+        :param bias: Flag, whether to add a bias
+        :param activation: Function or None, activation function to be
+        applied
+        """
+        super(PeriodicFeatures, self).__init__()
+
+        # Set up indices and permutations
+        self.ndim = ndim
+        if torch.is_tensor(ind):
+            self.register_buffer('ind', torch._cast_Long(ind))
+        else:
+            self.register_buffer('ind', torch.tensor(ind, dtype=torch.long))
+
+        ind_ = []
+        for i in range(self.ndim):
+            if not i in self.ind:
+                ind_ += [i]
+        self.register_buffer('ind_', torch.tensor(ind_, dtype=torch.long))
+
+        perm_ = torch.cat((self.ind, self.ind_))
+        inv_perm_ = torch.zeros_like(perm_)
+        for i in range(self.ndim):
+            inv_perm_[perm_[i]] = i
+        self.register_buffer('inv_perm', inv_perm_)
+
+        self.weights = nn.Parameter(torch.ones(len(self.ind), 2))
+        self.scale = scale
+
+        self.apply_bias = bias
+        if self.apply_bias:
+            self.bias = nn.Parameter(torch.zeros(len(self.ind)))
+
+        if activation is None:
+            self.activation = lambda input: input
+        else:
+            self.activation = activation
+
+    def forward(self, x):
+        x_ = x[..., self.ind]
+        x_ = self.scale * x_
+        x_ = self.weights[:, 0] * torch.sin(x_) + self.weights[:, 1] * torch.cos(x_)
+        if self.apply_bias:
+            x_ = x_ + self.bias
+        x_ = self.activation(x_)
+        out = torch.cat((x_, x[..., self.ind_]), -1)
+        return out[..., self.inv_perm]
 
 
 def tile(x, n):

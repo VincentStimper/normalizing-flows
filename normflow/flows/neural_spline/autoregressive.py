@@ -57,10 +57,10 @@ class MaskedPiecewiseRationalQuadraticAutoregressive(Autoregressive):
     def _output_dim_multiplier(self):
         if self.tails == 'linear':
             return self.num_bins * 3 - 1
-        elif self.tails is None:
-            return self.num_bins * 3 + 1
+        elif self.tails == 'circular':
+            return self.num_bins * 3
         else:
-            raise ValueError
+            return self.num_bins * 3 + 1
 
     def _elementwise(self, inputs, autoregressive_params, inverse=False):
         batch_size, features = inputs.shape[0], inputs.shape[1]

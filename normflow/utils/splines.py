@@ -17,11 +17,6 @@ def searchsorted(bin_locations, inputs, eps=1e-6):
     ) - 1
 
 
-class InputOutsideDomain(Exception):
-    """Exception to be thrown when the input to a transform is not within its domain."""
-    pass
-
-
 def unconstrained_rational_quadratic_spline(inputs,
                                             unnormalized_widths,
                                             unnormalized_heights,
@@ -46,8 +41,33 @@ def unconstrained_rational_quadratic_spline(inputs,
 
         outputs[outside_interval_mask] = inputs[outside_interval_mask]
         logabsdet[outside_interval_mask] = 0
+    elif tails == 'circular':
+        unnormalized_derivatives = F.pad(unnormalized_derivatives, pad=(0, 1))
+        unnormalized_derivatives[..., -1] = unnormalized_derivatives[..., 0]
+
+        outputs[outside_interval_mask] = inputs[outside_interval_mask]
+        logabsdet[outside_interval_mask] = 0
+    elif isinstance(tails, list) or isinstance(tails, tuple):
+        ind_lin = [t == 'linear' for t in tails]
+        ind_circ = [t == 'circular' for t in tails]
+        constant = np.log(np.exp(1 - min_derivative) - 1)
+        unnormalized_derivatives[..., ind_lin, 0] = constant
+        unnormalized_derivatives[..., ind_lin, -1] = constant
+        unnormalized_derivatives[..., ind_circ, -1] = unnormalized_derivatives[..., ind_circ, 0]
     else:
         raise RuntimeError('{} tails are not implemented.'.format(tails))
+
+    if torch.is_tensor(tail_bound):
+        tail_bound_ = torch.broadcast_to(tail_bound, inputs.shape)
+        left = -tail_bound_[inside_interval_mask]
+        right = tail_bound_[inside_interval_mask]
+        bottom = -tail_bound_[inside_interval_mask]
+        top = tail_bound_[inside_interval_mask]
+    else:
+        left = -tail_bound
+        right = tail_bound
+        bottom = -tail_bound
+        top = tail_bound
 
     outputs[inside_interval_mask], logabsdet[inside_interval_mask] = rational_quadratic_spline(
         inputs=inputs[inside_interval_mask],
@@ -55,7 +75,7 @@ def unconstrained_rational_quadratic_spline(inputs,
         unnormalized_heights=unnormalized_heights[inside_interval_mask, :],
         unnormalized_derivatives=unnormalized_derivatives[inside_interval_mask, :],
         inverse=inverse,
-        left=-tail_bound, right=tail_bound, bottom=-tail_bound, top=tail_bound,
+        left=left, right=right, bottom=bottom, top=top,
         min_bin_width=min_bin_width,
         min_bin_height=min_bin_height,
         min_derivative=min_derivative
@@ -73,10 +93,12 @@ def rational_quadratic_spline(inputs,
                               min_bin_width=DEFAULT_MIN_BIN_WIDTH,
                               min_bin_height=DEFAULT_MIN_BIN_HEIGHT,
                               min_derivative=DEFAULT_MIN_DERIVATIVE):
-    if torch.min(inputs) < left or torch.max(inputs) > right:
-        raise InputOutsideDomain()
-
     num_bins = unnormalized_widths.shape[-1]
+
+    if torch.is_tensor(left):
+        lim_tensor = True
+    else:
+        lim_tensor = False
 
     if min_bin_width * num_bins > 1.0:
         raise ValueError('Minimal bin width too large for the number of bins')
@@ -87,7 +109,10 @@ def rational_quadratic_spline(inputs,
     widths = min_bin_width + (1 - min_bin_width * num_bins) * widths
     cumwidths = torch.cumsum(widths, dim=-1)
     cumwidths = F.pad(cumwidths, pad=(1, 0), mode='constant', value=0.0)
-    cumwidths = (right - left) * cumwidths + left
+    if lim_tensor:
+        cumwidths = (right[..., None] - left[..., None]) * cumwidths + left[..., None]
+    else:
+        cumwidths = (right - left) * cumwidths + left
     cumwidths[..., 0] = left
     cumwidths[..., -1] = right
     widths = cumwidths[..., 1:] - cumwidths[..., :-1]
@@ -98,7 +123,10 @@ def rational_quadratic_spline(inputs,
     heights = min_bin_height + (1 - min_bin_height * num_bins) * heights
     cumheights = torch.cumsum(heights, dim=-1)
     cumheights = F.pad(cumheights, pad=(1, 0), mode='constant', value=0.0)
-    cumheights = (top - bottom) * cumheights + bottom
+    if lim_tensor:
+        cumheights = (top[..., None] - bottom[..., None]) * cumheights + bottom[..., None]
+    else:
+        cumheights = (top - bottom) * cumheights + bottom
     cumheights[..., 0] = bottom
     cumheights[..., -1] = top
     heights = cumheights[..., 1:] - cumheights[..., :-1]

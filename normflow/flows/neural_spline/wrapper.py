@@ -20,6 +20,7 @@ class CoupledRationalQuadraticSpline(Flow):
             num_blocks,
             num_hidden_channels,
             num_bins=8,
+            tails='linear',
             tail_bound=3,
             activation=nn.ReLU,
             dropout_probability=0.,
@@ -35,6 +36,9 @@ class CoupledRationalQuadraticSpline(Flow):
         :type num_hidden_channels: Int
         :param num_bins: Number of bins
         :type num_bins: Int
+        :param tails: Behaviour of the tails of the distribution,
+        can be linear, circular for periodic distribution, or None for
+        distribution on the compact interval
         :param tail_bound: Bound of the spline tails
         :type tail_bound: Int
         :param activation: Activation function
@@ -65,7 +69,7 @@ class CoupledRationalQuadraticSpline(Flow):
             ),
             transform_net_create_fn=transform_net_create_fn,
             num_bins=num_bins,
-            tails='linear',
+            tails=tails,
             tail_bound=tail_bound,
 
             # Setting True corresponds to equations (4), (5), (6) in the NSF paper:

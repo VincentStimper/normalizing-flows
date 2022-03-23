@@ -275,6 +275,8 @@ class PiecewiseRationalQuadraticCoupling(PiecewiseCoupling):
     def _transform_dim_multiplier(self):
         if self.tails == 'linear':
             return self.num_bins * 3 - 1
+        elif self.tails == 'circular':
+            return self.num_bins * 3
         else:
             return self.num_bins * 3 + 1
 
