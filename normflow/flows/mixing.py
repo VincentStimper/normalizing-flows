@@ -475,36 +475,26 @@ class LULinearPermute(Flow):
     Fixed permutation combined with a linear transformation parametrized
     using the LU decomposition, used in https://arxiv.org/abs/1906.04032
     """
-    def __init__(self, num_channels, identity_init=True, reverse=True):
+    def __init__(self, num_channels, identity_init=True):
         """
         Constructor
         :param num_channels: Number of dimensions of the data
         :param identity_init: Flag, whether to initialize linear
         transform as identity matrix
-        :param reverse: Flag, change forward and inverse transform
         """
         # Initialize
         super().__init__()
-        self.reverse = reverse
 
         # Define modules
         self.permutation = _RandomPermutation(num_channels)
         self.linear = _LULinear(num_channels, identity_init=identity_init)
 
     def forward(self, z):
-        if self.reverse:
-            z, log_det = self.linear.inverse(z)
-            z, _ = self.permutation.inverse(z)
-        else:
-            z, _ = self.permutation(z)
-            z, log_det = self.linear(z)
+        z, log_det = self.linear.inverse(z)
+        z, _ = self.permutation.inverse(z)
         return z, log_det.view(-1)
 
     def inverse(self, z):
-        if self.reverse:
-            z, _ = self.permutation(z)
-            z, log_det = self.linear(z)
-        else:
-            z, log_det = self.linear.inverse(z)
-            z, _ = self.permutation.inverse(z)
+        z, _ = self.permutation(z)
+        z, log_det = self.linear(z)
         return z, log_det.view(-1)
