@@ -132,8 +132,8 @@ class CircularCoupledRationalQuadraticSpline(Flow):
         features_vector = torch.arange(num_input_channels)
         identity_features = features_vector.masked_select(mask <= 0)
         ind_circ_id = []
-        for i in ind_circ:
-            if i in identity_features:
+        for i, id in enumerate(identity_features):
+            if id in ind_circ:
                 ind_circ_id += [i]
 
         if torch.is_tensor(bound):
