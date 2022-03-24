@@ -48,7 +48,7 @@ def unconstrained_rational_quadratic_spline(inputs,
         outputs[outside_interval_mask] = inputs[outside_interval_mask]
         logabsdet[outside_interval_mask] = 0
     elif isinstance(tails, list) or isinstance(tails, tuple):
-        unnormalized_derivatives_ = unnormalized_derivatives
+        unnormalized_derivatives_ = unnormalized_derivatives.clone()
         ind_lin = [t == 'linear' for t in tails]
         ind_circ = [t == 'circular' for t in tails]
         constant = np.log(np.exp(1 - min_derivative) - 1)
