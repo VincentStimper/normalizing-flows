@@ -126,13 +126,28 @@ class CircularCoupledRationalQuadraticSpline(Flow):
         :type reverse_mask: Boolean
         """
         super().__init__()
+
+        mask = create_alternating_binary_mask(num_input_channels,
+                                              even=reverse_mask)
+        features_vector = torch.arange(num_input_channels)
+        identity_features = features_vector.masked_select(mask <= 0)
+        transform_features = features_vector.masked_select(mask > 0)
+        ind_circ_id = []
+        for i in ind_circ:
+            if i in identity_features:
+                ind_circ_id += [i]
+        ind_circ_tr = []
+        for i in ind_circ:
+            if i in transform_features:
+                ind_circ_tr += [i]
+
         if torch.is_tensor(bound):
-            scale_pf = np.pi / bound[ind_circ]
+            scale_pf = np.pi / bound[ind_circ_id]
         else:
             scale_pf = np.pi / bound
 
         def transform_net_create_fn(in_features, out_features):
-            pf = PeriodicFeatures(num_input_channels, ind_circ, scale_pf)
+            pf = PeriodicFeatures(in_features, ind_circ_id, scale_pf)
             return ResidualNet(
                 in_features=in_features,
                 out_features=out_features,
@@ -145,18 +160,15 @@ class CircularCoupledRationalQuadraticSpline(Flow):
                 preprocessing=pf
             )
 
-        tails = ['circular' if i in ind_circ else 'linear'
-                 for i in range(num_input_channels)]
+        tails = ['circular' if i in ind_circ_tr else 'linear'
+                 for i in range(len(transform_features))]
 
         self.prqct=PiecewiseRationalQuadraticCoupling(
-            mask=create_alternating_binary_mask(
-                num_input_channels,
-                even=reverse_mask
-            ),
+            mask=mask,
             transform_net_create_fn=transform_net_create_fn,
             num_bins=num_bins,
             tails=tails,
-            tail_bound=bound,
+            tail_bound=bound[transform_features],
 
             # Setting True corresponds to equations (4), (5), (6) in the NSF paper:
             apply_unconditional_transform=True
