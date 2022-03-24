@@ -1,4 +1,5 @@
 from . import autoregressive
 from . import coupling
 
-from .wrapper import CoupledRationalQuadraticSpline, AutoregressiveRationalQuadraticSpline
+from .wrapper import CoupledRationalQuadraticSpline, AutoregressiveRationalQuadraticSpline, \
+    CircularCoupledRationalQuadraticSpline
