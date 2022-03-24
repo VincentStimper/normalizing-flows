@@ -147,7 +147,10 @@ class CircularCoupledRationalQuadraticSpline(Flow):
             scale_pf = np.pi / bound
 
         def transform_net_create_fn(in_features, out_features):
-            pf = PeriodicFeatures(in_features, ind_circ_id, scale_pf)
+            if len(ind_circ_id) > 0:
+                pf = PeriodicFeatures(in_features, ind_circ_id, scale_pf)
+            else:
+                pf = None
             return ResidualNet(
                 in_features=in_features,
                 out_features=out_features,
