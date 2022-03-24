@@ -122,11 +122,12 @@ class UniformGaussian(BaseDistribution):
         return z, self.log_prob(z)
 
     def sample(self, num_samples=1):
-        eps_u = torch.rand((num_samples, len(self.ind_)), dtype=self.scale.dtype,
+        eps_u = torch.rand((num_samples, len(self.ind)), dtype=self.scale.dtype,
                            device=self.scale.device) - 0.5
         eps_g = torch.randn((num_samples, len(self.ind_)), dtype=self.scale.dtype,
                             device=self.scale.device)
         z = torch.cat((eps_u, eps_g), -1)
+        z = z[..., self.inv_perm]
         return self.scale * z
 
     def log_prob(self, z):
