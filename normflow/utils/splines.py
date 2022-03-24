@@ -34,26 +34,27 @@ def unconstrained_rational_quadratic_spline(inputs,
     logabsdet = torch.zeros_like(inputs)
 
     if tails == 'linear':
-        unnormalized_derivatives = F.pad(unnormalized_derivatives, pad=(1, 1))
+        unnormalized_derivatives_ = F.pad(unnormalized_derivatives, pad=(1, 1))
         constant = np.log(np.exp(1 - min_derivative) - 1)
-        unnormalized_derivatives[..., 0] = constant
-        unnormalized_derivatives[..., -1] = constant
+        unnormalized_derivatives_[..., 0] = constant
+        unnormalized_derivatives_[..., -1] = constant
 
         outputs[outside_interval_mask] = inputs[outside_interval_mask]
         logabsdet[outside_interval_mask] = 0
     elif tails == 'circular':
-        unnormalized_derivatives = F.pad(unnormalized_derivatives, pad=(0, 1))
-        unnormalized_derivatives[..., -1] = unnormalized_derivatives[..., 0]
+        unnormalized_derivatives_ = F.pad(unnormalized_derivatives, pad=(0, 1))
+        unnormalized_derivatives_[..., -1] = unnormalized_derivatives_[..., 0]
 
         outputs[outside_interval_mask] = inputs[outside_interval_mask]
         logabsdet[outside_interval_mask] = 0
     elif isinstance(tails, list) or isinstance(tails, tuple):
+        unnormalized_derivatives_ = unnormalized_derivatives
         ind_lin = [t == 'linear' for t in tails]
         ind_circ = [t == 'circular' for t in tails]
         constant = np.log(np.exp(1 - min_derivative) - 1)
-        unnormalized_derivatives[..., ind_lin, 0] = constant
-        unnormalized_derivatives[..., ind_lin, -1] = constant
-        unnormalized_derivatives[..., ind_circ, -1] = unnormalized_derivatives[..., ind_circ, 0]
+        unnormalized_derivatives_[..., ind_lin, 0] = constant
+        unnormalized_derivatives_[..., ind_lin, -1] = constant
+        unnormalized_derivatives_[..., ind_circ, -1] = unnormalized_derivatives_[..., ind_circ, 0]
     else:
         raise RuntimeError('{} tails are not implemented.'.format(tails))
 
@@ -73,7 +74,7 @@ def unconstrained_rational_quadratic_spline(inputs,
         inputs=inputs[inside_interval_mask],
         unnormalized_widths=unnormalized_widths[inside_interval_mask, :],
         unnormalized_heights=unnormalized_heights[inside_interval_mask, :],
-        unnormalized_derivatives=unnormalized_derivatives[inside_interval_mask, :],
+        unnormalized_derivatives=unnormalized_derivatives_[inside_interval_mask, :],
         inverse=inverse,
         left=left, right=right, bottom=bottom, top=top,
         min_bin_width=min_bin_width,
