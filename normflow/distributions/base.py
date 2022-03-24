@@ -77,6 +77,63 @@ class DiagGaussian(BaseDistribution):
         return log_p
 
 
+class UniformGaussian(BaseDistribution):
+    """
+    Distribution of a 1D random variable with some entries having a uniform and
+    others a Gaussian distribution
+    """
+    def __init__(self, ndim, ind, scale=None):
+        """
+        Constructor
+        :param ndim: Int, number of dimensions
+        :param ind: Iterable, indices of uniformly distributed entries
+        :param scale: Iterable, standard deviation of Gaussian or width of
+        uniform distribution
+        """
+        super().__init__()
+        self.ndim = ndim
+
+        # Set up indices and permutations
+        self.ndim = ndim
+        if torch.is_tensor(ind):
+            self.register_buffer('ind', torch._cast_Long(ind))
+        else:
+            self.register_buffer('ind', torch.tensor(ind, dtype=torch.long))
+
+        ind_ = []
+        for i in range(self.ndim):
+            if not i in self.ind:
+                ind_ += [i]
+        self.register_buffer('ind_', torch.tensor(ind_, dtype=torch.long))
+
+        perm_ = torch.cat((self.ind, self.ind_))
+        inv_perm_ = torch.zeros_like(perm_)
+        for i in range(self.ndim):
+            inv_perm_[perm_[i]] = i
+        self.register_buffer('inv_perm', inv_perm_)
+
+        if scale is None:
+            self.register_buffer('scale', torch.ones(self.ndim))
+        else:
+            self.register_buffer('scale', scale)
+
+    def forward(self, num_samples=1):
+        eps_u = torch.rand((num_samples, len(self.ind_)), dtype=self.scale.dtype,
+                           device=self.scale.device)
+        eps_g = torch.randn((num_samples, len(self.ind_)), dtype=self.scale.dtype,
+                            device=self.scale.device)
+        z = torch.cat((eps_u, eps_g), -1)
+        z = self.scale * z
+        return z, self.log_prob(z)
+
+    def log_prob(self, z):
+        log_p_u = torch.broadcast_to(-torch.log(self.scale[self.ind]), (len(z), -1))
+        log_p_g = - 0.5 * np.log(2 * np.pi) - torch.log(self.scale[self.ind_]) \
+                  + 0.5 * torch.pow(z[self.ind_] / self.scale[self.ind_], 2)
+        log_p = torch.cat((log_p_u, log_p_g), -1)
+        return log_p[..., self.inv_perm]
+
+
 class ClassCondDiagGaussian(BaseDistribution):
     """
     Class conditional multivariate Gaussian distribution with diagonal covariance matrix

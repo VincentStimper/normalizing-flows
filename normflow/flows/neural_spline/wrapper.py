@@ -6,6 +6,7 @@ from .coupling import PiecewiseRationalQuadraticCoupling
 from .autoregressive import MaskedPiecewiseRationalQuadraticAutoregressive
 from ...nets.resnet import ResidualNet
 from ...utils.masks import create_alternating_binary_mask
+from ...utils.nn import PeriodicFeatures
 
 
 
@@ -21,7 +22,7 @@ class CoupledRationalQuadraticSpline(Flow):
             num_hidden_channels,
             num_bins=8,
             tails='linear',
-            tail_bound=3,
+            tail_bound=3.,
             activation=nn.ReLU,
             dropout_probability=0.,
             reverse_mask=False
@@ -39,8 +40,9 @@ class CoupledRationalQuadraticSpline(Flow):
         :param tails: Behaviour of the tails of the distribution,
         can be linear, circular for periodic distribution, or None for
         distribution on the compact interval
+        :type tails: String
         :param tail_bound: Bound of the spline tails
-        :type tail_bound: Int
+        :type tail_bound: Float
         :param activation: Activation function
         :type activation: torch module
         :param dropout_probability: Dropout probability of the NN
@@ -71,6 +73,89 @@ class CoupledRationalQuadraticSpline(Flow):
             num_bins=num_bins,
             tails=tails,
             tail_bound=tail_bound,
+
+            # Setting True corresponds to equations (4), (5), (6) in the NSF paper:
+            apply_unconditional_transform=True
+        )
+
+    def forward(self, z):
+        z, log_det = self.prqct.inverse(z)
+        return z, log_det.view(-1)
+
+    def inverse(self, z):
+        z, log_det = self.prqct(z)
+        return z, log_det.view(-1)
+
+
+class CircularCoupledRationalQuadraticSpline(Flow):
+    """
+    Neural spline flow coupling layer with circular coordinates
+    """
+    def __init__(
+            self,
+            num_input_channels,
+            num_blocks,
+            num_hidden_channels,
+            ind_circ,
+            num_bins=8,
+            bound=3.,
+            activation=nn.ReLU,
+            dropout_probability=0.,
+            reverse_mask=False
+    ):
+        """
+        Constructor
+        :param num_input_channels: Flow dimension
+        :type num_input_channels: Int
+        :param num_blocks: Number of residual blocks of the parameter NN
+        :type num_blocks: Int
+        :param num_hidden_channels: Number of hidden units of the NN
+        :type num_hidden_channels: Int
+        :param ind_circ: Indices of the circular coordinates
+        :type ind_circ: Iterable
+        :param num_bins: Number of bins
+        :type num_bins: Int
+        :param bound: Bound of the spline tails
+        :type bound: Float or Iterable
+        :param activation: Activation function
+        :type activation: torch module
+        :param dropout_probability: Dropout probability of the NN
+        :type dropout_probability: Float
+        :param reverse_mask: Flag whether the reverse mask should be used
+        :type reverse_mask: Boolean
+        """
+        super().__init__()
+        if torch.is_tensor(bound):
+            scale_fm = np.pi / bound[ind_circ]
+        else:
+            scale_fm = np.pi / bound
+
+        def transform_net_create_fn(in_features, out_features):
+            fm = PeriodicFeatures(num_input_channels, ind_circ, scale_fm)
+            resnet = ResidualNet(
+                in_features=in_features,
+                out_features=out_features,
+                context_features=None,
+                hidden_features=num_hidden_channels,
+                num_blocks=num_blocks,
+                activation=activation(),
+                dropout_probability=dropout_probability,
+                use_batch_norm=False
+            )
+            return nn.Sequential(fm, resnet)
+
+        tails = ['circular' if i in ind_circ else 'linear'
+                 for i in range(num_input_channels)]
+
+        self.prqct=PiecewiseRationalQuadraticCoupling(
+            mask=create_alternating_binary_mask(
+                num_input_channels,
+                even=reverse_mask
+            ),
+            transform_net_create_fn=transform_net_create_fn,
+            num_bins=num_bins,
+            tails=tails,
+            tail_bound=bound,
 
             # Setting True corresponds to equations (4), (5), (6) in the NSF paper:
             apply_unconditional_transform=True
