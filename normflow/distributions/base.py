@@ -133,7 +133,7 @@ class UniformGaussian(BaseDistribution):
     def log_prob(self, z):
         log_p_u = torch.broadcast_to(-torch.log(self.scale[self.ind]), (len(z), -1))
         log_p_g = - 0.5 * np.log(2 * np.pi) - torch.log(self.scale[self.ind_]) \
-                  + 0.5 * torch.pow(z[self.ind_] / self.scale[self.ind_], 2)
+                  + 0.5 * torch.pow(z[..., self.ind_] / self.scale[self.ind_], 2)
         log_p = torch.cat((log_p_u, log_p_g), -1)
         return log_p[..., self.inv_perm]
 
