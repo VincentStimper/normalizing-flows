@@ -131,15 +131,10 @@ class CircularCoupledRationalQuadraticSpline(Flow):
                                               even=reverse_mask)
         features_vector = torch.arange(num_input_channels)
         identity_features = features_vector.masked_select(mask <= 0)
-        transform_features = features_vector.masked_select(mask > 0)
         ind_circ_id = []
         for i in ind_circ:
             if i in identity_features:
                 ind_circ_id += [i]
-        ind_circ_tr = []
-        for i in ind_circ:
-            if i in transform_features:
-                ind_circ_tr += [i]
 
         if torch.is_tensor(bound):
             scale_pf = np.pi / bound[ind_circ_id]
@@ -163,15 +158,15 @@ class CircularCoupledRationalQuadraticSpline(Flow):
                 preprocessing=pf
             )
 
-        tails = ['circular' if i in ind_circ_tr else 'linear'
-                 for i in range(len(transform_features))]
+        tails = ['circular' if i in ind_circ else 'linear'
+                 for i in range(num_input_channels)]
 
         self.prqct=PiecewiseRationalQuadraticCoupling(
             mask=mask,
             transform_net_create_fn=transform_net_create_fn,
             num_bins=num_bins,
             tails=tails,
-            tail_bound=bound[transform_features],
+            tail_bound=bound,
 
             # Setting True corresponds to equations (4), (5), (6) in the NSF paper:
             apply_unconditional_transform=True

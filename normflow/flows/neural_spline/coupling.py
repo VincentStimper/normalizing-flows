@@ -181,19 +181,24 @@ class PiecewiseRationalQuadraticCDF(Flow):
         self.tail_bound = tail_bound
         self.tails = tails
 
+        if self.tails == 'linear':
+            num_derivatives = num_bins - 1
+        elif self.tails == 'circular':
+            num_derivatives = num_bins
+        else:
+            num_derivatives = num_bins + 1
+
         if identity_init:
             self.unnormalized_widths = nn.Parameter(torch.zeros(*shape, num_bins))
             self.unnormalized_heights = nn.Parameter(torch.zeros(*shape, num_bins))
 
             constant = np.log(np.exp(1 - min_derivative) - 1)
-            num_derivatives = (num_bins - 1) if self.tails == 'linear' else (num_bins + 1)
             self.unnormalized_derivatives = nn.Parameter(constant * torch.ones(*shape,
                                                                                num_derivatives))
         else:
             self.unnormalized_widths = nn.Parameter(torch.rand(*shape, num_bins))
             self.unnormalized_heights = nn.Parameter(torch.rand(*shape, num_bins))
 
-            num_derivatives = (num_bins - 1) if self.tails == 'linear' else (num_bins + 1)
             self.unnormalized_derivatives = nn.Parameter(torch.rand(*shape, num_derivatives))
 
     @staticmethod
@@ -253,15 +258,31 @@ class PiecewiseRationalQuadraticCoupling(PiecewiseCoupling):
         self.min_bin_width = min_bin_width
         self.min_bin_height = min_bin_height
         self.min_derivative = min_derivative
-        self.tails = tails
-        self.tail_bound = tail_bound
+
+        # Split tails parameter if needed
+        features_vector = torch.arange(len(mask))
+        identity_features = features_vector.masked_select(mask <= 0)
+        transform_features = features_vector.masked_select(mask > 0)
+        if isinstance(tails, list) or isinstance(tails, tuple):
+            self.tails = [tails[i] for i in transform_features]
+            tails_ = [tails[i] for i in identity_features]
+        else:
+            self.tails = tails
+            tails_ = tails
+
+        if torch.is_tensor(tail_bound):
+            self.tail_bound = tail_bound[transform_features]
+            tail_bound_ = tail_bound[identity_features]
+        else:
+            self.tail_bound = tail_bound
+            tail_bound_ = tail_bound
 
         if apply_unconditional_transform:
             unconditional_transform = lambda features: PiecewiseRationalQuadraticCDF(
                 shape=[features] + (img_shape if img_shape else []),
                 num_bins=num_bins,
-                tails=tails,
-                tail_bound=tail_bound,
+                tails=tails_,
+                tail_bound=tail_bound_,
                 min_bin_width=min_bin_width,
                 min_bin_height=min_bin_height,
                 min_derivative=min_derivative
