@@ -105,7 +105,7 @@ class PeriodicFeatures(nn.Module):
         else:
             self.activation = activation
 
-    def forward(self, inputs, context=None):
+    def forward(self, inputs):
         inputs_ = inputs[..., self.ind]
         inputs_ = self.scale * inputs_
         inputs_ = self.weights[:, 0] * torch.sin(inputs_) + self.weights[:, 1] * torch.cos(inputs_)

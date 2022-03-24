@@ -68,10 +68,12 @@ class ResidualNet(nn.Module):
                  num_blocks=2,
                  activation=F.relu,
                  dropout_probability=0.,
-                 use_batch_norm=False):
+                 use_batch_norm=False,
+                 preprocessing=None):
         super().__init__()
         self.hidden_features = hidden_features
         self.context_features = context_features
+        self.preprocessing = preprocessing
         if context_features is not None:
             self.initial_layer = nn.Linear(in_features + context_features, hidden_features)
         else:
@@ -88,11 +90,15 @@ class ResidualNet(nn.Module):
         self.final_layer = nn.Linear(hidden_features, out_features)
 
     def forward(self, inputs, context=None):
+        if self.preprocessing is None:
+            temps = inputs
+        else:
+            temps = self.preprocessing(inputs)
         if context is None:
-            temps = self.initial_layer(inputs)
+            temps = self.initial_layer(temps)
         else:
             temps = self.initial_layer(
-                torch.cat((inputs, context), dim=1)
+                torch.cat((temps, context), dim=1)
             )
         for block in self.blocks:
             temps = block(temps, context=context)
