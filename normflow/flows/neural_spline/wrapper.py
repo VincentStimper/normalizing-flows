@@ -1,7 +1,7 @@
+import torch
 from torch import nn
 
 from ..base import Flow
-
 from .coupling import PiecewiseRationalQuadraticCoupling
 from .autoregressive import MaskedPiecewiseRationalQuadraticAutoregressive
 from ...nets.resnet import ResidualNet
