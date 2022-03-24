@@ -105,14 +105,14 @@ class PeriodicFeatures(nn.Module):
         else:
             self.activation = activation
 
-    def forward(self, x):
-        x_ = x[..., self.ind]
-        x_ = self.scale * x_
-        x_ = self.weights[:, 0] * torch.sin(x_) + self.weights[:, 1] * torch.cos(x_)
+    def forward(self, inputs, context=None):
+        inputs_ = inputs[..., self.ind]
+        inputs_ = self.scale * inputs_
+        inputs_ = self.weights[:, 0] * torch.sin(inputs_) + self.weights[:, 1] * torch.cos(inputs_)
         if self.apply_bias:
-            x_ = x_ + self.bias
-        x_ = self.activation(x_)
-        out = torch.cat((x_, x[..., self.ind_]), -1)
+            inputs_ = inputs_ + self.bias
+        inputs_ = self.activation(inputs_)
+        out = torch.cat((inputs_, inputs[..., self.ind_]), -1)
         return out[..., self.inv_perm]
 
 
