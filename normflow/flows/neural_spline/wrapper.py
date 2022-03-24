@@ -127,13 +127,13 @@ class CircularCoupledRationalQuadraticSpline(Flow):
         """
         super().__init__()
         if torch.is_tensor(bound):
-            scale_fm = np.pi / bound[ind_circ]
+            scale_pf = np.pi / bound[ind_circ]
         else:
-            scale_fm = np.pi / bound
+            scale_pf = np.pi / bound
 
         def transform_net_create_fn(in_features, out_features):
-            fm = PeriodicFeatures(num_input_channels, ind_circ, scale_fm)
-            resnet = ResidualNet(
+            pf = PeriodicFeatures(num_input_channels, ind_circ, scale_pf)
+            return ResidualNet(
                 in_features=in_features,
                 out_features=out_features,
                 context_features=None,
@@ -141,9 +141,9 @@ class CircularCoupledRationalQuadraticSpline(Flow):
                 num_blocks=num_blocks,
                 activation=activation(),
                 dropout_probability=dropout_probability,
-                use_batch_norm=False
+                use_batch_norm=False,
+                preprocessing=pf
             )
-            return nn.Sequential(fm, resnet)
 
         tails = ['circular' if i in ind_circ else 'linear'
                  for i in range(num_input_channels)]
