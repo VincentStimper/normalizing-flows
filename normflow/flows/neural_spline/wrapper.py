@@ -275,11 +275,6 @@ class CircularAutoregressiveRationalQuadraticSpline(Flow):
         """
         super().__init__()
 
-        if torch.is_tensor(tail_bound):
-            scale_pf = np.pi / tail_bound[ind_circ]
-        else:
-            scale_pf = np.pi / tail_bound
-
         tails = ['circular' if i in ind_circ else 'linear'
                  for i in range(num_input_channels)]
 

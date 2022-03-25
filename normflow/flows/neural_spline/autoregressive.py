@@ -11,6 +11,7 @@ from ... import utils
 from ..affine.autoregressive import Autoregressive
 from normflow.nets import made as made_module
 from normflow.utils import splines
+from normflow.utils.nn import PeriodicFeatures
 
 
 
