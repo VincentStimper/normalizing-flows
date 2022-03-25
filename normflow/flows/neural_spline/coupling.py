@@ -274,7 +274,6 @@ class PiecewiseRationalQuadraticCoupling(PiecewiseCoupling):
             tails_ = tails
 
         if torch.is_tensor(tail_bound):
-            self.register_buffer('tail_bound', tail_bound[transform_features])
             tail_bound_ = tail_bound[identity_features]
         else:
             self.tail_bound = tail_bound
@@ -295,6 +294,9 @@ class PiecewiseRationalQuadraticCoupling(PiecewiseCoupling):
 
         super().__init__(mask, transform_net_create_fn,
                          unconditional_transform=unconditional_transform)
+
+        if torch.is_tensor(tail_bound):
+            self.register_buffer('tail_bound', tail_bound[transform_features])
 
     def _transform_dim_multiplier(self):
         if self.tails == 'linear':
