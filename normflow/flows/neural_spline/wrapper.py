@@ -252,7 +252,8 @@ class CircularAutoregressiveRationalQuadraticSpline(Flow):
             num_bins=8,
             tail_bound=3,
             activation=nn.ReLU,
-            dropout_probability=0.
+            dropout_probability=0.,
+            permute_mask=True
     ):
         """
         Constructor
@@ -272,6 +273,8 @@ class CircularAutoregressiveRationalQuadraticSpline(Flow):
         :type activation: torch module
         :param dropout_probability: Dropout probability of the NN
         :type dropout_probability: Float
+        :param permute_mask: Flag, permutes the mask of the NN
+        :type permute_mask: Boolean
         """
         super().__init__()
 
@@ -288,6 +291,7 @@ class CircularAutoregressiveRationalQuadraticSpline(Flow):
             num_blocks=num_blocks,
             use_residual_blocks=True,
             random_mask=False,
+            permute_mask=permute_mask,
             activation=activation(),
             dropout_probability=dropout_probability,
             use_batch_norm=False)

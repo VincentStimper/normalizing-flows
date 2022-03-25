@@ -26,7 +26,8 @@ class MaskedLinear(nn.Linear):
                  autoregressive_features,
                  random_mask,
                  is_output,
-                 bias=True):
+                 bias=True,
+                 out_degrees_=None):
         super().__init__(
             in_features=len(in_degrees),
             out_features=out_features,
@@ -36,7 +37,8 @@ class MaskedLinear(nn.Linear):
             out_features=out_features,
             autoregressive_features=autoregressive_features,
             random_mask=random_mask,
-            is_output=is_output)
+            is_output=is_output,
+            out_degrees_=out_degrees_)
         self.register_buffer('mask', mask)
         self.register_buffer('degrees', degrees)
 
@@ -46,10 +48,13 @@ class MaskedLinear(nn.Linear):
                               out_features,
                               autoregressive_features,
                               random_mask,
-                              is_output):
+                              is_output,
+                              out_degrees_=None):
         if is_output:
+            if out_degrees_ is None:
+                out_degrees_ = _get_input_degrees(autoregressive_features)
             out_degrees = tile(
-                _get_input_degrees(autoregressive_features),
+                out_degrees_,
                 out_features // autoregressive_features
             )
             mask = (out_degrees[..., None] > in_degrees).float()
@@ -222,6 +227,7 @@ class MADE(nn.Module):
                  output_multiplier=1,
                  use_residual_blocks=True,
                  random_mask=False,
+                 permute_mask=False,
                  activation=F.relu,
                  dropout_probability=0.,
                  use_batch_norm=False,
@@ -237,8 +243,11 @@ class MADE(nn.Module):
             self.preprocessing = preprocessing
 
         # Initial layer.
+        input_degrees_ = _get_input_degrees(features)
+        if permute_mask:
+            input_degrees_ = input_degrees_[torch.randperm(features)]
         self.initial_layer = MaskedLinear(
-            in_degrees=_get_input_degrees(features),
+            in_degrees=input_degrees_,
             out_features=hidden_features,
             autoregressive_features=features,
             random_mask=random_mask,
@@ -276,7 +285,8 @@ class MADE(nn.Module):
             out_features=features * output_multiplier,
             autoregressive_features=features,
             random_mask=random_mask,
-            is_output=True
+            is_output=True,
+            out_degrees_=input_degrees_
         )
 
     def forward(self, inputs, context=None):
