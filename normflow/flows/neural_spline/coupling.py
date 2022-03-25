@@ -178,7 +178,10 @@ class PiecewiseRationalQuadraticCDF(Flow):
         self.min_bin_height = min_bin_height
         self.min_derivative = min_derivative
 
-        self.tail_bound = tail_bound
+        if torch.is_tensor(tail_bound):
+            self.register_buffer('tail_bound', tail_bound)
+        else:
+            self.tail_bound = tail_bound
         self.tails = tails
 
         if self.tails == 'linear':
@@ -271,7 +274,7 @@ class PiecewiseRationalQuadraticCoupling(PiecewiseCoupling):
             tails_ = tails
 
         if torch.is_tensor(tail_bound):
-            self.tail_bound = tail_bound[transform_features]
+            self.register_buffer('tail_bound', tail_bound[transform_features])
             tail_bound_ = tail_bound[identity_features]
         else:
             self.tail_bound = tail_bound

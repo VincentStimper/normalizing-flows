@@ -94,7 +94,10 @@ class PeriodicFeatures(nn.Module):
         self.register_buffer('inv_perm', inv_perm_)
 
         self.weights = nn.Parameter(torch.ones(len(self.ind), 2))
-        self.scale = scale
+        if torch.is_tensor(scale):
+            self.register_buffer('scale', scale)
+        else:
+            self.scale = scale
 
         self.apply_bias = bias
         if self.apply_bias:
