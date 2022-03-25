@@ -194,7 +194,9 @@ class AutoregressiveRationalQuadraticSpline(Flow):
             num_bins=8,
             tail_bound=3,
             activation=nn.ReLU,
-            dropout_probability=0.
+            dropout_probability=0.,
+            permute_mask=False,
+            init_identity=True
     ):
         """
         Constructor
@@ -212,6 +214,10 @@ class AutoregressiveRationalQuadraticSpline(Flow):
         :type activation: torch module
         :param dropout_probability: Dropout probability of the NN
         :type dropout_probability: Float
+        :param permute_mask: Flag, permutes the mask of the NN
+        :type permute_mask: Boolean
+        :param init_identity: Flag, initialize transform as identity
+        :type init_identity: Boolean
         """
         super().__init__()
 
@@ -225,9 +231,11 @@ class AutoregressiveRationalQuadraticSpline(Flow):
             num_blocks=num_blocks,
             use_residual_blocks=True,
             random_mask=False,
+            permute_mask=permute_mask,
             activation=activation(),
             dropout_probability=dropout_probability,
-            use_batch_norm=False)
+            use_batch_norm=False,
+            init_identity=init_identity)
 
     def forward(self, z):
         z, log_det = self.mprqat.inverse(z)
@@ -253,7 +261,8 @@ class CircularAutoregressiveRationalQuadraticSpline(Flow):
             tail_bound=3,
             activation=nn.ReLU,
             dropout_probability=0.,
-            permute_mask=True
+            permute_mask=True,
+            init_identity=True
     ):
         """
         Constructor
@@ -275,6 +284,8 @@ class CircularAutoregressiveRationalQuadraticSpline(Flow):
         :type dropout_probability: Float
         :param permute_mask: Flag, permutes the mask of the NN
         :type permute_mask: Boolean
+        :param init_identity: Flag, initialize transform as identity
+        :type init_identity: Boolean
         """
         super().__init__()
 
@@ -294,7 +305,8 @@ class CircularAutoregressiveRationalQuadraticSpline(Flow):
             permute_mask=permute_mask,
             activation=activation(),
             dropout_probability=dropout_probability,
-            use_batch_norm=False)
+            use_batch_norm=False,
+            init_identity=init_identity)
 
     def forward(self, z):
         z, log_det = self.mprqat.inverse(z)
