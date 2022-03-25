@@ -224,10 +224,17 @@ class MADE(nn.Module):
                  random_mask=False,
                  activation=F.relu,
                  dropout_probability=0.,
-                 use_batch_norm=False):
+                 use_batch_norm=False,
+                 preprocessing=None):
         if use_residual_blocks and random_mask:
             raise ValueError('Residual blocks can\'t be used with random masks.')
         super().__init__()
+
+        # Preprocessing
+        if preprocessing is None:
+            self.preprocessing = lambda inputs: inputs
+        else:
+            self.preprocessing = preprocessing
 
         # Initial layer.
         self.initial_layer = MaskedLinear(
@@ -273,7 +280,8 @@ class MADE(nn.Module):
         )
 
     def forward(self, inputs, context=None):
-        outputs = self.initial_layer(inputs)
+        outputs = self.preprocessing(inputs)
+        outputs = self.initial_layer(outputs)
         if context is not None:
             outputs += self.context_layer(context)
         for block in self.blocks:

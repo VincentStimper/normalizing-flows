@@ -37,7 +37,19 @@ class MaskedPiecewiseRationalQuadraticAutoregressive(Autoregressive):
         self.min_bin_height = min_bin_height
         self.min_derivative = min_derivative
         self.tails = tails
-        self.tail_bound = tail_bound
+
+        if isinstance(self.tails, list) or isinstance(self.tails, tuple):
+            ind_circ = []
+            for i in range(features):
+                if self.tails[i] == 'circular':
+                    ind_circ += [i]
+            if torch.is_tensor(tail_bound):
+                scale_pf = np.pi / tail_bound[ind_circ]
+            else:
+                scale_pf = np.pi / tail_bound
+            preprocessing = PeriodicFeatures(features, ind_circ, scale_pf)
+        else:
+            preprocessing = None
 
         autoregressive_net = made_module.MADE(
             features=features,
@@ -50,9 +62,15 @@ class MaskedPiecewiseRationalQuadraticAutoregressive(Autoregressive):
             activation=activation,
             dropout_probability=dropout_probability,
             use_batch_norm=use_batch_norm,
+            preprocessing=preprocessing
         )
 
         super().__init__(autoregressive_net)
+
+        if torch.is_tensor(tail_bound):
+            self.register_buffer('tail_bound', tail_bound)
+        else:
+            self.tail_bound = tail_bound
 
     def _output_dim_multiplier(self):
         if self.tails == 'linear':
@@ -82,14 +100,12 @@ class MaskedPiecewiseRationalQuadraticAutoregressive(Autoregressive):
         if self.tails is None:
             spline_fn = splines.rational_quadratic_spline
             spline_kwargs = {}
-        elif self.tails == 'linear':
+        else:
             spline_fn = splines.unconstrained_rational_quadratic_spline
             spline_kwargs = {
                 'tails': self.tails,
                 'tail_bound': self.tail_bound
             }
-        else:
-            raise ValueError
 
         outputs, logabsdet = spline_fn(
             inputs=inputs,

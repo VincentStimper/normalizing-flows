@@ -99,7 +99,7 @@ class CircularCoupledRationalQuadraticSpline(Flow):
             num_hidden_channels,
             ind_circ,
             num_bins=8,
-            bound=3.,
+            tail_bound=3.,
             activation=nn.ReLU,
             dropout_probability=0.,
             reverse_mask=False
@@ -116,8 +116,8 @@ class CircularCoupledRationalQuadraticSpline(Flow):
         :type ind_circ: Iterable
         :param num_bins: Number of bins
         :type num_bins: Int
-        :param bound: Bound of the spline tails
-        :type bound: Float or Iterable
+        :param tail_bound: Bound of the spline tails
+        :type tail_bound: Float or Iterable
         :param activation: Activation function
         :type activation: torch module
         :param dropout_probability: Dropout probability of the NN
@@ -136,10 +136,10 @@ class CircularCoupledRationalQuadraticSpline(Flow):
             if id in ind_circ:
                 ind_circ_id += [i]
 
-        if torch.is_tensor(bound):
-            scale_pf = np.pi / bound[ind_circ_id]
+        if torch.is_tensor(tail_bound):
+            scale_pf = np.pi / tail_bound[ind_circ_id]
         else:
-            scale_pf = np.pi / bound
+            scale_pf = np.pi / tail_bound
 
         def transform_net_create_fn(in_features, out_features):
             if len(ind_circ_id) > 0:
@@ -166,7 +166,7 @@ class CircularCoupledRationalQuadraticSpline(Flow):
             transform_net_create_fn=transform_net_create_fn,
             num_bins=num_bins,
             tails=tails,
-            tail_bound=bound,
+            tail_bound=tail_bound,
 
             # Setting True corresponds to equations (4), (5), (6) in the NSF paper:
             apply_unconditional_transform=True
@@ -221,6 +221,74 @@ class AutoregressiveRationalQuadraticSpline(Flow):
             context_features=None,
             num_bins=num_bins,
             tails='linear',
+            tail_bound=tail_bound,
+            num_blocks=num_blocks,
+            use_residual_blocks=True,
+            random_mask=False,
+            activation=activation(),
+            dropout_probability=dropout_probability,
+            use_batch_norm=False)
+
+    def forward(self, z):
+        z, log_det = self.mprqat.inverse(z)
+        return z, log_det.view(-1)
+
+    def inverse(self, z):
+        z, log_det = self.mprqat(z)
+        return z, log_det.view(-1)
+
+
+class CircularAutoregressiveRationalQuadraticSpline(Flow):
+    """
+    Neural spline flow coupling layer, wrapper for the implementation
+    of Durkan et al., see https://github.com/bayesiains/nsf
+    """
+    def __init__(
+            self,
+            num_input_channels,
+            num_blocks,
+            num_hidden_channels,
+            ind_circ,
+            num_bins=8,
+            tail_bound=3,
+            activation=nn.ReLU,
+            dropout_probability=0.
+    ):
+        """
+        Constructor
+        :param num_input_channels: Flow dimension
+        :type num_input_channels: Int
+        :param num_blocks: Number of residual blocks of the parameter NN
+        :type num_blocks: Int
+        :param num_hidden_channels: Number of hidden units of the NN
+        :type num_hidden_channels: Int
+        :param ind_circ: Indices of the circular coordinates
+        :type ind_circ: Iterable
+        :param num_bins: Number of bins
+        :type num_bins: Int
+        :param tail_bound: Bound of the spline tails
+        :type tail_bound: Int
+        :param activation: Activation function
+        :type activation: torch module
+        :param dropout_probability: Dropout probability of the NN
+        :type dropout_probability: Float
+        """
+        super().__init__()
+
+        if torch.is_tensor(tail_bound):
+            scale_pf = np.pi / tail_bound[ind_circ]
+        else:
+            scale_pf = np.pi / tail_bound
+
+        tails = ['circular' if i in ind_circ else 'linear'
+                 for i in range(num_input_channels)]
+
+        self.mprqat=MaskedPiecewiseRationalQuadraticAutoregressive(
+            features=num_input_channels,
+            hidden_features=num_hidden_channels,
+            context_features=None,
+            num_bins=num_bins,
+            tails=tails,
             tail_bound=tail_bound,
             num_blocks=num_blocks,
             use_residual_blocks=True,
