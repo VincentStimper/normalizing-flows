@@ -18,6 +18,6 @@ from .residual import Residual
 
 from . import neural_spline
 from .neural_spline import CoupledRationalQuadraticSpline, AutoregressiveRationalQuadraticSpline, \
-    CircularCoupledRationalQuadraticSpline
+    CircularCoupledRationalQuadraticSpline, CircularAutoregressiveRationalQuadraticSpline
 
 from .stochastic import MetropolisHastings, HamiltonianMonteCarlo
