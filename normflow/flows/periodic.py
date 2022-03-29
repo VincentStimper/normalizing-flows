@@ -26,6 +26,6 @@ class Periodic(Flow):
 
     def inverse(self, z):
         z_ = z.clone()
-        z_[..., self.ind] = torch.remainder(z_ + self.bound, 2 * self.bound) \
+        z_[..., self.ind] = torch.remainder(z_[..., self.ind] + self.bound, 2 * self.bound) \
                             - self.bound
         return z_, torch.zeros(len(z), dtype=z.dtype, device=z.device)
