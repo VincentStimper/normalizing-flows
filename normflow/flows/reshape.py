@@ -101,7 +101,7 @@ class Squeeze(Flow):
         super().__init__()
 
     def forward(self, z):
-        log_det = 0
+        log_det = z.new_tensor(0)
         s = z.size()
         z = z.view(s[0], s[1] // 4, 2, 2, s[2], s[3])
         z = z.permute(0, 1, 4, 2, 5, 3).contiguous()
@@ -109,7 +109,7 @@ class Squeeze(Flow):
         return z, log_det
 
     def inverse(self, z):
-        log_det = 0
+        log_det = z.new_tensor(0)
         s = z.size()
         z = z.view(*s[:2], s[2] // 2, 2, s[3] // 2, 2)
         z = z.permute(0, 1, 3, 5, 2, 4).contiguous()
