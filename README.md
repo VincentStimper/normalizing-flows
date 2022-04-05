@@ -13,10 +13,14 @@ and [Resampling Base Distributions of Normalizing Flows](https://arxiv.org/abs/2
 * NICE ([Dinh et al., 2014](https://arxiv.org/abs/1410.8516))
 * Real NVP ([Dinh et al., 2016](https://arxiv.org/abs/1605.08803))
 * Glow ([Kingma & Dhariwal, 2018](https://arxiv.org/abs/1807.03039))
+* Masked Autoregressive Flow ([Papamakarios et al., 2017](https://proceedings.neurips.cc/paper/2017/hash/6c1da886822c67822bcf3679d04369fa-Abstract.html))
 * Neural Spline Flow ([Durkan et al., 2019](https://arxiv.org/abs/1906.04032))
+* Circular Neural Spline Flow ([Rezende et al., 2020](http://proceedings.mlr.press/v119/rezende20a.html))
 * Residual Flow ([Chen et al., 2019](https://arxiv.org/abs/1906.02735))
 * Stochastic Normalizing Flows ([Wu et al., 2020](https://arxiv.org/abs/2002.06707))
 
+Note that Neural Spline Flows with circular and non-circular coordinates
+are also supported.
 
 ## Methods of Installation
 
