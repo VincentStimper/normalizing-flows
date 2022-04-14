@@ -102,7 +102,8 @@ class CircularCoupledRationalQuadraticSpline(Flow):
             tail_bound=3.,
             activation=nn.ReLU,
             dropout_probability=0.,
-            reverse_mask=False
+            reverse_mask=False,
+            mask=None
     ):
         """
         Constructor
@@ -127,8 +128,9 @@ class CircularCoupledRationalQuadraticSpline(Flow):
         """
         super().__init__()
 
-        mask = create_alternating_binary_mask(num_input_channels,
-                                              even=reverse_mask)
+        if mask is None:
+            mask = create_alternating_binary_mask(num_input_channels,
+                                                  even=reverse_mask)
         features_vector = torch.arange(num_input_channels)
         identity_features = features_vector.masked_select(mask <= 0)
         ind_circ_id = []
