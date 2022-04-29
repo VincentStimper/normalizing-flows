@@ -181,8 +181,6 @@ class CircularCoupledRationalQuadraticSpline(Flow):
             num_bins=num_bins,
             tails=tails,
             tail_bound=tail_bound,
-
-            # Setting True corresponds to equations (4), (5), (6) in the NSF paper:
             apply_unconditional_transform=True
         )
 

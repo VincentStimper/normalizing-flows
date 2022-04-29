@@ -168,7 +168,7 @@ class PiecewiseRationalQuadraticCDF(Flow):
                  num_bins=10,
                  tails=None,
                  tail_bound=1.,
-                 identity_init=False,
+                 identity_init=True,
                  min_bin_width=splines.DEFAULT_MIN_BIN_WIDTH,
                  min_bin_height=splines.DEFAULT_MIN_BIN_HEIGHT,
                  min_derivative=splines.DEFAULT_MIN_DERIVATIVE):
