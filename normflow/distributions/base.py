@@ -419,14 +419,13 @@ class GaussianMixture(BaseDistribution):
             self.register_buffer("weight_scores", torch.tensor(np.log(1. * weights)))
 
     def forward(self, num_samples=1):
-        # Sample mode indices
-        mode_ind = torch.randint(high=self.n_modes, size=(num_samples,))
-        mode_1h = torch.zeros((num_samples, self.n_modes), dtype=torch.int64)
-        mode_1h.scatter_(1, mode_ind[:, None], 1)
-        mode_1h = mode_1h[..., None]
-
         # Get weights
         weights = torch.softmax(self.weight_scores, 1)
+
+        # Sample mode indices
+        mode = torch.multinomial(weights, num_samples, replacement=True)
+        mode_1h = nn.functional.one_hot(mode)
+        mode_1h = mode_1h[..., None]
 
         # Get samples
         eps = torch.randn(num_samples, self.dim, dtype=self.loc.dtype, device=self.loc.device)
