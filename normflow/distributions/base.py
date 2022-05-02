@@ -423,19 +423,20 @@ class GaussianMixture(BaseDistribution):
         weights = torch.softmax(self.weight_scores, 1)
 
         # Sample mode indices
-        mode = torch.multinomial(weights, num_samples, replacement=True)
-        mode_1h = nn.functional.one_hot(mode)
+        mode = torch.multinomial(weights[0, :], num_samples, replacement=True)
+        mode_1h = nn.functional.one_hot(mode, self.n_modes)
         mode_1h = mode_1h[..., None]
 
         # Get samples
-        eps = torch.randn(num_samples, self.dim, dtype=self.loc.dtype, device=self.loc.device)
+        eps_ = torch.randn(num_samples, self.dim, dtype=self.loc.dtype, device=self.loc.device)
         scale_sample = torch.sum(torch.exp(self.log_scale) * mode_1h, 1)
         loc_sample = torch.sum(self.loc * mode_1h, 1)
-        z = eps * scale_sample + loc_sample
+        z = eps_ * scale_sample + loc_sample
 
         # Compute log probability
+        eps = (z[:, None, :] - self.loc) / torch.exp(self.log_scale)
         log_p = - 0.5 * self.dim * np.log(2 * np.pi) + torch.log(weights)\
-                - 0.5 * torch.sum(torch.pow(eps, 2), 1, keepdim=True)\
+                - 0.5 * torch.sum(torch.pow(eps, 2), 2) \
                 - torch.sum(self.log_scale, 2)
         log_p = torch.logsumexp(log_p, 1)
 
