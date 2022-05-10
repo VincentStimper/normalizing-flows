@@ -29,21 +29,28 @@ def create_mid_split_binary_mask(features):
     return mask
 
 
-def create_random_binary_mask(features):
+def create_random_binary_mask(features, seed=None):
     """
     Creates a random binary mask of a given dimension with half of its entries
     randomly set to 1s.
 
     :param features: Dimension of mask.
+    :param seed: Seed to be used
     :return: Binary mask with half of its entries set to 1s, of type torch.Tensor.
     """
     mask = torch.zeros(features).byte()
     weights = torch.ones(features).float()
     num_samples = features // 2 if features % 2 == 0 else features // 2 + 1
+    if seed is None:
+        generator = None
+    else:
+        generator = torch.Generator()
+        generator.manual_seed(seed)
     indices = torch.multinomial(
         input=weights,
         num_samples=num_samples,
-        replacement=False
+        replacement=False,
+        generator=generator
     )
     mask[indices] += 1
     return mask
