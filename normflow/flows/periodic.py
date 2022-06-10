@@ -49,7 +49,7 @@ class PeriodicShift(Flow):
         else:
             self.bound = bound
         if torch.is_tensor(shift):
-            self.register_buffer('shift')
+            self.register_buffer('shift', shift)
         else:
             self.shift = shift
 
