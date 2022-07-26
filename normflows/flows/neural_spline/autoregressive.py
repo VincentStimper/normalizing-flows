@@ -9,9 +9,9 @@ from torch.nn import functional as F
 
 from ... import utils
 from ..affine.autoregressive import Autoregressive
-from normflow.nets import made as made_module
-from normflow.utils import splines
-from normflow.utils.nn import PeriodicFeatures
+from normflows.nets import made as made_module
+from normflows.utils import splines
+from normflows.utils.nn import PeriodicFeatures
 
 
 

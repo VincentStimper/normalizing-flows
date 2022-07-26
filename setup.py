@@ -17,7 +17,7 @@ with open(path.join(here, 'requirements.txt'), encoding='utf-8') as f:
 install_requires = [x.strip() for x in all_reqs]
 
 setup(
-    name='normflow',
+    name='normflows',
     version=__version__,
     description='Pytorch implementation of normalizing flows',
     long_description=long_description,

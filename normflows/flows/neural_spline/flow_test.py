@@ -1,7 +1,7 @@
 import torch
 import torchtestcase
 
-from normflow import flows
+from normflows import flows
 
 
 class FlowTest(torchtestcase.TorchTestCase):

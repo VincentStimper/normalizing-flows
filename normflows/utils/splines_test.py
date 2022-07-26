@@ -1,7 +1,7 @@
 import torch
 import torchtestcase
 
-from normflow.utils import splines
+from normflows.utils import splines
 
 class RationalQuadraticSplineTest(torchtestcase.TorchTestCase):
     def test_forward_inverse_are_consistent(self):

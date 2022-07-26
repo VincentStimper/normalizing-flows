@@ -6,8 +6,8 @@ Code taken from https://github.com/bayesiains/nsf
 import torch
 import unittest
 
-from normflow.flows.neural_spline import autoregressive
-from normflow.flows.neural_spline.flow_test import FlowTest
+from normflows.flows.neural_spline import autoregressive
+from normflows.flows.neural_spline.flow_test import FlowTest
 
 
 

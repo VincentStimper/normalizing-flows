@@ -27,7 +27,7 @@ are also supported.
 The latest version of the package can be installed via pip
 
 ```
-pip install normflow
+pip install normflows
 ```
 
 If you want to use a GPU, make sure that PyTorch is set up correctly by
@@ -60,7 +60,7 @@ map. One dimension is used to compute the scale and shift parameter for the
 other dimension. After each coupling layer we swap their roles.
 
 ```python
-import normflow as nf
+import normflows as nf
 
 # Define 2D base distribution
 base = nf.distributions.base.DiagGaussian(2)

@@ -7,7 +7,7 @@ import torch
 import torchtestcase
 import unittest
 
-from normflow.nets import made
+from normflows.nets import made
 
 
 class ShapeTest(torchtestcase.TorchTestCase):

@@ -1,8 +1,8 @@
 import torch
 import unittest
 
-from normflow.flows.affine import autoregressive
-from normflow.flows.neural_spline.flow_test import FlowTest
+from normflows.flows.affine import autoregressive
+from normflows.flows.neural_spline.flow_test import FlowTest
 
 
 class MaskedAffineAutoregressiveTest(FlowTest):

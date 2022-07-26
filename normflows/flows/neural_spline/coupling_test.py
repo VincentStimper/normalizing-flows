@@ -9,11 +9,11 @@ import unittest
 
 from torch import nn
 
-from normflow import nets as nn_
+from normflows import nets as nn_
 
-from normflow.flows.neural_spline import coupling
-from normflow.flows.neural_spline.flow_test import FlowTest
-from normflow import utils
+from normflows.flows.neural_spline import coupling
+from normflows.flows.neural_spline.flow_test import FlowTest
+from normflows import utils
 
 
 
