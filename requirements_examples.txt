@@ -3,3 +3,4 @@ jupyterlab
 tqdm
 sklearn
 ipywidgets
+pandas
