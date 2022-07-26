@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 from codecs import open
 from os import path
 
-__version__ = '1.2'
+__version__ = '1.3'
 
 here = path.abspath(path.dirname(__file__))
 
@@ -32,7 +32,10 @@ setup(
     keywords='',
     packages=find_packages(exclude=['docs', 'tests*']),
     include_package_data=True,
-    author=['Vincent Stimper', 'Lukas Ryll', 'David Liu'],
+    author=['Vincent Stimper <vincent.stimper@tuebingen.mpg.de>',
+            'David Liu <dl543@cam.ac.uk>',
+            'Lukas Ryll <lr487@cam.ac.uk>',
+            'Andrew Campbell <campbell@stats.ox.ac.uk>'],
     install_requires=install_requires,
     author_email=''
 )

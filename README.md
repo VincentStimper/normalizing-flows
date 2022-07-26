@@ -27,7 +27,7 @@ are also supported.
 The latest version of the package can be installed via pip
 
 ```
-pip install --upgrade git+https://github.com/VincentStimper/normalizing-flows.git
+pip install normflow
 ```
 
 If you want to use a GPU, make sure that PyTorch is set up correctly by
