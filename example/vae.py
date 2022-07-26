@@ -6,11 +6,11 @@ from torch.distributions.normal import Normal
 from torch.nn import functional as F
 from torchvision import datasets, transforms
 from tqdm import tqdm
-from normflow.flows import Planar, Radial, MaskedAffineFlow, BatchNorm
+from normflows.flows import Planar, Radial, MaskedAffineFlow, BatchNorm
 import argparse
 from datetime import datetime
 import os
-from normflow import nets
+from normflows import nets
 import pandas as pd
 import random
 
