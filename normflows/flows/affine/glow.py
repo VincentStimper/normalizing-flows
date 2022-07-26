@@ -8,7 +8,6 @@ from ..normalization import ActNorm
 from ... import nets
 
 
-
 class GlowBlock(Flow):
     """
     Glow: Generative Flow with Invertible 1×1 Convolutions, arXiv: 1807.03039
@@ -17,9 +16,19 @@ class GlowBlock(Flow):
     Invertible1x1Conv (dropped if there is only one channel)
     ActNorm (first batch used for initialization)
     """
-    def __init__(self, channels, hidden_channels, scale=True, scale_map='sigmoid',
-                 split_mode='channel', leaky=0.0, init_zeros=True, use_lu=True,
-                 net_actnorm=False):
+
+    def __init__(
+        self,
+        channels,
+        hidden_channels,
+        scale=True,
+        scale_map="sigmoid",
+        split_mode="channel",
+        leaky=0.0,
+        init_zeros=True,
+        use_lu=True,
+        net_actnorm=False,
+    ):
         """
         Constructor
         :param channels: Number of channels of the data
@@ -40,19 +49,20 @@ class GlowBlock(Flow):
         # Coupling layer
         kernel_size = (3, 1, 3)
         num_param = 2 if scale else 1
-        if 'channel' == split_mode:
+        if "channel" == split_mode:
             channels_ = (channels // 2,) + 2 * (hidden_channels,)
             channels_ += (num_param * ((channels + 1) // 2),)
-        elif 'channel_inv' == split_mode:
+        elif "channel_inv" == split_mode:
             channels_ = ((channels + 1) // 2,) + 2 * (hidden_channels,)
             channels_ += (num_param * (channels // 2),)
-        elif 'checkerboard' in split_mode:
+        elif "checkerboard" in split_mode:
             channels_ = (channels,) + 2 * (hidden_channels,)
             channels_ += (num_param * channels,)
         else:
-            raise NotImplementedError('Mode ' + split_mode + ' is not implemented.')
-        param_map = nets.ConvNet2d(channels_, kernel_size, leaky, init_zeros,
-                                   actnorm=net_actnorm)
+            raise NotImplementedError("Mode " + split_mode + " is not implemented.")
+        param_map = nets.ConvNet2d(
+            channels_, kernel_size, leaky, init_zeros, actnorm=net_actnorm
+        )
         self.flows += [AffineCouplingBlock(param_map, scale, scale_map, split_mode)]
         # Invertible 1x1 convolution
         if channels > 1:

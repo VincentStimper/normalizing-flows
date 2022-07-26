@@ -1,7 +1,6 @@
 from ..nets.lipschitz import InducedNormLinear, InducedNormConv2d
 
 
-
 def set_requires_grad(module, flag):
     """
     Sets requires_grad flag of all parameters of a torch.nn.module

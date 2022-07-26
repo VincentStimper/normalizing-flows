@@ -3,14 +3,21 @@ from torch import nn
 from .. import utils
 
 
-
 class MLP(nn.Module):
     """
     A multilayer perceptron with Leaky ReLU nonlinearities
     """
 
-    def __init__(self, layers, leaky=0.0, score_scale=None, output_fn=None,
-                 output_scale=None, init_zeros=False, dropout=None):
+    def __init__(
+        self,
+        layers,
+        leaky=0.0,
+        score_scale=None,
+        output_fn=None,
+        output_scale=None,
+        init_zeros=False,
+        dropout=None,
+    ):
         """
         :param layers: list of layer sizes from start to end
         :param leaky: slope of the leaky part of the ReLU,
@@ -28,8 +35,8 @@ class MLP(nn.Module):
         """
         super().__init__()
         net = nn.ModuleList([])
-        for k in range(len(layers)-2):
-            net.append(nn.Linear(layers[k], layers[k+1]))
+        for k in range(len(layers) - 2):
+            net.append(nn.Linear(layers[k], layers[k + 1]))
             net.append(nn.LeakyReLU(leaky))
         if dropout is not None:
             net.append(nn.Dropout(p=dropout))

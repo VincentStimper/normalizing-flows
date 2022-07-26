@@ -25,8 +25,7 @@ class FlowTest(torchtestcase.TorchTestCase):
         self.assertEqual(logabsdet, torch.zeros(inputs.shape[:1]))
 
     def assertNotEqual(self, first, second, msg=None):
-        if ((self._eps and (first - second).abs().max().item() < self._eps) or
-                (not self._eps and torch.equal(first, second))):
+        if (self._eps and (first - second).abs().max().item() < self._eps) or (
+            not self._eps and torch.equal(first, second)
+        ):
             self._fail_with_message(msg, "The tensors are _not_ different!")
-
-

@@ -4,12 +4,12 @@ from torch import nn
 from .. import flows
 
 
-
 class ConstScaleLayer(nn.Module):
     """
     Scaling features by a fixed factor
     """
-    def __init__(self, scale=1.):
+
+    def __init__(self, scale=1.0):
         """
         Constructor
         :param scale: Scale to apply to features
@@ -26,6 +26,7 @@ class ActNorm(nn.Module):
     """
     ActNorm layer with just one forward pass
     """
+
     def __init__(self, shape, logscale_factor=None):
         """
         Constructor
@@ -44,6 +45,7 @@ class ClampExp(nn.Module):
     """
     Nonlinearity min(exp(lam * x), 1)
     """
+
     def __init__(self):
         """
         Constructor
@@ -52,7 +54,7 @@ class ClampExp(nn.Module):
         super(ClampExp, self).__init__()
 
     def forward(self, x):
-        one = torch.tensor(1., device=x.device, dtype=x.dtype)
+        one = torch.tensor(1.0, device=x.device, dtype=x.dtype)
         return torch.min(torch.exp(x), one)
 
 
@@ -60,7 +62,8 @@ class PeriodicFeatures(nn.Module):
     """
     Converts a specified part of the input to periodic features
     """
-    def __init__(self, ndim, ind, scale=1., bias=False, activation=None):
+
+    def __init__(self, ndim, ind, scale=1.0, bias=False, activation=None):
         """
         Constructor
         :param ndim: Int, number of dimensions
@@ -77,25 +80,25 @@ class PeriodicFeatures(nn.Module):
         # Set up indices and permutations
         self.ndim = ndim
         if torch.is_tensor(ind):
-            self.register_buffer('ind', torch._cast_Long(ind))
+            self.register_buffer("ind", torch._cast_Long(ind))
         else:
-            self.register_buffer('ind', torch.tensor(ind, dtype=torch.long))
+            self.register_buffer("ind", torch.tensor(ind, dtype=torch.long))
 
         ind_ = []
         for i in range(self.ndim):
             if not i in self.ind:
                 ind_ += [i]
-        self.register_buffer('ind_', torch.tensor(ind_, dtype=torch.long))
+        self.register_buffer("ind_", torch.tensor(ind_, dtype=torch.long))
 
         perm_ = torch.cat((self.ind, self.ind_))
         inv_perm_ = torch.zeros_like(perm_)
         for i in range(self.ndim):
             inv_perm_[perm_[i]] = i
-        self.register_buffer('inv_perm', inv_perm_)
+        self.register_buffer("inv_perm", inv_perm_)
 
         self.weights = nn.Parameter(torch.ones(len(self.ind), 2))
         if torch.is_tensor(scale):
-            self.register_buffer('scale', scale)
+            self.register_buffer("scale", scale)
         else:
             self.scale = scale
 
@@ -111,7 +114,9 @@ class PeriodicFeatures(nn.Module):
     def forward(self, inputs):
         inputs_ = inputs[..., self.ind]
         inputs_ = self.scale * inputs_
-        inputs_ = self.weights[:, 0] * torch.sin(inputs_) + self.weights[:, 1] * torch.cos(inputs_)
+        inputs_ = self.weights[:, 0] * torch.sin(inputs_) + self.weights[
+            :, 1
+        ] * torch.cos(inputs_)
         if self.apply_bias:
             inputs_ = inputs_ + self.bias
         inputs_ = self.activation(inputs_)

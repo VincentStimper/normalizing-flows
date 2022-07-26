@@ -3,12 +3,12 @@ import torch
 from .base import Flow
 
 
-
 class PeriodicWrap(Flow):
     """
     Map periodic coordinates to fixed interval
     """
-    def __init__(self, ind, bound=1.):
+
+    def __init__(self, ind, bound=1.0):
         """
         Constructor
         :param ind: Iterable, indices of coordinates to be mapped
@@ -17,7 +17,7 @@ class PeriodicWrap(Flow):
         super().__init__()
         self.ind = ind
         if torch.is_tensor(bound):
-            self.register_buffer('bound', bound)
+            self.register_buffer("bound", bound)
         else:
             self.bound = bound
 
@@ -26,8 +26,9 @@ class PeriodicWrap(Flow):
 
     def inverse(self, z):
         z_ = z.clone()
-        z_[..., self.ind] = torch.remainder(z_[..., self.ind] + self.bound, 2 * self.bound) \
-                            - self.bound
+        z_[..., self.ind] = (
+            torch.remainder(z_[..., self.ind] + self.bound, 2 * self.bound) - self.bound
+        )
         return z_, torch.zeros(len(z), dtype=z.dtype, device=z.device)
 
 
@@ -35,7 +36,8 @@ class PeriodicShift(Flow):
     """
     Shift and wrap periodic coordinates
     """
-    def __init__(self, ind, bound=1., shift=0.):
+
+    def __init__(self, ind, bound=1.0, shift=0.0):
         """
         Constructor
         :param ind: Iterable, indices of coordinates to be mapped
@@ -45,22 +47,26 @@ class PeriodicShift(Flow):
         super().__init__()
         self.ind = ind
         if torch.is_tensor(bound):
-            self.register_buffer('bound', bound)
+            self.register_buffer("bound", bound)
         else:
             self.bound = bound
         if torch.is_tensor(shift):
-            self.register_buffer('shift', shift)
+            self.register_buffer("shift", shift)
         else:
             self.shift = shift
 
     def forward(self, z):
         z_ = z.clone()
-        z_[..., self.ind] = torch.remainder(z_[..., self.ind] + self.shift + self.bound, 2 * self.bound) \
-                            - self.bound
+        z_[..., self.ind] = (
+            torch.remainder(z_[..., self.ind] + self.shift + self.bound, 2 * self.bound)
+            - self.bound
+        )
         return z_, torch.zeros(len(z), dtype=z.dtype, device=z.device)
 
     def inverse(self, z):
         z_ = z.clone()
-        z_[..., self.ind] = torch.remainder(z_[..., self.ind] - self.shift + self.bound, 2 * self.bound) \
-                            - self.bound
+        z_[..., self.ind] = (
+            torch.remainder(z_[..., self.ind] - self.shift + self.bound, 2 * self.bound)
+            - self.bound
+        )
         return z_, torch.zeros(len(z), dtype=z.dtype, device=z.device)

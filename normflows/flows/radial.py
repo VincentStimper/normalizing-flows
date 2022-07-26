@@ -5,12 +5,12 @@ from torch import nn
 from .base import Flow
 
 
-
 class Radial(Flow):
     """
     Radial flow as introduced in arXiv: 1505.05770
         f(z) = z + beta * h(alpha, r) * (z - z_0)
     """
+
     def __init__(self, shape, z_0=None):
         """
         Constructor of the radial flow
@@ -19,7 +19,7 @@ class Radial(Flow):
         """
         super().__init__()
         self.d_cpu = torch.prod(torch.tensor(shape))
-        self.register_buffer('d', self.d_cpu)
+        self.register_buffer("d", self.d_cpu)
         self.beta = nn.Parameter(torch.empty(1))
         lim = 1.0 / np.prod(shape)
         nn.init.uniform_(self.beta, -lim - 1.0, lim - 1.0)
@@ -36,7 +36,7 @@ class Radial(Flow):
         dz = z - self.z_0
         r = torch.norm(dz, dim=list(range(1, self.z_0.dim())))
         h_arr = beta / (torch.abs(self.alpha) + r)
-        h_arr_ = - beta * r / (torch.abs(self.alpha) + r) ** 2
+        h_arr_ = -beta * r / (torch.abs(self.alpha) + r) ** 2
         z_ = z + h_arr.unsqueeze(1) * dz
         log_det = (self.d - 1) * torch.log(1 + h_arr) + torch.log(1 + h_arr + h_arr_)
         return z_, log_det

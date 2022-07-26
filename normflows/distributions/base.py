@@ -5,12 +5,12 @@ import numpy as np
 from .. import flows
 
 
-
 class BaseDistribution(nn.Module):
     """
     Base distribution of a flow-based model
     Parameters do not depend of target variable (as is the case for a VAE encoder)
     """
+
     def __init__(self):
         super().__init__()
 
@@ -35,6 +35,7 @@ class DiagGaussian(BaseDistribution):
     """
     Multivariate Gaussian distribution with diagonal covariance matrix
     """
+
     def __init__(self, shape, trainable=True):
         """
         Constructor
@@ -55,15 +56,17 @@ class DiagGaussian(BaseDistribution):
         self.temperature = None  # Temperature parameter for annealed sampling
 
     def forward(self, num_samples=1):
-        eps = torch.randn((num_samples,) + self.shape, dtype=self.loc.dtype,
-                          device=self.loc.device)
+        eps = torch.randn(
+            (num_samples,) + self.shape, dtype=self.loc.dtype, device=self.loc.device
+        )
         if self.temperature is None:
             log_scale = self.log_scale
         else:
             log_scale = self.log_scale + np.log(self.temperature)
         z = self.loc + torch.exp(log_scale) * eps
-        log_p = - 0.5 * self.d * np.log(2 * np.pi) \
-                - torch.sum(log_scale + 0.5 * torch.pow(eps, 2), list(range(1, self.n_dim + 1)))
+        log_p = -0.5 * self.d * np.log(2 * np.pi) - torch.sum(
+            log_scale + 0.5 * torch.pow(eps, 2), list(range(1, self.n_dim + 1))
+        )
         return z, log_p
 
     def log_prob(self, z):
@@ -71,9 +74,10 @@ class DiagGaussian(BaseDistribution):
             log_scale = self.log_scale
         else:
             log_scale = self.log_scale + np.log(self.temperature)
-        log_p = - 0.5 * self.d * np.log(2 * np.pi)\
-                - torch.sum(log_scale + 0.5 * torch.pow((z - self.loc) / torch.exp(log_scale), 2),
-                            list(range(1, self.n_dim + 1)))
+        log_p = -0.5 * self.d * np.log(2 * np.pi) - torch.sum(
+            log_scale + 0.5 * torch.pow((z - self.loc) / torch.exp(log_scale), 2),
+            list(range(1, self.n_dim + 1)),
+        )
         return log_p
 
 
@@ -82,6 +86,7 @@ class UniformGaussian(BaseDistribution):
     Distribution of a 1D random variable with some entries having a uniform and
     others a Gaussian distribution
     """
+
     def __init__(self, ndim, ind, scale=None):
         """
         Constructor
@@ -96,44 +101,56 @@ class UniformGaussian(BaseDistribution):
         # Set up indices and permutations
         self.ndim = ndim
         if torch.is_tensor(ind):
-            self.register_buffer('ind', torch._cast_Long(ind))
+            self.register_buffer("ind", torch._cast_Long(ind))
         else:
-            self.register_buffer('ind', torch.tensor(ind, dtype=torch.long))
+            self.register_buffer("ind", torch.tensor(ind, dtype=torch.long))
 
         ind_ = []
         for i in range(self.ndim):
             if not i in self.ind:
                 ind_ += [i]
-        self.register_buffer('ind_', torch.tensor(ind_, dtype=torch.long))
+        self.register_buffer("ind_", torch.tensor(ind_, dtype=torch.long))
 
         perm_ = torch.cat((self.ind, self.ind_))
         inv_perm_ = torch.zeros_like(perm_)
         for i in range(self.ndim):
             inv_perm_[perm_[i]] = i
-        self.register_buffer('inv_perm', inv_perm_)
+        self.register_buffer("inv_perm", inv_perm_)
 
         if scale is None:
-            self.register_buffer('scale', torch.ones(self.ndim))
+            self.register_buffer("scale", torch.ones(self.ndim))
         else:
-            self.register_buffer('scale', scale)
+            self.register_buffer("scale", scale)
 
     def forward(self, num_samples=1):
         z = self.sample(num_samples)
         return z, self.log_prob(z)
 
     def sample(self, num_samples=1):
-        eps_u = torch.rand((num_samples, len(self.ind)), dtype=self.scale.dtype,
-                           device=self.scale.device) - 0.5
-        eps_g = torch.randn((num_samples, len(self.ind_)), dtype=self.scale.dtype,
-                            device=self.scale.device)
+        eps_u = (
+            torch.rand(
+                (num_samples, len(self.ind)),
+                dtype=self.scale.dtype,
+                device=self.scale.device,
+            )
+            - 0.5
+        )
+        eps_g = torch.randn(
+            (num_samples, len(self.ind_)),
+            dtype=self.scale.dtype,
+            device=self.scale.device,
+        )
         z = torch.cat((eps_u, eps_g), -1)
         z = z[..., self.inv_perm]
         return self.scale * z
 
     def log_prob(self, z):
         log_p_u = torch.broadcast_to(-torch.log(self.scale[self.ind]), (len(z), -1))
-        log_p_g = - 0.5 * np.log(2 * np.pi) - torch.log(self.scale[self.ind_]) \
-                  - 0.5 * torch.pow(z[..., self.ind_] / self.scale[self.ind_], 2)
+        log_p_g = (
+            -0.5 * np.log(2 * np.pi)
+            - torch.log(self.scale[self.ind_])
+            - 0.5 * torch.pow(z[..., self.ind_] / self.scale[self.ind_], 2)
+        )
         return torch.sum(log_p_u, -1) + torch.sum(log_p_g, -1)
 
 
@@ -141,6 +158,7 @@ class ClassCondDiagGaussian(BaseDistribution):
     """
     Class conditional multivariate Gaussian distribution with diagonal covariance matrix
     """
+
     def __init__(self, shape, num_classes):
         """
         Constructor
@@ -157,7 +175,7 @@ class ClassCondDiagGaussian(BaseDistribution):
         self.num_classes = num_classes
         self.loc = nn.Parameter(torch.zeros(*self.shape, num_classes))
         self.log_scale = nn.Parameter(torch.zeros(*self.shape, num_classes))
-        self.temperature = None # Temperature parameter for annealed sampling
+        self.temperature = None  # Temperature parameter for annealed sampling
 
     def forward(self, num_samples=1, y=None):
         if y is not None:
@@ -165,27 +183,33 @@ class ClassCondDiagGaussian(BaseDistribution):
         else:
             y = torch.randint(self.num_classes, (num_samples,), device=self.loc.device)
         if y.dim() == 1:
-            y_onehot = torch.zeros((self.num_classes, num_samples), dtype=self.loc.dtype,
-                                   device=self.loc.device)
+            y_onehot = torch.zeros(
+                (self.num_classes, num_samples),
+                dtype=self.loc.dtype,
+                device=self.loc.device,
+            )
             y_onehot.scatter_(0, y[None], 1)
             y = y_onehot
         else:
             y = y.t()
-        eps = torch.randn((num_samples,) + self.shape, dtype=self.loc.dtype,
-                          device=self.loc.device)
+        eps = torch.randn(
+            (num_samples,) + self.shape, dtype=self.loc.dtype, device=self.loc.device
+        )
         loc = (self.loc @ y).permute(*self.perm)
         log_scale = (self.log_scale @ y).permute(*self.perm)
         if self.temperature is not None:
             log_scale = np.log(self.temperature) + log_scale
         z = loc + torch.exp(log_scale) * eps
-        log_p = - 0.5 * self.d * np.log(2 * np.pi) \
-                - torch.sum(log_scale + 0.5 * torch.pow(eps, 2), list(range(1, self.n_dim + 1)))
+        log_p = -0.5 * self.d * np.log(2 * np.pi) - torch.sum(
+            log_scale + 0.5 * torch.pow(eps, 2), list(range(1, self.n_dim + 1))
+        )
         return z, log_p
 
     def log_prob(self, z, y):
         if y.dim() == 1:
-            y_onehot = torch.zeros((self.num_classes, len(y)), dtype=self.loc.dtype,
-                                   device=self.loc.device)
+            y_onehot = torch.zeros(
+                (self.num_classes, len(y)), dtype=self.loc.dtype, device=self.loc.device
+            )
             y_onehot.scatter_(0, y[None], 1)
             y = y_onehot
         else:
@@ -194,9 +218,10 @@ class ClassCondDiagGaussian(BaseDistribution):
         log_scale = (self.log_scale @ y).permute(*self.perm)
         if self.temperature is not None:
             log_scale = np.log(self.temperature) + log_scale
-        log_p = - 0.5 * self.d * np.log(2 * np.pi)\
-                - torch.sum(log_scale + 0.5 * torch.pow((z - loc) / torch.exp(log_scale), 2),
-                            list(range(1, self.n_dim + 1)))
+        log_p = -0.5 * self.d * np.log(2 * np.pi) - torch.sum(
+            log_scale + 0.5 * torch.pow((z - loc) / torch.exp(log_scale), 2),
+            list(range(1, self.n_dim + 1)),
+        )
         return log_p
 
 
@@ -205,7 +230,8 @@ class GlowBase(BaseDistribution):
     Base distribution of the Glow model, i.e. Diagonal Gaussian with one mean and
     log scale for each channel
     """
-    def __init__(self, shape, num_classes=None, logscale_factor=3.):
+
+    def __init__(self, shape, num_classes=None, logscale_factor=3.0):
         """
         Constructor
         :param shape: Shape of the variables
@@ -226,71 +252,101 @@ class GlowBase(BaseDistribution):
         self.class_cond = num_classes is not None
         self.logscale_factor = logscale_factor
         # Set up parameters
-        self.loc = nn.Parameter(torch.zeros(1, self.shape[0], *((self.n_dim - 1) * [1])))
-        self.loc_logs = nn.Parameter(torch.zeros(1, self.shape[0],
-                                                 *((self.n_dim - 1) * [1])))
-        self.log_scale = nn.Parameter(torch.zeros(1, self.shape[0],
-                                                  *((self.n_dim - 1) * [1])))
-        self.log_scale_logs = nn.Parameter(torch.zeros(1, self.shape[0],
-                                                       *((self.n_dim - 1) * [1])))
+        self.loc = nn.Parameter(
+            torch.zeros(1, self.shape[0], *((self.n_dim - 1) * [1]))
+        )
+        self.loc_logs = nn.Parameter(
+            torch.zeros(1, self.shape[0], *((self.n_dim - 1) * [1]))
+        )
+        self.log_scale = nn.Parameter(
+            torch.zeros(1, self.shape[0], *((self.n_dim - 1) * [1]))
+        )
+        self.log_scale_logs = nn.Parameter(
+            torch.zeros(1, self.shape[0], *((self.n_dim - 1) * [1]))
+        )
         # Class conditional parameter if needed
         if self.class_cond:
             self.loc_cc = nn.Parameter(torch.zeros(self.num_classes, self.shape[0]))
-            self.log_scale_cc = nn.Parameter(torch.zeros(self.num_classes, self.shape[0]))
+            self.log_scale_cc = nn.Parameter(
+                torch.zeros(self.num_classes, self.shape[0])
+            )
         # Temperature parameter for annealed sampling
         self.temperature = None
 
     def forward(self, num_samples=1, y=None):
         # Prepare parameter
         loc = self.loc * torch.exp(self.loc_logs * self.logscale_factor)
-        log_scale = self.log_scale * torch.exp(self.log_scale_logs * self.logscale_factor)
+        log_scale = self.log_scale * torch.exp(
+            self.log_scale_logs * self.logscale_factor
+        )
         if self.class_cond:
             if y is not None:
                 num_samples = len(y)
             else:
-                y = torch.randint(self.num_classes, (num_samples,), device=self.loc.device)
+                y = torch.randint(
+                    self.num_classes, (num_samples,), device=self.loc.device
+                )
             if y.dim() == 1:
-                y_onehot = torch.zeros((len(y), self.num_classes), dtype=self.loc.dtype,
-                                       device=self.loc.device)
+                y_onehot = torch.zeros(
+                    (len(y), self.num_classes),
+                    dtype=self.loc.dtype,
+                    device=self.loc.device,
+                )
                 y_onehot.scatter_(1, y[:, None], 1)
                 y = y_onehot
-            loc = loc + (y @ self.loc_cc).view(y.size(0), self.shape[0],
-                                               *((self.n_dim - 1) * [1]))
-            log_scale = log_scale + (y @ self.log_scale_cc).view(y.size(0), self.shape[0],
-                                                                 *((self.n_dim - 1) * [1]))
+            loc = loc + (y @ self.loc_cc).view(
+                y.size(0), self.shape[0], *((self.n_dim - 1) * [1])
+            )
+            log_scale = log_scale + (y @ self.log_scale_cc).view(
+                y.size(0), self.shape[0], *((self.n_dim - 1) * [1])
+            )
         if self.temperature is not None:
             log_scale = log_scale + np.log(self.temperature)
         # Sample
-        eps = torch.randn((num_samples,) + self.shape, dtype=self.loc.dtype,
-                          device=self.loc.device)
+        eps = torch.randn(
+            (num_samples,) + self.shape, dtype=self.loc.dtype, device=self.loc.device
+        )
         z = loc + torch.exp(log_scale) * eps
         # Get log prob
-        log_p = - 0.5 * self.d * np.log(2 * np.pi) \
-                - self.num_pix * torch.sum(log_scale, dim=self.sum_dim) \
-                - 0.5 * torch.sum(torch.pow(eps, 2), dim=self.sum_dim)
+        log_p = (
+            -0.5 * self.d * np.log(2 * np.pi)
+            - self.num_pix * torch.sum(log_scale, dim=self.sum_dim)
+            - 0.5 * torch.sum(torch.pow(eps, 2), dim=self.sum_dim)
+        )
         return z, log_p
 
     def log_prob(self, z, y=None):
         # Perpare parameter
         loc = self.loc * torch.exp(self.loc_logs * self.logscale_factor)
-        log_scale = self.log_scale * torch.exp(self.log_scale_logs * self.logscale_factor)
+        log_scale = self.log_scale * torch.exp(
+            self.log_scale_logs * self.logscale_factor
+        )
         if self.class_cond:
             if y.dim() == 1:
-                y_onehot = torch.zeros((len(y), self.num_classes), dtype=self.loc.dtype,
-                                       device=self.loc.device)
+                y_onehot = torch.zeros(
+                    (len(y), self.num_classes),
+                    dtype=self.loc.dtype,
+                    device=self.loc.device,
+                )
                 y_onehot.scatter_(1, y[:, None], 1)
                 y = y_onehot
-            loc = loc + (y @ self.loc_cc).view(y.size(0), self.shape[0],
-                                               *((self.n_dim - 1) * [1]))
-            log_scale = log_scale + (y @ self.log_scale_cc).view(y.size(0), self.shape[0],
-                                                                 *((self.n_dim - 1) * [1]))
+            loc = loc + (y @ self.loc_cc).view(
+                y.size(0), self.shape[0], *((self.n_dim - 1) * [1])
+            )
+            log_scale = log_scale + (y @ self.log_scale_cc).view(
+                y.size(0), self.shape[0], *((self.n_dim - 1) * [1])
+            )
         if self.temperature is not None:
             log_scale = log_scale + np.log(self.temperature)
         # Get log prob
-        log_p = - 0.5 * self.d * np.log(2 * np.pi) \
-                - self.num_pix * torch.sum(log_scale, dim=self.sum_dim)\
-                - 0.5 * torch.sum(torch.pow((z - loc) / torch.exp(log_scale), 2),
-                                  dim=self.sum_dim)
+        log_p = (
+            -0.5 * self.d * np.log(2 * np.pi)
+            - self.num_pix * torch.sum(log_scale, dim=self.sum_dim)
+            - 0.5
+            * torch.sum(
+                torch.pow((z - loc) / torch.exp(log_scale), 2), dim=self.sum_dim
+            )
+        )
         return log_p
 
 
@@ -299,6 +355,7 @@ class AffineGaussian(BaseDistribution):
     Diagonal Gaussian an affine constant transformation applied to it,
     can be class conditional or not
     """
+
     def __init__(self, shape, affine_shape, num_classes=None):
         """
         Constructor
@@ -332,20 +389,24 @@ class AffineGaussian(BaseDistribution):
             else:
                 y = torch.randint(self.num_classes, (num_samples,), device=device)
             if y.dim() == 1:
-                y_onehot = torch.zeros((len(y), self.num_classes), dtype=dtype, device=device)
+                y_onehot = torch.zeros(
+                    (len(y), self.num_classes), dtype=dtype, device=device
+                )
                 y_onehot.scatter_(1, y[:, None], 1)
                 y = y_onehot
         if self.temperature is not None:
             log_scale = np.log(self.temperature)
         else:
-            log_scale = 0.
+            log_scale = 0.0
         # Sample
         eps = torch.randn((num_samples,) + self.shape, dtype=dtype, device=device)
         z = np.exp(log_scale) * eps
         # Get log prob
-        log_p = - 0.5 * self.d * np.log(2 * np.pi) \
-                - self.d * log_scale \
-                - 0.5 * torch.sum(torch.pow(eps, 2), dim=self.sum_dim)
+        log_p = (
+            -0.5 * self.d * np.log(2 * np.pi)
+            - self.d * log_scale
+            - 0.5 * torch.sum(torch.pow(eps, 2), dim=self.sum_dim)
+        )
         # Apply transform
         if self.class_cond:
             z, log_det = self.transform(z, y)
@@ -358,24 +419,29 @@ class AffineGaussian(BaseDistribution):
         # Perpare onehot encoding of class if needed
         if self.class_cond:
             if y.dim() == 1:
-                y_onehot = torch.zeros((len(y), self.num_classes),
-                                       dtype=self.transform.s.dtype,
-                                       device=self.transform.s.device)
+                y_onehot = torch.zeros(
+                    (len(y), self.num_classes),
+                    dtype=self.transform.s.dtype,
+                    device=self.transform.s.device,
+                )
                 y_onehot.scatter_(1, y[:, None], 1)
                 y = y_onehot
         if self.temperature is not None:
             log_scale = np.log(self.temperature)
         else:
-            log_scale = 0.
+            log_scale = 0.0
         # Get log prob
         if self.class_cond:
             z, log_p = self.transform.inverse(z, y)
         else:
             z, log_p = self.transform.inverse(z)
         z = z / np.exp(log_scale)
-        log_p = log_p - self.d * log_scale \
-                - 0.5 * self.d * np.log(2 * np.pi) \
-                - 0.5 * torch.sum(torch.pow(z, 2), dim=self.sum_dim)
+        log_p = (
+            log_p
+            - self.d * log_scale
+            - 0.5 * self.d * np.log(2 * np.pi)
+            - 0.5 * torch.sum(torch.pow(z, 2), dim=self.sum_dim)
+        )
         return log_p
 
 
@@ -383,7 +449,10 @@ class GaussianMixture(BaseDistribution):
     """
     Mixture of Gaussians with diagonal covariance matrix
     """
-    def __init__(self, n_modes, dim, loc=None, scale=None, weights=None, trainable=True):
+
+    def __init__(
+        self, n_modes, dim, loc=None, scale=None, weights=None, trainable=True
+    ):
         """
         Constructor
         :param n_modes: Number of modes of the mixture model
@@ -410,13 +479,13 @@ class GaussianMixture(BaseDistribution):
         weights /= weights.sum(1)
 
         if trainable:
-            self.loc = nn.Parameter(torch.tensor(1. * loc))
-            self.log_scale = nn.Parameter(torch.tensor(np.log(1. * scale)))
-            self.weight_scores = nn.Parameter(torch.tensor(np.log(1. * weights)))
+            self.loc = nn.Parameter(torch.tensor(1.0 * loc))
+            self.log_scale = nn.Parameter(torch.tensor(np.log(1.0 * scale)))
+            self.weight_scores = nn.Parameter(torch.tensor(np.log(1.0 * weights)))
         else:
-            self.register_buffer("loc", torch.tensor(1. * loc))
-            self.register_buffer("log_scale", torch.tensor(np.log(1. * scale)))
-            self.register_buffer("weight_scores", torch.tensor(np.log(1. * weights)))
+            self.register_buffer("loc", torch.tensor(1.0 * loc))
+            self.register_buffer("log_scale", torch.tensor(np.log(1.0 * scale)))
+            self.register_buffer("weight_scores", torch.tensor(np.log(1.0 * weights)))
 
     def forward(self, num_samples=1):
         # Get weights
@@ -428,16 +497,21 @@ class GaussianMixture(BaseDistribution):
         mode_1h = mode_1h[..., None]
 
         # Get samples
-        eps_ = torch.randn(num_samples, self.dim, dtype=self.loc.dtype, device=self.loc.device)
+        eps_ = torch.randn(
+            num_samples, self.dim, dtype=self.loc.dtype, device=self.loc.device
+        )
         scale_sample = torch.sum(torch.exp(self.log_scale) * mode_1h, 1)
         loc_sample = torch.sum(self.loc * mode_1h, 1)
         z = eps_ * scale_sample + loc_sample
 
         # Compute log probability
         eps = (z[:, None, :] - self.loc) / torch.exp(self.log_scale)
-        log_p = - 0.5 * self.dim * np.log(2 * np.pi) + torch.log(weights)\
-                - 0.5 * torch.sum(torch.pow(eps, 2), 2) \
-                - torch.sum(self.log_scale, 2)
+        log_p = (
+            -0.5 * self.dim * np.log(2 * np.pi)
+            + torch.log(weights)
+            - 0.5 * torch.sum(torch.pow(eps, 2), 2)
+            - torch.sum(self.log_scale, 2)
+        )
         log_p = torch.logsumexp(log_p, 1)
 
         return z, log_p
@@ -448,9 +522,12 @@ class GaussianMixture(BaseDistribution):
 
         # Compute log probability
         eps = (z[:, None, :] - self.loc) / torch.exp(self.log_scale)
-        log_p = - 0.5 * self.dim * np.log(2 * np.pi) + torch.log(weights) \
-                - 0.5 * torch.sum(torch.pow(eps, 2), 2) \
-                - torch.sum(self.log_scale, 2)
+        log_p = (
+            -0.5 * self.dim * np.log(2 * np.pi)
+            + torch.log(weights)
+            - 0.5 * torch.sum(torch.pow(eps, 2), 2)
+            - torch.sum(self.log_scale, 2)
+        )
         log_p = torch.logsumexp(log_p, 1)
 
         return log_p
@@ -461,6 +538,7 @@ class GaussianPCA(BaseDistribution):
     Gaussian distribution resulting from linearly mapping a normal distributed latent
     variable describing the "content of the target"
     """
+
     def __init__(self, dim, latent_dim=None, sigma=0.1):
         """
         Constructor
@@ -482,26 +560,33 @@ class GaussianPCA(BaseDistribution):
         self.log_sigma = nn.Parameter(torch.tensor(np.log(sigma)))
 
     def forward(self, num_samples=1):
-        eps = torch.randn(num_samples, self.latent_dim, dtype=self.loc.dtype,
-                          device=self.loc.device)
+        eps = torch.randn(
+            num_samples, self.latent_dim, dtype=self.loc.dtype, device=self.loc.device
+        )
         z_ = torch.matmul(eps, self.W)
         z = z_ + self.loc
 
-        Sig = torch.matmul(self.W.T, self.W) \
-              + torch.exp(self.log_sigma * 2) \
-              * torch.eye(self.dim, dtype=self.loc.dtype, device=self.loc.device)
-        log_p = self.dim / 2 * np.log(2 * np.pi) - 0.5 * torch.det(Sig) \
-                - 0.5 * torch.sum(z_ * torch.matmul(z_, torch.inverse(Sig)), 1)
+        Sig = torch.matmul(self.W.T, self.W) + torch.exp(
+            self.log_sigma * 2
+        ) * torch.eye(self.dim, dtype=self.loc.dtype, device=self.loc.device)
+        log_p = (
+            self.dim / 2 * np.log(2 * np.pi)
+            - 0.5 * torch.det(Sig)
+            - 0.5 * torch.sum(z_ * torch.matmul(z_, torch.inverse(Sig)), 1)
+        )
 
         return z, log_p
 
     def log_prob(self, z):
         z_ = z - self.loc
 
-        Sig = torch.matmul(self.W.T, self.W) \
-              + torch.exp(self.log_sigma * 2) \
-              * torch.eye(self.dim, dtype=self.loc.dtype, device=self.loc.device)
-        log_p = self.dim / 2 * np.log(2 * np.pi) - 0.5 * torch.det(Sig) \
-                - 0.5 * torch.sum(z_ * torch.matmul(z_, torch.inverse(Sig)), 1)
+        Sig = torch.matmul(self.W.T, self.W) + torch.exp(
+            self.log_sigma * 2
+        ) * torch.eye(self.dim, dtype=self.loc.dtype, device=self.loc.device)
+        log_p = (
+            self.dim / 2 * np.log(2 * np.pi)
+            - 0.5 * torch.det(Sig)
+            - 0.5 * torch.sum(z_ * torch.matmul(z_, torch.inverse(Sig)), 1)
+        )
 
         return log_p

@@ -11,23 +11,23 @@ from ...utils.nn import PeriodicFeatures
 from ...utils.splines import DEFAULT_MIN_DERIVATIVE
 
 
-
 class CoupledRationalQuadraticSpline(Flow):
     """
     Neural spline flow coupling layer, wrapper for the implementation
     of Durkan et al., see https://github.com/bayesiains/nsf
     """
+
     def __init__(
-            self,
-            num_input_channels,
-            num_blocks,
-            num_hidden_channels,
-            num_bins=8,
-            tails='linear',
-            tail_bound=3.,
-            activation=nn.ReLU,
-            dropout_probability=0.,
-            reverse_mask=False
+        self,
+        num_input_channels,
+        num_blocks,
+        num_hidden_channels,
+        num_bins=8,
+        tails="linear",
+        tail_bound=3.0,
+        activation=nn.ReLU,
+        dropout_probability=0.0,
+        reverse_mask=False,
     ):
         """
         Constructor
@@ -63,21 +63,17 @@ class CoupledRationalQuadraticSpline(Flow):
                 num_blocks=num_blocks,
                 activation=activation(),
                 dropout_probability=dropout_probability,
-                use_batch_norm=False
+                use_batch_norm=False,
             )
 
-        self.prqct=PiecewiseRationalQuadraticCoupling(
-            mask=create_alternating_binary_mask(
-                num_input_channels,
-                even=reverse_mask
-            ),
+        self.prqct = PiecewiseRationalQuadraticCoupling(
+            mask=create_alternating_binary_mask(num_input_channels, even=reverse_mask),
             transform_net_create_fn=transform_net_create_fn,
             num_bins=num_bins,
             tails=tails,
             tail_bound=tail_bound,
-
             # Setting True corresponds to equations (4), (5), (6) in the NSF paper:
-            apply_unconditional_transform=True
+            apply_unconditional_transform=True,
         )
 
     def forward(self, z):
@@ -93,19 +89,20 @@ class CircularCoupledRationalQuadraticSpline(Flow):
     """
     Neural spline flow coupling layer with circular coordinates
     """
+
     def __init__(
-            self,
-            num_input_channels,
-            num_blocks,
-            num_hidden_channels,
-            ind_circ,
-            num_bins=8,
-            tail_bound=3.,
-            activation=nn.ReLU,
-            dropout_probability=0.,
-            reverse_mask=False,
-            mask=None,
-            init_identity=True
+        self,
+        num_input_channels,
+        num_blocks,
+        num_hidden_channels,
+        ind_circ,
+        num_bins=8,
+        tail_bound=3.0,
+        activation=nn.ReLU,
+        dropout_probability=0.0,
+        reverse_mask=False,
+        mask=None,
+        init_identity=True,
     ):
         """
         Constructor
@@ -135,8 +132,7 @@ class CircularCoupledRationalQuadraticSpline(Flow):
         super().__init__()
 
         if mask is None:
-            mask = create_alternating_binary_mask(num_input_channels,
-                                                  even=reverse_mask)
+            mask = create_alternating_binary_mask(num_input_channels, even=reverse_mask)
         features_vector = torch.arange(num_input_channels)
         identity_features = features_vector.masked_select(mask <= 0)
         ind_circ = torch.tensor(ind_circ)
@@ -164,25 +160,26 @@ class CircularCoupledRationalQuadraticSpline(Flow):
                 activation=activation(),
                 dropout_probability=dropout_probability,
                 use_batch_norm=False,
-                preprocessing=pf
+                preprocessing=pf,
             )
             if init_identity:
-                torch.nn.init.constant_(net.final_layer.weight, 0.)
-                torch.nn.init.constant_(net.final_layer.bias,
-                                        np.log(np.exp(1 - DEFAULT_MIN_DERIVATIVE) - 1))
+                torch.nn.init.constant_(net.final_layer.weight, 0.0)
+                torch.nn.init.constant_(
+                    net.final_layer.bias, np.log(np.exp(1 - DEFAULT_MIN_DERIVATIVE) - 1)
+                )
             return net
 
+        tails = [
+            "circular" if i in ind_circ else "linear" for i in range(num_input_channels)
+        ]
 
-        tails = ['circular' if i in ind_circ else 'linear'
-                 for i in range(num_input_channels)]
-
-        self.prqct=PiecewiseRationalQuadraticCoupling(
+        self.prqct = PiecewiseRationalQuadraticCoupling(
             mask=mask,
             transform_net_create_fn=transform_net_create_fn,
             num_bins=num_bins,
             tails=tails,
             tail_bound=tail_bound,
-            apply_unconditional_transform=True
+            apply_unconditional_transform=True,
         )
 
     def forward(self, z):
@@ -199,17 +196,18 @@ class AutoregressiveRationalQuadraticSpline(Flow):
     Neural spline flow coupling layer, wrapper for the implementation
     of Durkan et al., see https://github.com/bayesiains/nsf
     """
+
     def __init__(
-            self,
-            num_input_channels,
-            num_blocks,
-            num_hidden_channels,
-            num_bins=8,
-            tail_bound=3,
-            activation=nn.ReLU,
-            dropout_probability=0.,
-            permute_mask=False,
-            init_identity=True
+        self,
+        num_input_channels,
+        num_blocks,
+        num_hidden_channels,
+        num_bins=8,
+        tail_bound=3,
+        activation=nn.ReLU,
+        dropout_probability=0.0,
+        permute_mask=False,
+        init_identity=True,
     ):
         """
         Constructor
@@ -234,12 +232,12 @@ class AutoregressiveRationalQuadraticSpline(Flow):
         """
         super().__init__()
 
-        self.mprqat=MaskedPiecewiseRationalQuadraticAutoregressive(
+        self.mprqat = MaskedPiecewiseRationalQuadraticAutoregressive(
             features=num_input_channels,
             hidden_features=num_hidden_channels,
             context_features=None,
             num_bins=num_bins,
-            tails='linear',
+            tails="linear",
             tail_bound=tail_bound,
             num_blocks=num_blocks,
             use_residual_blocks=True,
@@ -248,7 +246,8 @@ class AutoregressiveRationalQuadraticSpline(Flow):
             activation=activation(),
             dropout_probability=dropout_probability,
             use_batch_norm=False,
-            init_identity=init_identity)
+            init_identity=init_identity,
+        )
 
     def forward(self, z):
         z, log_det = self.mprqat.inverse(z)
@@ -264,18 +263,19 @@ class CircularAutoregressiveRationalQuadraticSpline(Flow):
     Neural spline flow coupling layer, wrapper for the implementation
     of Durkan et al., see https://github.com/bayesiains/nsf
     """
+
     def __init__(
-            self,
-            num_input_channels,
-            num_blocks,
-            num_hidden_channels,
-            ind_circ,
-            num_bins=8,
-            tail_bound=3,
-            activation=nn.ReLU,
-            dropout_probability=0.,
-            permute_mask=True,
-            init_identity=True
+        self,
+        num_input_channels,
+        num_blocks,
+        num_hidden_channels,
+        ind_circ,
+        num_bins=8,
+        tail_bound=3,
+        activation=nn.ReLU,
+        dropout_probability=0.0,
+        permute_mask=True,
+        init_identity=True,
     ):
         """
         Constructor
@@ -302,10 +302,11 @@ class CircularAutoregressiveRationalQuadraticSpline(Flow):
         """
         super().__init__()
 
-        tails = ['circular' if i in ind_circ else 'linear'
-                 for i in range(num_input_channels)]
+        tails = [
+            "circular" if i in ind_circ else "linear" for i in range(num_input_channels)
+        ]
 
-        self.mprqat=MaskedPiecewiseRationalQuadraticAutoregressive(
+        self.mprqat = MaskedPiecewiseRationalQuadraticAutoregressive(
             features=num_input_channels,
             hidden_features=num_hidden_channels,
             context_features=None,
@@ -319,7 +320,8 @@ class CircularAutoregressiveRationalQuadraticSpline(Flow):
             activation=activation(),
             dropout_probability=dropout_probability,
             use_batch_norm=False,
-            init_identity=init_identity)
+            init_identity=init_identity,
+        )
 
     def forward(self, z):
         z, log_det = self.mprqat.inverse(z)

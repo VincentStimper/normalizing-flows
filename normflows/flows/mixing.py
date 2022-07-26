@@ -6,13 +6,12 @@ from torch.nn import functional as F, init
 from .base import Flow
 
 
-
 class Permute(Flow):
     """
     Permutation features along the channel dimension
     """
 
-    def __init__(self, num_channels, mode='shuffle'):
+    def __init__(self, num_channels, mode="shuffle"):
         """
         Constructor
         :param num_channel: Number of channels
@@ -22,34 +21,35 @@ class Permute(Flow):
         super().__init__()
         self.mode = mode
         self.num_channels = num_channels
-        if self.mode == 'shuffle':
+        if self.mode == "shuffle":
             perm = torch.randperm(self.num_channels)
-            inv_perm = torch.empty_like(perm).scatter_(dim=0, index=perm,
-                                                       src=torch.arange(self.num_channels))
+            inv_perm = torch.empty_like(perm).scatter_(
+                dim=0, index=perm, src=torch.arange(self.num_channels)
+            )
             self.register_buffer("perm", perm)
             self.register_buffer("inv_perm", inv_perm)
 
     def forward(self, z):
-        if self.mode == 'shuffle':
+        if self.mode == "shuffle":
             z = z[:, self.perm, ...]
-        elif self.mode == 'swap':
-            z1 = z[:, :self.num_channels // 2, ...]
-            z2 = z[:, self.num_channels // 2:, ...]
+        elif self.mode == "swap":
+            z1 = z[:, : self.num_channels // 2, ...]
+            z2 = z[:, self.num_channels // 2 :, ...]
             z = torch.cat([z2, z1], dim=1)
         else:
-            raise NotImplementedError('The mode ' + self.mode + ' is not implemented.')
+            raise NotImplementedError("The mode " + self.mode + " is not implemented.")
         log_det = 0
         return z, log_det
 
     def inverse(self, z):
-        if self.mode == 'shuffle':
+        if self.mode == "shuffle":
             z = z[:, self.inv_perm, ...]
-        elif self.mode == 'swap':
-            z1 = z[:, :(self.num_channels + 1) // 2, ...]
-            z2 = z[:, (self.num_channels + 1) // 2:, ...]
+        elif self.mode == "swap":
+            z1 = z[:, : (self.num_channels + 1) // 2, ...]
+            z2 = z[:, (self.num_channels + 1) // 2 :, ...]
             z = torch.cat([z2, z1], dim=1)
         else:
-            raise NotImplementedError('The mode ' + self.mode + ' is not implemented.')
+            raise NotImplementedError("The mode " + self.mode + " is not implemented.")
         log_det = 0
         return z, log_det
 
@@ -72,12 +72,14 @@ class Invertible1x1Conv(Flow):
         Q = torch.qr(torch.randn(self.num_channels, self.num_channels))[0]
         if use_lu:
             P, L, U = torch.lu_unpack(*Q.lu())
-            self.register_buffer('P', P)  # remains fixed during optimization
+            self.register_buffer("P", P)  # remains fixed during optimization
             self.L = nn.Parameter(L)  # lower triangular portion
             S = U.diag()  # "crop out" the diagonal to its own parameter
             self.register_buffer("sign_S", torch.sign(S))
             self.log_S = nn.Parameter(torch.log(torch.abs(S)))
-            self.U = nn.Parameter(torch.triu(U, diagonal=1))  # "crop out" diagonal, stored in S
+            self.U = nn.Parameter(
+                torch.triu(U, diagonal=1)
+            )  # "crop out" diagonal, stored in S
             self.register_buffer("eye", torch.diag(torch.ones(self.num_channels)))
         else:
             self.W = nn.Parameter(Q)
@@ -85,7 +87,9 @@ class Invertible1x1Conv(Flow):
     def _assemble_W(self, inverse=False):
         # assemble W from its components (P, L, U, S)
         L = torch.tril(self.L, diagonal=-1) + self.eye
-        U = torch.triu(self.U, diagonal=1) + torch.diag(self.sign_S * torch.exp(self.log_S))
+        U = torch.triu(self.U, diagonal=1) + torch.diag(
+            self.sign_S * torch.exp(self.log_S)
+        )
         if inverse:
             if self.log_S.dtype == torch.float64:
                 L_inv = torch.inverse(L)
@@ -147,12 +151,14 @@ class InvertibleAffine(Flow):
         Q = torch.qr(torch.randn(self.num_channels, self.num_channels))[0]
         if use_lu:
             P, L, U = torch.lu_unpack(*Q.lu())
-            self.register_buffer('P', P)  # remains fixed during optimization
+            self.register_buffer("P", P)  # remains fixed during optimization
             self.L = nn.Parameter(L)  # lower triangular portion
             S = U.diag()  # "crop out" the diagonal to its own parameter
             self.register_buffer("sign_S", torch.sign(S))
             self.log_S = nn.Parameter(torch.log(torch.abs(S)))
-            self.U = nn.Parameter(torch.triu(U, diagonal=1))  # "crop out" diagonal, stored in S
+            self.U = nn.Parameter(
+                torch.triu(U, diagonal=1)
+            )  # "crop out" diagonal, stored in S
             self.register_buffer("eye", torch.diag(torch.ones(self.num_channels)))
         else:
             self.W = nn.Parameter(Q)
@@ -160,7 +166,9 @@ class InvertibleAffine(Flow):
     def _assemble_W(self, inverse=False):
         # assemble W from its components (P, L, U, S)
         L = torch.tril(self.L, diagonal=-1) + self.eye
-        U = torch.triu(self.U, diagonal=1) + torch.diag(self.sign_S * torch.exp(self.log_S))
+        U = torch.triu(self.U, diagonal=1) + torch.diag(
+            self.sign_S * torch.exp(self.log_S)
+        )
         if inverse:
             if self.log_S.dtype == torch.float64:
                 L_inv = torch.inverse(L)
@@ -200,16 +208,17 @@ class InvertibleAffine(Flow):
 
 """LU Linear Permutation for Neural Spline Flows"""
 
+
 class _Permutation(Flow):
     """Permutes inputs on a given dimension using a given permutation."""
 
     def __init__(self, permutation, dim=1):
         if permutation.ndimension() != 1:
-            raise ValueError('Permutation must be a 1D tensor.')
+            raise ValueError("Permutation must be a 1D tensor.")
 
         super().__init__()
         self._dim = dim
-        self.register_buffer('_permutation', permutation)
+        self.register_buffer("_permutation", permutation)
 
     @property
     def _inverse_permutation(self):
@@ -220,8 +229,11 @@ class _Permutation(Flow):
         if dim >= inputs.ndimension():
             raise ValueError("No dimension {} in inputs.".format(dim))
         if inputs.shape[dim] != len(permutation):
-            raise ValueError("Dimension {} in inputs must be of size {}."
-                             .format(dim, len(permutation)))
+            raise ValueError(
+                "Dimension {} in inputs must be of size {}.".format(
+                    dim, len(permutation)
+                )
+            )
         batch_size = inputs.shape[0]
         outputs = torch.index_select(inputs, dim, permutation)
         logabsdet = torch.zeros(batch_size)
@@ -301,7 +313,10 @@ class _Linear(Flow):
 
     def _check_inverse_cache(self):
         if self.cache.inverse is None and self.cache.logabsdet is None:
-            self.cache.inverse, self.cache.logabsdet = self.weight_inverse_and_logabsdet()
+            (
+                self.cache.inverse,
+                self.cache.logabsdet,
+            ) = self.weight_inverse_and_logabsdet()
 
         elif self.cache.inverse is None:
             self.cache.inverse = self.weight_inverse()
@@ -387,7 +402,7 @@ class _LULinear(_Linear):
         lower = self.lower_entries.new_zeros(self.features, self.features)
         lower[self.lower_indices[0], self.lower_indices[1]] = self.lower_entries
         # The diagonal of L is taken to be all-ones without loss of generality.
-        lower[self.diag_indices[0], self.diag_indices[1]] = 1.
+        lower[self.diag_indices[0], self.diag_indices[1]] = 1.0
 
         upper = self.upper_entries.new_zeros(self.features, self.features)
         upper[self.upper_indices[0], self.upper_indices[1]] = self.upper_entries
@@ -419,8 +434,12 @@ class _LULinear(_Linear):
         """
         lower, upper = self._create_lower_upper()
         outputs = inputs - self.bias
-        outputs, _ = torch.triangular_solve(outputs.t(), lower, upper=False, unitriangular=True)
-        outputs, _ = torch.triangular_solve(outputs, upper, upper=True, unitriangular=False)
+        outputs, _ = torch.triangular_solve(
+            outputs.t(), lower, upper=False, unitriangular=True
+        )
+        outputs, _ = torch.triangular_solve(
+            outputs, upper, upper=True, unitriangular=False
+        )
         outputs = outputs.t()
 
         logabsdet = -self.logabsdet()
@@ -446,7 +465,9 @@ class _LULinear(_Linear):
         lower, upper = self._create_lower_upper()
         identity = torch.eye(self.features, self.features)
         lower_inverse, _ = torch.trtrs(identity, lower, upper=False, unitriangular=True)
-        weight_inverse, _ = torch.trtrs(lower_inverse, upper, upper=True, unitriangular=False)
+        weight_inverse, _ = torch.trtrs(
+            lower_inverse, upper, upper=True, unitriangular=False
+        )
         return weight_inverse
 
     @property
@@ -467,6 +488,7 @@ class LULinearPermute(Flow):
     Fixed permutation combined with a linear transformation parametrized
     using the LU decomposition, used in https://arxiv.org/abs/1906.04032
     """
+
     def __init__(self, num_channels, identity_init=True):
         """
         Constructor

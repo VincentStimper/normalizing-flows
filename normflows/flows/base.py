@@ -2,11 +2,11 @@ import torch
 import torch.nn as nn
 
 
-
 class Flow(nn.Module):
     """
     Generic class for flow functions
     """
+
     def __init__(self):
         super().__init__()
 
@@ -15,16 +15,17 @@ class Flow(nn.Module):
         :param z: input variable, first dimension is batch dim
         :return: transformed z and log of absolute determinant
         """
-        raise NotImplementedError('Forward pass has not been implemented.')
+        raise NotImplementedError("Forward pass has not been implemented.")
 
     def inverse(self, z):
-        raise NotImplementedError('This flow has no algebraic inverse.')
+        raise NotImplementedError("This flow has no algebraic inverse.")
 
 
 class Reverse(Flow):
     """
     Switches the forward transform of a flow layer with its inverse and vice versa
     """
+
     def __init__(self, flow):
         """
         Constructor
@@ -44,6 +45,7 @@ class Composite(Flow):
     """
     Composes several flows into one, in the order they are given.
     """
+
     def __init__(self, flows):
         """
         Constructor

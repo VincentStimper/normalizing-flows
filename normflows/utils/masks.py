@@ -1,7 +1,6 @@
 import torch
 
 
-
 def create_alternating_binary_mask(features, even=True):
     """
     Creates a binary mask of a given dimension which alternates its masking.
@@ -47,10 +46,7 @@ def create_random_binary_mask(features, seed=None):
         generator = torch.Generator()
         generator.manual_seed(seed)
     indices = torch.multinomial(
-        input=weights,
-        num_samples=num_samples,
-        replacement=False,
-        generator=generator
+        input=weights, num_samples=num_samples, replacement=False, generator=generator
     )
     mask[indices] += 1
     return mask

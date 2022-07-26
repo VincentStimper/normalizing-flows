@@ -6,7 +6,6 @@ from ..base import Flow
 from ..reshape import Split, Merge
 
 
-
 class AffineConstFlow(Flow):
     """
     scales and shifts with learned constants per dimension. In the NICE paper there is a
@@ -26,13 +25,15 @@ class AffineConstFlow(Flow):
         if scale:
             self.s = nn.Parameter(torch.zeros(shape)[None])
         else:
-            self.register_buffer('s', torch.zeros(shape)[None])
+            self.register_buffer("s", torch.zeros(shape)[None])
         if shift:
             self.t = nn.Parameter(torch.zeros(shape)[None])
         else:
-            self.register_buffer('t', torch.zeros(shape)[None])
+            self.register_buffer("t", torch.zeros(shape)[None])
         self.n_dim = self.s.dim()
-        self.batch_dims = torch.nonzero(torch.tensor(self.s.shape) == 1, as_tuple=False)[:, 0].tolist()
+        self.batch_dims = torch.nonzero(
+            torch.tensor(self.s.shape) == 1, as_tuple=False
+        )[:, 0].tolist()
 
     def forward(self, z):
         z_ = z * torch.exp(self.s) + self.t
@@ -66,7 +67,9 @@ class CCAffineConst(Flow):
         self.s_cc = nn.Parameter(torch.zeros(num_classes, np.prod(shape)))
         self.t_cc = nn.Parameter(torch.zeros(num_classes, np.prod(shape)))
         self.n_dim = self.s.dim()
-        self.batch_dims = torch.nonzero(torch.tensor(self.s.shape) == 1, as_tuple=False)[:, 0].tolist()
+        self.batch_dims = torch.nonzero(
+            torch.tensor(self.s.shape) == 1, as_tuple=False
+        )[:, 0].tolist()
 
     def forward(self, z, y):
         s = self.s + (y @ self.s_cc).view(-1, *self.shape)
@@ -96,7 +99,7 @@ class AffineCoupling(Flow):
     Affine Coupling layer as introduced RealNVP paper, see arXiv: 1605.08803
     """
 
-    def __init__(self, param_map, scale=True, scale_map='exp'):
+    def __init__(self, param_map, scale=True, scale_map="exp"):
         """
         Constructor
         :param param_map: Maps features to shift and scale parameter (if applicable)
@@ -106,7 +109,7 @@ class AffineCoupling(Flow):
         scale when sampling from the model
         """
         super().__init__()
-        self.add_module('param_map', param_map)
+        self.add_module("param_map", param_map)
         self.scale = scale
         self.scale_map = scale_map
 
@@ -121,21 +124,19 @@ class AffineCoupling(Flow):
         if self.scale:
             shift = param[:, 0::2, ...]
             scale_ = param[:, 1::2, ...]
-            if self.scale_map == 'exp':
+            if self.scale_map == "exp":
                 z2 = z2 * torch.exp(scale_) + shift
                 log_det = torch.sum(scale_, dim=list(range(1, shift.dim())))
-            elif self.scale_map == 'sigmoid':
+            elif self.scale_map == "sigmoid":
                 scale = torch.sigmoid(scale_ + 2)
                 z2 = z2 / scale + shift
-                log_det = -torch.sum(torch.log(scale),
-                                     dim=list(range(1, shift.dim())))
-            elif self.scale_map == 'sigmoid_inv':
+                log_det = -torch.sum(torch.log(scale), dim=list(range(1, shift.dim())))
+            elif self.scale_map == "sigmoid_inv":
                 scale = torch.sigmoid(scale_ + 2)
                 z2 = z2 * scale + shift
-                log_det = torch.sum(torch.log(scale),
-                                    dim=list(range(1, shift.dim())))
+                log_det = torch.sum(torch.log(scale), dim=list(range(1, shift.dim())))
             else:
-                raise NotImplementedError('This scale map is not implemented.')
+                raise NotImplementedError("This scale map is not implemented.")
         else:
             z2 += param
             log_det = 0
@@ -147,21 +148,19 @@ class AffineCoupling(Flow):
         if self.scale:
             shift = param[:, 0::2, ...]
             scale_ = param[:, 1::2, ...]
-            if self.scale_map == 'exp':
+            if self.scale_map == "exp":
                 z2 = (z2 - shift) * torch.exp(-scale_)
                 log_det = -torch.sum(scale_, dim=list(range(1, shift.dim())))
-            elif self.scale_map == 'sigmoid':
+            elif self.scale_map == "sigmoid":
                 scale = torch.sigmoid(scale_ + 2)
                 z2 = (z2 - shift) * scale
-                log_det = torch.sum(torch.log(scale),
-                                    dim=list(range(1, shift.dim())))
-            elif self.scale_map == 'sigmoid_inv':
+                log_det = torch.sum(torch.log(scale), dim=list(range(1, shift.dim())))
+            elif self.scale_map == "sigmoid_inv":
                 scale = torch.sigmoid(scale_ + 2)
                 z2 = (z2 - shift) / scale
-                log_det = -torch.sum(torch.log(scale),
-                                     dim=list(range(1, shift.dim())))
+                log_det = -torch.sum(torch.log(scale), dim=list(range(1, shift.dim())))
             else:
-                raise NotImplementedError('This scale map is not implemented.')
+                raise NotImplementedError("This scale map is not implemented.")
         else:
             z2 -= param
             log_det = 0
@@ -187,17 +186,17 @@ class MaskedAffineFlow(Flow):
         """
         super().__init__()
         self.b_cpu = b.view(1, *b.size())
-        self.register_buffer('b', self.b_cpu)
+        self.register_buffer("b", self.b_cpu)
 
         if s is None:
             self.s = lambda x: torch.zeros_like(x)
         else:
-            self.add_module('s', s)
+            self.add_module("s", s)
 
         if t is None:
             self.t = lambda x: torch.zeros_like(x)
         else:
-            self.add_module('t', t)
+            self.add_module("t", t)
 
     def forward(self, z):
         z_masked = self.b * z
@@ -226,7 +225,8 @@ class AffineCouplingBlock(Flow):
     """
     Affine Coupling layer including split and merge operation
     """
-    def __init__(self, param_map, scale=True, scale_map='exp', split_mode='channel'):
+
+    def __init__(self, param_map, scale=True, scale_map="exp", split_mode="channel"):
         """
         Constructor
         :param param_map: Maps features to shift and scale parameter (if applicable)

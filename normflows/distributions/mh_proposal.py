@@ -3,11 +3,11 @@ import torch
 from torch import nn
 
 
-
 class MHProposal(nn.Module):
     """
     Proposal distribution for the Metropolis Hastings algorithm
     """
+
     def __init__(self):
         super().__init__()
 
@@ -40,6 +40,7 @@ class DiagGaussianProposal(MHProposal):
     Diagonal Gaussian distribution with previous value as mean
     as a proposal for Metropolis Hastings algorithm
     """
+
     def __init__(self, shape, scale):
         """
         Constructor
@@ -58,9 +59,10 @@ class DiagGaussianProposal(MHProposal):
         return z_
 
     def log_prob(self, z_, z):
-        log_p = - 0.5 * np.prod(self.shape) * np.log(2 * np.pi) \
-                - torch.sum(torch.log(self.scale) + 0.5 * torch.pow((z_ - z) / self.scale, 2),
-                            list(range(1, z.dim())))
+        log_p = -0.5 * np.prod(self.shape) * np.log(2 * np.pi) - torch.sum(
+            torch.log(self.scale) + 0.5 * torch.pow((z_ - z) / self.scale, 2),
+            list(range(1, z.dim())),
+        )
         return log_p
 
     def forward(self, z):

@@ -3,7 +3,6 @@ import torch
 from torch import nn
 
 
-
 class PriorDistribution:
     def __init__(self):
         raise NotImplementedError
@@ -21,7 +20,7 @@ class ImagePrior(nn.Module):
     Intensities of an image determine probability density of prior
     """
 
-    def __init__(self, image, x_range=[-3, 3], y_range=[-3, 3], eps=1.e-10):
+    def __init__(self, image, x_range=[-3, 3], y_range=[-3, 3], eps=1.0e-10):
         """
         Constructor
         :param image: image as np matrix
@@ -36,12 +35,22 @@ class ImagePrior(nn.Module):
         self.x_range = torch.tensor(x_range)
         self.y_range = torch.tensor(y_range)
 
-        self.register_buffer('image', self.image_cpu)
-        self.register_buffer('image_size', torch.tensor(self.image_size_cpu).unsqueeze(0))
-        self.register_buffer('density', torch.log(self.image_cpu / torch.sum(self.image_cpu)))
-        self.register_buffer('scale', torch.tensor([[self.x_range[1] - self.x_range[0],
-                                                     self.y_range[1] - self.y_range[0]]]))
-        self.register_buffer('shift', torch.tensor([[self.x_range[0], self.y_range[0]]]))
+        self.register_buffer("image", self.image_cpu)
+        self.register_buffer(
+            "image_size", torch.tensor(self.image_size_cpu).unsqueeze(0)
+        )
+        self.register_buffer(
+            "density", torch.log(self.image_cpu / torch.sum(self.image_cpu))
+        )
+        self.register_buffer(
+            "scale",
+            torch.tensor(
+                [[self.x_range[1] - self.x_range[0], self.y_range[1] - self.y_range[0]]]
+            ),
+        )
+        self.register_buffer(
+            "shift", torch.tensor([[self.x_range[0], self.y_range[0]]])
+        )
 
     def log_prob(self, z):
         """
@@ -58,7 +67,9 @@ class ImagePrior(nn.Module):
         :param num_steps: Number of rejection sampling steps to perform
         :return: Accepted samples
         """
-        z_ = torch.rand((num_steps, 2), dtype=self.image.dtype, device=self.image.device)
+        z_ = torch.rand(
+            (num_steps, 2), dtype=self.image.dtype, device=self.image.device
+        )
         prob = torch.rand(num_steps, dtype=self.image.dtype, device=self.image.device)
         ind = (z_ * (self.image_size - 1)).long()
         intensity = self.image[ind[:, 0], ind[:, 1]]
@@ -100,9 +111,11 @@ class TwoModes(PriorDistribution):
         a = torch.abs(z[:, 0])
         eps = torch.abs(torch.tensor(self.loc))
 
-        log_prob = - 0.5 * ((torch.norm(z, dim=1) - self.loc) / (2 * self.scale)) ** 2 \
-                   - 0.5 * ((a - eps) / (3 * self.scale)) ** 2 \
-                   + torch.log(1 + torch.exp(-2 * (a * eps) / (3 * self.scale) ** 2))
+        log_prob = (
+            -0.5 * ((torch.norm(z, dim=1) - self.loc) / (2 * self.scale)) ** 2
+            - 0.5 * ((a - eps) / (3 * self.scale)) ** 2
+            + torch.log(1 + torch.exp(-2 * (a * eps) / (3 * self.scale) ** 2))
+        )
 
         return log_prob
 
@@ -130,8 +143,10 @@ class Sinusoidal(PriorDistribution):
             z_ = z
 
         w_1 = lambda x: torch.sin(2 * np.pi / self.period * z_[0])
-        log_prob = - 0.5 * ((z_[1] - w_1(z_)) / (self.scale)) ** 2 \
-                   - 0.5 * (torch.norm(z_, dim=0, p=4) / (20 * self.scale)) ** 4  # add Gaussian envelope for valid p(z)
+        log_prob = (
+            -0.5 * ((z_[1] - w_1(z_)) / (self.scale)) ** 2
+            - 0.5 * (torch.norm(z_, dim=0, p=4) / (20 * self.scale)) ** 4
+        )  # add Gaussian envelope for valid p(z)
 
         return log_prob
 
@@ -160,14 +175,18 @@ class Sinusoidal_gap(PriorDistribution):
             z_ = z
 
         w_1 = lambda x: torch.sin(2 * np.pi / self.period * z_[0])
-        w_2 = lambda x: self.w2_amp * torch.exp(-0.5 * ((z_[0] - self.w2_mu) / self.w2_scale) ** 2)
+        w_2 = lambda x: self.w2_amp * torch.exp(
+            -0.5 * ((z_[0] - self.w2_mu) / self.w2_scale) ** 2
+        )
 
         eps = torch.abs(w_2(z_) / 2)
         a = torch.abs(z_[1] - w_1(z_) + w_2(z_) / 2)
 
-        log_prob = -0.5 * ((a - eps) / self.scale) ** 2 + \
-                   torch.log(1 + torch.exp(-2 * (eps * a) / self.scale ** 2)) \
-                   - 0.5 * (torch.norm(z_, dim=0, p=4) / (20 * self.scale)) ** 4
+        log_prob = (
+            -0.5 * ((a - eps) / self.scale) ** 2
+            + torch.log(1 + torch.exp(-2 * (eps * a) / self.scale**2))
+            - 0.5 * (torch.norm(z_, dim=0, p=4) / (20 * self.scale)) ** 4
+        )
 
         return log_prob
 
@@ -196,14 +215,18 @@ class Sinusoidal_split(PriorDistribution):
             z_ = z
 
         w_1 = lambda x: torch.sin(2 * np.pi / self.period * z_[0])
-        w_3 = lambda x: self.w3_amp * torch.sigmoid((z_[0] - self.w3_mu) / self.w3_scale)
+        w_3 = lambda x: self.w3_amp * torch.sigmoid(
+            (z_[0] - self.w3_mu) / self.w3_scale
+        )
 
         eps = torch.abs(w_3(z_) / 2)
         a = torch.abs(z_[1] - w_1(z_) + w_3(z_) / 2)
 
-        log_prob = -0.5 * ((a - eps) / (self.scale)) ** 2 + \
-                   torch.log(1 + torch.exp(-2 * (eps * a) / self.scale ** 2)) \
-                   - 0.5 * (torch.norm(z_, dim=0, p=4) / (20 * self.scale)) ** 4
+        log_prob = (
+            -0.5 * ((a - eps) / (self.scale)) ** 2
+            + torch.log(1 + torch.exp(-2 * (eps * a) / self.scale**2))
+            - 0.5 * (torch.norm(z_, dim=0, p=4) / (20 * self.scale)) ** 4
+        )
 
         return log_prob
 
@@ -228,7 +251,9 @@ class Smiley(PriorDistribution):
         else:
             z_ = z
 
-        log_prob = - 0.5 * ((torch.norm(z_, dim=0) - self.loc) / (2 * self.scale)) ** 2 \
-                   - 0.5 * ((torch.abs(z_[1] + 0.8) - 1.2) / (2 * self.scale)) ** 2
+        log_prob = (
+            -0.5 * ((torch.norm(z_, dim=0) - self.loc) / (2 * self.scale)) ** 2
+            - 0.5 * ((torch.abs(z_[1] + 0.8) - 1.2) / (2 * self.scale)) ** 2
+        )
 
         return log_prob

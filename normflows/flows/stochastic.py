@@ -3,12 +3,12 @@ import torch
 from .base import Flow
 
 
-
 class MetropolisHastings(Flow):
     """
     Sampling through Metropolis Hastings in Stochastic Normalizing
     Flow, see arXiv: 2002.06707
     """
+
     def __init__(self, dist, proposal, steps):
         """
         Constructor
@@ -53,6 +53,7 @@ class HamiltonianMonteCarlo(Flow):
     Flow layer using the HMC proposal in Stochastic Normalising Flows,
     see arXiv: 2002.06707
     """
+
     def __init__(self, target, steps, log_step_size, log_mass):
         """
         Constructor
@@ -64,8 +65,8 @@ class HamiltonianMonteCarlo(Flow):
         super().__init__()
         self.target = target
         self.steps = steps
-        self.register_parameter('log_step_size', torch.nn.Parameter(log_step_size))
-        self.register_parameter('log_mass', torch.nn.Parameter(log_mass))
+        self.register_parameter("log_step_size", torch.nn.Parameter(log_step_size))
+        self.register_parameter("log_mass", torch.nn.Parameter(log_mass))
 
     def forward(self, z):
         # Draw momentum
@@ -76,15 +77,17 @@ class HamiltonianMonteCarlo(Flow):
         p_new = p.clone()
         step_size = torch.exp(self.log_step_size)
         for i in range(self.steps):
-            p_half = p_new - (step_size/2.0) * -self.gradlogP(z_new)
-            z_new = z_new + step_size * (p_half/torch.exp(self.log_mass))
-            p_new = p_half - (step_size/2.0) * -self.gradlogP(z_new)
+            p_half = p_new - (step_size / 2.0) * -self.gradlogP(z_new)
+            z_new = z_new + step_size * (p_half / torch.exp(self.log_mass))
+            p_new = p_half - (step_size / 2.0) * -self.gradlogP(z_new)
 
         # Metropolis Hastings correction
         probabilities = torch.exp(
-            self.target.log_prob(z_new) - self.target.log_prob(z) - \
-            0.5 * torch.sum(p_new ** 2 / torch.exp(self.log_mass), 1) + \
-            0.5 * torch.sum(p ** 2 / torch.exp(self.log_mass), 1))
+            self.target.log_prob(z_new)
+            - self.target.log_prob(z)
+            - 0.5 * torch.sum(p_new**2 / torch.exp(self.log_mass), 1)
+            + 0.5 * torch.sum(p**2 / torch.exp(self.log_mass), 1)
+        )
         uniforms = torch.rand_like(probabilities)
         mask = uniforms < probabilities
         z_out = torch.where(mask.unsqueeze(1), z_new, z)
@@ -97,5 +100,4 @@ class HamiltonianMonteCarlo(Flow):
     def gradlogP(self, z):
         z_ = z.detach().requires_grad_()
         logp = self.target.log_prob(z_)
-        return torch.autograd.grad(logp, z_,
-            grad_outputs=torch.ones_like(logp))[0]
+        return torch.autograd.grad(logp, z_, grad_outputs=torch.ones_like(logp))[0]

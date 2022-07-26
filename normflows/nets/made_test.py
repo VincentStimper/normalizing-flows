@@ -11,7 +11,6 @@ from normflows.nets import made
 
 
 class ShapeTest(torchtestcase.TorchTestCase):
-
     def test_unconditional(self):
         features = 100
         hidden_features = 200
@@ -21,11 +20,14 @@ class ShapeTest(torchtestcase.TorchTestCase):
 
         inputs = torch.randn(batch_size, features)
 
-        for use_residual_blocks, random_mask in [(False, False),
-                                                 (False, True),
-                                                 (True, False)]:
-            with self.subTest(use_residual_blocks=use_residual_blocks,
-                              random_mask=random_mask):
+        for use_residual_blocks, random_mask in [
+            (False, False),
+            (False, True),
+            (True, False),
+        ]:
+            with self.subTest(
+                use_residual_blocks=use_residual_blocks, random_mask=random_mask
+            ):
                 model = made.MADE(
                     features=features,
                     hidden_features=hidden_features,
@@ -41,18 +43,20 @@ class ShapeTest(torchtestcase.TorchTestCase):
 
 
 class ConnectivityTest(torchtestcase.TorchTestCase):
-
     def test_gradients(self):
         features = 10
         hidden_features = 256
         num_blocks = 20
         output_multiplier = 3
 
-        for use_residual_blocks, random_mask in [(False, False),
-                                                 (False, True),
-                                                 (True, False)]:
-            with self.subTest(use_residual_blocks=use_residual_blocks,
-                              random_mask=random_mask):
+        for use_residual_blocks, random_mask in [
+            (False, False),
+            (False, True),
+            (True, False),
+        ]:
+            with self.subTest(
+                use_residual_blocks=use_residual_blocks, random_mask=random_mask
+            ):
                 model = made.MADE(
                     features=features,
                     hidden_features=hidden_features,
@@ -123,5 +127,5 @@ class ConnectivityTest(torchtestcase.TorchTestCase):
         self.assertEqual(torch.triu(total_mask), torch.zeros([features, features]))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

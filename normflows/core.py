@@ -5,10 +5,12 @@ import numpy as np
 from . import distributions
 from . import utils
 
+
 class NormalizingFlow(nn.Module):
     """
     Normalizing Flow model to approximate target distribution
     """
+
     def __init__(self, q0, flows, p=None):
         """
         Constructor
@@ -35,7 +37,7 @@ class NormalizingFlow(nn.Module):
         log_q += self.q0.log_prob(z)
         return -torch.mean(log_q)
 
-    def reverse_kld(self, num_samples=1, beta=1., score_fn=True):
+    def reverse_kld(self, num_samples=1, beta=1.0, score_fn=True):
         """
         Estimates reverse KL divergence, see arXiv 1912.02762
         :param num_samples: Number of samples to draw from base distribution
@@ -86,9 +88,9 @@ class NormalizingFlow(nn.Module):
             log_q += self.q0.log_prob(z_)
             utils.set_requires_grad(self, True)
             w = torch.exp(log_p - log_q)
-            w_alpha = w_const ** alpha
+            w_alpha = w_const**alpha
             w_alpha = w_alpha / torch.mean(w_alpha)
-            weights = (1 - alpha) * w_alpha + alpha * w_alpha ** 2
+            weights = (1 - alpha) * w_alpha + alpha * w_alpha**2
             loss = -alpha * torch.mean(weights * torch.log(w))
         else:
             loss = np.sign(alpha - 1) * torch.logsumexp(alpha * (log_p - log_q), 0)
@@ -139,6 +141,7 @@ class ClassCondFlow(nn.Module):
     """
     Class conditional normalizing Flow model
     """
+
     def __init__(self, q0, flows):
         """
         Constructor
@@ -210,6 +213,7 @@ class MultiscaleFlow(nn.Module):
     """
     Normalizing Flow model with multiscale architecture, see RealNVP or Glow paper
     """
+
     def __init__(self, q0, flows, merges, transform=None, class_cond=True):
         """
         Constructor
@@ -324,11 +328,13 @@ class MultiscaleFlow(nn.Module):
         :param temperature: Temperature parameter
         """
         for q0 in self.q0:
-            if hasattr(q0, 'temperature'):
+            if hasattr(q0, "temperature"):
                 q0.temperature = temperature
             else:
-                raise NotImplementedError('One base function does not '
-                                          'support temperature annealed sampling')
+                raise NotImplementedError(
+                    "One base function does not "
+                    "support temperature annealed sampling"
+                )
 
     def reset_temperature(self):
         """
@@ -341,6 +347,7 @@ class NormalizingFlowVAE(nn.Module):
     """
     VAE using normalizing flows to express approximate distribution
     """
+
     def __init__(self, prior, q0=distributions.Dirac(), flows=None, decoder=None):
         """
         Constructor of normalizing flow model

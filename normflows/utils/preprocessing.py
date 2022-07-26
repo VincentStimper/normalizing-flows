@@ -1,12 +1,12 @@
 import torch
 
 
-
-class Logit():
+class Logit:
     """
     Transform for dataloader
     logit(alpha + (1 - alpha) * x) where logit(x) = log(x / (1 - x))
     """
+
     def __init__(self, alpha=0):
         """
         Constructor
@@ -22,12 +22,13 @@ class Logit():
         return (torch.sigmoid(x) - self.alpha) / (1 - self.alpha)
 
 
-class Jitter():
+class Jitter:
     """
     Transform for dataloader
     Adds uniform jitter noise to data
     """
-    def __init__(self, scale=1./256):
+
+    def __init__(self, scale=1.0 / 256):
         """
         Constructor
         :param scale: Scaling factor for noise
@@ -40,12 +41,13 @@ class Jitter():
         return x_
 
 
-class Scale():
+class Scale:
     """
     Transform for dataloader
     Adds uniform jitter noise to data
     """
-    def __init__(self, scale=255./256.):
+
+    def __init__(self, scale=255.0 / 256.0):
         """
         Constructor
         :param scale: Scaling factor for noise

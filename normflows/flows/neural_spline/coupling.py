@@ -14,16 +14,12 @@ from ... import utils
 from ...utils import splines
 
 
-
 class Coupling(Flow):
     """A base class for coupling layers. Supports 2D inputs (NxD), as well as 4D inputs for
     images (NxCxHxW). For images the splitting is done on the channel dimension, using the
     provided 1D mask."""
 
-    def __init__(self,
-                 mask,
-                 transform_net_create_fn,
-                 unconditional_transform=None):
+    def __init__(self, mask, transform_net_create_fn, unconditional_transform=None):
         """
         Constructor.
 
@@ -34,22 +30,26 @@ class Coupling(Flow):
         """
         mask = torch.as_tensor(mask)
         if mask.dim() != 1:
-            raise ValueError('Mask must be a 1-dim tensor.')
+            raise ValueError("Mask must be a 1-dim tensor.")
         if mask.numel() <= 0:
-            raise ValueError('Mask can\'t be empty.')
+            raise ValueError("Mask can't be empty.")
 
         super().__init__()
         self.features = len(mask)
         features_vector = torch.arange(self.features)
 
-        self.register_buffer('identity_features', features_vector.masked_select(mask <= 0))
-        self.register_buffer('transform_features', features_vector.masked_select(mask > 0))
+        self.register_buffer(
+            "identity_features", features_vector.masked_select(mask <= 0)
+        )
+        self.register_buffer(
+            "transform_features", features_vector.masked_select(mask > 0)
+        )
 
         assert self.num_identity_features + self.num_transform_features == self.features
 
         self.transform_net = transform_net_create_fn(
             self.num_identity_features,
-            self.num_transform_features * self._transform_dim_multiplier()
+            self.num_transform_features * self._transform_dim_multiplier(),
         )
 
         if unconditional_transform is None:
@@ -69,24 +69,25 @@ class Coupling(Flow):
 
     def forward(self, inputs, context=None):
         if inputs.dim() not in [2, 4]:
-            raise ValueError('Inputs must be a 2D or a 4D tensor.')
+            raise ValueError("Inputs must be a 2D or a 4D tensor.")
 
         if inputs.shape[1] != self.features:
-            raise ValueError('Expected features = {}, got {}.'.format(
-                self.features, inputs.shape[1]))
+            raise ValueError(
+                "Expected features = {}, got {}.".format(self.features, inputs.shape[1])
+            )
 
         identity_split = inputs[:, self.identity_features, ...]
         transform_split = inputs[:, self.transform_features, ...]
 
         transform_params = self.transform_net(identity_split, context)
         transform_split, logabsdet = self._coupling_transform_forward(
-            inputs=transform_split,
-            transform_params=transform_params
+            inputs=transform_split, transform_params=transform_params
         )
 
         if self.unconditional_transform is not None:
-            identity_split, logabsdet_identity =\
-                self.unconditional_transform(identity_split, context)
+            identity_split, logabsdet_identity = self.unconditional_transform(
+                identity_split, context
+            )
             logabsdet += logabsdet_identity
 
         outputs = torch.empty_like(inputs)
@@ -97,24 +98,25 @@ class Coupling(Flow):
 
     def inverse(self, inputs, context=None):
         if inputs.dim() not in [2, 4]:
-            raise ValueError('Inputs must be a 2D or a 4D tensor.')
+            raise ValueError("Inputs must be a 2D or a 4D tensor.")
 
         if inputs.shape[1] != self.features:
-            raise ValueError('Expected features = {}, got {}.'.format(
-                self.features, inputs.shape[1]))
+            raise ValueError(
+                "Expected features = {}, got {}.".format(self.features, inputs.shape[1])
+            )
 
         identity_split = inputs[:, self.identity_features, ...]
         transform_split = inputs[:, self.transform_features, ...]
 
         logabsdet = 0.0
         if self.unconditional_transform is not None:
-            identity_split, logabsdet = self.unconditional_transform.inverse(identity_split,
-                                                                             context)
+            identity_split, logabsdet = self.unconditional_transform.inverse(
+                identity_split, context
+            )
 
         transform_params = self.transform_net(identity_split, context)
         transform_split, logabsdet_split = self._coupling_transform_inverse(
-            inputs=transform_split,
-            transform_params=transform_params
+            inputs=transform_split, transform_params=transform_params
         )
         logabsdet += logabsdet_split
 
@@ -148,7 +150,9 @@ class PiecewiseCoupling(Coupling):
         if inputs.dim() == 4:
             b, c, h, w = inputs.shape
             # For images, reshape transform_params from Bx(C*?)xHxW to BxCxHxWx?
-            transform_params = transform_params.reshape(b, c, -1, h, w).permute(0, 1, 3, 4, 2)
+            transform_params = transform_params.reshape(b, c, -1, h, w).permute(
+                0, 1, 3, 4, 2
+            )
         elif inputs.dim() == 2:
             b, d = inputs.shape
             # For 2D data, reshape transform_params from Bx(D*?) to BxDx?
@@ -163,15 +167,17 @@ class PiecewiseCoupling(Coupling):
 
 
 class PiecewiseRationalQuadraticCDF(Flow):
-    def __init__(self,
-                 shape,
-                 num_bins=10,
-                 tails=None,
-                 tail_bound=1.,
-                 identity_init=True,
-                 min_bin_width=splines.DEFAULT_MIN_BIN_WIDTH,
-                 min_bin_height=splines.DEFAULT_MIN_BIN_HEIGHT,
-                 min_derivative=splines.DEFAULT_MIN_DERIVATIVE):
+    def __init__(
+        self,
+        shape,
+        num_bins=10,
+        tails=None,
+        tail_bound=1.0,
+        identity_init=True,
+        min_bin_width=splines.DEFAULT_MIN_BIN_WIDTH,
+        min_bin_height=splines.DEFAULT_MIN_BIN_HEIGHT,
+        min_derivative=splines.DEFAULT_MIN_DERIVATIVE,
+    ):
         super().__init__()
 
         self.min_bin_width = min_bin_width
@@ -179,14 +185,14 @@ class PiecewiseRationalQuadraticCDF(Flow):
         self.min_derivative = min_derivative
 
         if torch.is_tensor(tail_bound):
-            self.register_buffer('tail_bound', tail_bound)
+            self.register_buffer("tail_bound", tail_bound)
         else:
             self.tail_bound = tail_bound
         self.tails = tails
 
-        if self.tails == 'linear':
+        if self.tails == "linear":
             num_derivatives = num_bins - 1
-        elif self.tails == 'circular':
+        elif self.tails == "circular":
             num_derivatives = num_bins
         else:
             num_derivatives = num_bins + 1
@@ -196,13 +202,16 @@ class PiecewiseRationalQuadraticCDF(Flow):
             self.unnormalized_heights = nn.Parameter(torch.zeros(*shape, num_bins))
 
             constant = np.log(np.exp(1 - min_derivative) - 1)
-            self.unnormalized_derivatives = nn.Parameter(constant * torch.ones(*shape,
-                                                                               num_derivatives))
+            self.unnormalized_derivatives = nn.Parameter(
+                constant * torch.ones(*shape, num_derivatives)
+            )
         else:
             self.unnormalized_widths = nn.Parameter(torch.rand(*shape, num_bins))
             self.unnormalized_heights = nn.Parameter(torch.rand(*shape, num_bins))
 
-            self.unnormalized_derivatives = nn.Parameter(torch.rand(*shape, num_derivatives))
+            self.unnormalized_derivatives = nn.Parameter(
+                torch.rand(*shape, num_derivatives)
+            )
 
     @staticmethod
     def _share_across_batch(params, batch_size):
@@ -211,19 +220,22 @@ class PiecewiseRationalQuadraticCDF(Flow):
     def _spline(self, inputs, inverse=False):
         batch_size = inputs.shape[0]
 
-        unnormalized_widths = self._share_across_batch(self.unnormalized_widths, batch_size)
-        unnormalized_heights = self._share_across_batch(self.unnormalized_heights, batch_size)
-        unnormalized_derivatives = self._share_across_batch(self.unnormalized_derivatives, batch_size)
+        unnormalized_widths = self._share_across_batch(
+            self.unnormalized_widths, batch_size
+        )
+        unnormalized_heights = self._share_across_batch(
+            self.unnormalized_heights, batch_size
+        )
+        unnormalized_derivatives = self._share_across_batch(
+            self.unnormalized_derivatives, batch_size
+        )
 
         if self.tails is None:
             spline_fn = splines.rational_quadratic_spline
             spline_kwargs = {}
         else:
             spline_fn = splines.unconstrained_rational_quadratic_spline
-            spline_kwargs = {
-                'tails': self.tails,
-                'tail_bound': self.tail_bound
-            }
+            spline_kwargs = {"tails": self.tails, "tail_bound": self.tail_bound}
 
         outputs, logabsdet = spline_fn(
             inputs=inputs,
@@ -247,15 +259,19 @@ class PiecewiseRationalQuadraticCDF(Flow):
 
 
 class PiecewiseRationalQuadraticCoupling(PiecewiseCoupling):
-    def __init__(self, mask, transform_net_create_fn,
-                 num_bins=10,
-                 tails=None,
-                 tail_bound=1.,
-                 apply_unconditional_transform=False,
-                 img_shape=None,
-                 min_bin_width=splines.DEFAULT_MIN_BIN_WIDTH,
-                 min_bin_height=splines.DEFAULT_MIN_BIN_HEIGHT,
-                 min_derivative=splines.DEFAULT_MIN_DERIVATIVE):
+    def __init__(
+        self,
+        mask,
+        transform_net_create_fn,
+        num_bins=10,
+        tails=None,
+        tail_bound=1.0,
+        apply_unconditional_transform=False,
+        img_shape=None,
+        min_bin_width=splines.DEFAULT_MIN_BIN_WIDTH,
+        min_bin_height=splines.DEFAULT_MIN_BIN_HEIGHT,
+        min_derivative=splines.DEFAULT_MIN_DERIVATIVE,
+    ):
 
         self.num_bins = num_bins
         self.min_bin_width = min_bin_width
@@ -287,48 +303,50 @@ class PiecewiseRationalQuadraticCoupling(PiecewiseCoupling):
                 tail_bound=tail_bound_,
                 min_bin_width=min_bin_width,
                 min_bin_height=min_bin_height,
-                min_derivative=min_derivative
+                min_derivative=min_derivative,
             )
         else:
             unconditional_transform = None
 
-        super().__init__(mask, transform_net_create_fn,
-                         unconditional_transform=unconditional_transform)
+        super().__init__(
+            mask,
+            transform_net_create_fn,
+            unconditional_transform=unconditional_transform,
+        )
 
         if torch.is_tensor(tail_bound):
-            self.register_buffer('tail_bound', tail_bound[transform_features])
+            self.register_buffer("tail_bound", tail_bound[transform_features])
 
     def _transform_dim_multiplier(self):
-        if self.tails == 'linear':
+        if self.tails == "linear":
             return self.num_bins * 3 - 1
-        elif self.tails == 'circular':
+        elif self.tails == "circular":
             return self.num_bins * 3
         else:
             return self.num_bins * 3 + 1
 
     def _piecewise_cdf(self, inputs, transform_params, inverse=False):
-        unnormalized_widths = transform_params[..., :self.num_bins]
-        unnormalized_heights = transform_params[..., self.num_bins:2*self.num_bins]
-        unnormalized_derivatives = transform_params[..., 2 * self.num_bins:]
+        unnormalized_widths = transform_params[..., : self.num_bins]
+        unnormalized_heights = transform_params[..., self.num_bins : 2 * self.num_bins]
+        unnormalized_derivatives = transform_params[..., 2 * self.num_bins :]
 
-        if hasattr(self.transform_net, 'hidden_features'):
+        if hasattr(self.transform_net, "hidden_features"):
             unnormalized_widths /= np.sqrt(self.transform_net.hidden_features)
             unnormalized_heights /= np.sqrt(self.transform_net.hidden_features)
-        elif hasattr(self.transform_net, 'hidden_channels'):
+        elif hasattr(self.transform_net, "hidden_channels"):
             unnormalized_widths /= np.sqrt(self.transform_net.hidden_channels)
             unnormalized_heights /= np.sqrt(self.transform_net.hidden_channels)
         else:
-            warnings.warn('Inputs to the softmax are not scaled down: initialization might be bad.')
+            warnings.warn(
+                "Inputs to the softmax are not scaled down: initialization might be bad."
+            )
 
         if self.tails is None:
             spline_fn = splines.rational_quadratic_spline
             spline_kwargs = {}
         else:
             spline_fn = splines.unconstrained_rational_quadratic_spline
-            spline_kwargs = {
-                'tails': self.tails,
-                'tail_bound': self.tail_bound
-            }
+            spline_kwargs = {"tails": self.tails, "tail_bound": self.tail_bound}
 
         return spline_fn(
             inputs=inputs,
@@ -341,4 +359,3 @@ class PiecewiseRationalQuadraticCoupling(PiecewiseCoupling):
             min_derivative=self.min_derivative,
             **spline_kwargs
         )
-

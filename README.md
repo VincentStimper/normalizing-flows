@@ -1,5 +1,6 @@
 # Normalizing Flows
 
+[![Code Style: Black](https://img.shields.io/badge/Code%20Style-black-black.svg)](https://github.com/psf/black)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![PyPI](https://img.shields.io/badge/PyPI-1.4-blue.svg)](https://pypi.org/project/normflows/)
 

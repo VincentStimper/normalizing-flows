@@ -7,7 +7,6 @@ from ... import utils
 from ...nets import made as made_module
 
 
-
 class Autoregressive(Flow):
     """Transforms each input variable with an invertible elementwise transformation.
 
@@ -17,6 +16,7 @@ class Autoregressive(Flow):
     NOTE: Calculating the inverse transform is D times slower than calculating the
     forward transform, where D is the dimensionality of the input to the transform.
     """
+
     def __init__(self, autoregressive_net):
         super(Autoregressive, self).__init__()
         self.autoregressive_net = autoregressive_net
@@ -32,7 +32,9 @@ class Autoregressive(Flow):
         logabsdet = None
         for _ in range(num_inputs):
             autoregressive_params = self.autoregressive_net(outputs, context)
-            outputs, logabsdet = self._elementwise_inverse(inputs, autoregressive_params)
+            outputs, logabsdet = self._elementwise_inverse(
+                inputs, autoregressive_params
+            )
         return outputs, logabsdet
 
     def _output_dim_multiplier(self):
@@ -46,16 +48,18 @@ class Autoregressive(Flow):
 
 
 class MaskedAffineAutoregressive(Autoregressive):
-    def __init__(self,
-                 features,
-                 hidden_features,
-                 context_features=None,
-                 num_blocks=2,
-                 use_residual_blocks=True,
-                 random_mask=False,
-                 activation=F.relu,
-                 dropout_probability=0.,
-                 use_batch_norm=False):
+    def __init__(
+        self,
+        features,
+        hidden_features,
+        context_features=None,
+        num_blocks=2,
+        use_residual_blocks=True,
+        random_mask=False,
+        activation=F.relu,
+        dropout_probability=0.0,
+        use_batch_norm=False,
+    ):
         self.features = features
         made = made_module.MADE(
             features=features,
@@ -75,16 +79,20 @@ class MaskedAffineAutoregressive(Autoregressive):
         return 2
 
     def _elementwise_forward(self, inputs, autoregressive_params):
-        unconstrained_scale, shift = self._unconstrained_scale_and_shift(autoregressive_params)
-        scale = torch.sigmoid(unconstrained_scale + 2.) + 1e-3
+        unconstrained_scale, shift = self._unconstrained_scale_and_shift(
+            autoregressive_params
+        )
+        scale = torch.sigmoid(unconstrained_scale + 2.0) + 1e-3
         log_scale = torch.log(scale)
         outputs = scale * inputs + shift
         logabsdet = utils.sum_except_batch(log_scale, num_batch_dims=1)
         return outputs, logabsdet
 
     def _elementwise_inverse(self, inputs, autoregressive_params):
-        unconstrained_scale, shift = self._unconstrained_scale_and_shift(autoregressive_params)
-        scale = torch.sigmoid(unconstrained_scale + 2.) + 1e-3
+        unconstrained_scale, shift = self._unconstrained_scale_and_shift(
+            autoregressive_params
+        )
+        scale = torch.sigmoid(unconstrained_scale + 2.0) + 1e-3
         log_scale = torch.log(scale)
         outputs = (inputs - shift) / scale
         logabsdet = -utils.sum_except_batch(log_scale, num_batch_dims=1)

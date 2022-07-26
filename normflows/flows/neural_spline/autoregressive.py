@@ -14,27 +14,27 @@ from normflows.utils import splines
 from normflows.utils.nn import PeriodicFeatures
 
 
-
 class MaskedPiecewiseRationalQuadraticAutoregressive(Autoregressive):
-    def __init__(self,
-                 features,
-                 hidden_features,
-                 context_features=None,
-                 num_bins=10,
-                 tails=None,
-                 tail_bound=1.,
-                 num_blocks=2,
-                 use_residual_blocks=True,
-                 random_mask=False,
-                 permute_mask=False,
-                 activation=F.relu,
-                 dropout_probability=0.,
-                 use_batch_norm=False,
-                 init_identity=True,
-                 min_bin_width=splines.DEFAULT_MIN_BIN_WIDTH,
-                 min_bin_height=splines.DEFAULT_MIN_BIN_HEIGHT,
-                 min_derivative=splines.DEFAULT_MIN_DERIVATIVE
-                 ):
+    def __init__(
+        self,
+        features,
+        hidden_features,
+        context_features=None,
+        num_bins=10,
+        tails=None,
+        tail_bound=1.0,
+        num_blocks=2,
+        use_residual_blocks=True,
+        random_mask=False,
+        permute_mask=False,
+        activation=F.relu,
+        dropout_probability=0.0,
+        use_batch_norm=False,
+        init_identity=True,
+        min_bin_width=splines.DEFAULT_MIN_BIN_WIDTH,
+        min_bin_height=splines.DEFAULT_MIN_BIN_HEIGHT,
+        min_derivative=splines.DEFAULT_MIN_DERIVATIVE,
+    ):
         self.num_bins = num_bins
         self.min_bin_width = min_bin_width
         self.min_bin_height = min_bin_height
@@ -44,7 +44,7 @@ class MaskedPiecewiseRationalQuadraticAutoregressive(Autoregressive):
         if isinstance(self.tails, list) or isinstance(self.tails, tuple):
             ind_circ = []
             for i in range(features):
-                if self.tails[i] == 'circular':
+                if self.tails[i] == "circular":
                     ind_circ += [i]
             if torch.is_tensor(tail_bound):
                 scale_pf = np.pi / tail_bound[ind_circ]
@@ -66,25 +66,27 @@ class MaskedPiecewiseRationalQuadraticAutoregressive(Autoregressive):
             activation=activation,
             dropout_probability=dropout_probability,
             use_batch_norm=use_batch_norm,
-            preprocessing=preprocessing
+            preprocessing=preprocessing,
         )
 
         if init_identity:
-            torch.nn.init.constant_(autoregressive_net.final_layer.weight, 0.)
-            torch.nn.init.constant_(autoregressive_net.final_layer.bias,
-                                    np.log(np.exp(1 - min_derivative) - 1))
+            torch.nn.init.constant_(autoregressive_net.final_layer.weight, 0.0)
+            torch.nn.init.constant_(
+                autoregressive_net.final_layer.bias,
+                np.log(np.exp(1 - min_derivative) - 1),
+            )
 
         super().__init__(autoregressive_net)
 
         if torch.is_tensor(tail_bound):
-            self.register_buffer('tail_bound', tail_bound)
+            self.register_buffer("tail_bound", tail_bound)
         else:
             self.tail_bound = tail_bound
 
     def _output_dim_multiplier(self):
-        if self.tails == 'linear':
+        if self.tails == "linear":
             return self.num_bins * 3 - 1
-        elif self.tails == 'circular':
+        elif self.tails == "circular":
             return self.num_bins * 3
         else:
             return self.num_bins * 3 + 1
@@ -93,16 +95,14 @@ class MaskedPiecewiseRationalQuadraticAutoregressive(Autoregressive):
         batch_size, features = inputs.shape[0], inputs.shape[1]
 
         transform_params = autoregressive_params.view(
-            batch_size,
-            features,
-            self._output_dim_multiplier()
+            batch_size, features, self._output_dim_multiplier()
         )
 
-        unnormalized_widths = transform_params[...,:self.num_bins]
-        unnormalized_heights = transform_params[...,self.num_bins:2*self.num_bins]
-        unnormalized_derivatives = transform_params[...,2*self.num_bins:]
+        unnormalized_widths = transform_params[..., : self.num_bins]
+        unnormalized_heights = transform_params[..., self.num_bins : 2 * self.num_bins]
+        unnormalized_derivatives = transform_params[..., 2 * self.num_bins :]
 
-        if hasattr(self.autoregressive_net, 'hidden_features'):
+        if hasattr(self.autoregressive_net, "hidden_features"):
             unnormalized_widths /= np.sqrt(self.autoregressive_net.hidden_features)
             unnormalized_heights /= np.sqrt(self.autoregressive_net.hidden_features)
 
@@ -111,10 +111,7 @@ class MaskedPiecewiseRationalQuadraticAutoregressive(Autoregressive):
             spline_kwargs = {}
         else:
             spline_fn = splines.unconstrained_rational_quadratic_spline
-            spline_kwargs = {
-                'tails': self.tails,
-                'tail_bound': self.tail_bound
-            }
+            spline_kwargs = {"tails": self.tails, "tail_bound": self.tail_bound}
 
         outputs, logabsdet = spline_fn(
             inputs=inputs,

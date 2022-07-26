@@ -6,16 +6,18 @@ from normflows.flows.neural_spline.flow_test import FlowTest
 
 
 class MaskedAffineAutoregressiveTest(FlowTest):
-
     def test_forward(self):
         batch_size = 10
         features = 20
         inputs = torch.randn(batch_size, features)
-        for use_residual_blocks, random_mask in [(False, False),
-                                                 (False, True),
-                                                 (True, False)]:
-            with self.subTest(use_residual_blocks=use_residual_blocks,
-                              random_mask=random_mask):
+        for use_residual_blocks, random_mask in [
+            (False, False),
+            (False, True),
+            (True, False),
+        ]:
+            with self.subTest(
+                use_residual_blocks=use_residual_blocks, random_mask=random_mask
+            ):
                 transform = autoregressive.MaskedAffineAutoregressive(
                     features=features,
                     hidden_features=30,
@@ -31,11 +33,14 @@ class MaskedAffineAutoregressiveTest(FlowTest):
         batch_size = 10
         features = 20
         inputs = torch.randn(batch_size, features)
-        for use_residual_blocks, random_mask in [(False, False),
-                                                 (False, True),
-                                                 (True, False)]:
-            with self.subTest(use_residual_blocks=use_residual_blocks,
-                              random_mask=random_mask):
+        for use_residual_blocks, random_mask in [
+            (False, False),
+            (False, True),
+            (True, False),
+        ]:
+            with self.subTest(
+                use_residual_blocks=use_residual_blocks, random_mask=random_mask
+            ):
                 transform = autoregressive.MaskedAffineAutoregressive(
                     features=features,
                     hidden_features=30,
@@ -52,11 +57,14 @@ class MaskedAffineAutoregressiveTest(FlowTest):
         features = 20
         inputs = torch.randn(batch_size, features)
         self.eps = 1e-6
-        for use_residual_blocks, random_mask in [(False, False),
-                                                 (False, True),
-                                                 (True, False)]:
-            with self.subTest(use_residual_blocks=use_residual_blocks,
-                              random_mask=random_mask):
+        for use_residual_blocks, random_mask in [
+            (False, False),
+            (False, True),
+            (True, False),
+        ]:
+            with self.subTest(
+                use_residual_blocks=use_residual_blocks, random_mask=random_mask
+            ):
                 transform = autoregressive.MaskedAffineAutoregressive(
                     features=features,
                     hidden_features=30,
@@ -67,5 +75,5 @@ class MaskedAffineAutoregressiveTest(FlowTest):
                 self.assert_forward_inverse_are_consistent(transform, inputs)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()
