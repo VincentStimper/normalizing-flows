@@ -49,9 +49,9 @@ pip install -r requirements_examples.txt
 ## Usage
 
 A normalizing flow consists of a base distribution, defined in 
-[`nf.distributions.base`](https://github.com/VincentStimper/normalizing-flows/blob/master/normflow/distributions/base.py),
+[`nf.distributions.base`](https://github.com/VincentStimper/normalizing-flows/blob/master/normflows/distributions/base.py),
 and a list of flows, given in
-[`nf.flows`](https://github.com/VincentStimper/normalizing-flows/tree/master/normflow/flows).
+[`nf.flows`](https://github.com/VincentStimper/normalizing-flows/tree/master/normflows/flows).
 Let's assume our target is a 2D distribution. We pick a diagonal Gaussian
 base distribution, which is the most popular choice. Our flow shall be a
 [Real NVP model](https://arxiv.org/abs/1605.08803) and, therefore, we need
@@ -79,10 +79,10 @@ for i in range(num_layers):
 ```
 
 Once they are set up, we can define a
-[`nf.NormalizingFlow`](https://github.com/VincentStimper/normalizing-flows/blob/master/normflow/core.py#L7)
+[`nf.NormalizingFlow`](https://github.com/VincentStimper/normalizing-flows/blob/master/normflows/core.py#L7)
 model. If the target density is available, it can be added to the model
 to be used during training. Sample target distributions are given in
-[`nf.distributions.target`](https://github.com/VincentStimper/normalizing-flows/blob/master/normflow/distributions/target.py).
+[`nf.distributions.target`](https://github.com/VincentStimper/normalizing-flows/blob/master/normflows/distributions/target.py).
 
 ```python
 # If the target density is not given
