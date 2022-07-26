@@ -1,9 +1,4 @@
-# Try importing ResNet dependencies
-try:
-    from residual_flows.layers.base import InducedNormLinear, InducedNormConv2d
-except:
-    print('Warning: Dependencies for Residual Networks could '
-          'not be loaded. Other models can still be used.')
+from ..nets.lipschitz import InducedNormLinear, InducedNormConv2d
 
 
 

@@ -1,3 +1,2 @@
 numpy
 torch
-residual-flows @ git+https://github.com/VincentStimper/residual-flows.git
