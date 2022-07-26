@@ -21,6 +21,7 @@ setup(
     version=__version__,
     description='Pytorch implementation of normalizing flows',
     long_description=long_description,
+    long_description_content_type='text/markdown',
     url='https://github.com/VincentStimper/normalizing-flows',
     download_url='https://github.com/VincentStimper/normalizing-flows/archive/refs/heads/master.zip',
     license='MIT',
