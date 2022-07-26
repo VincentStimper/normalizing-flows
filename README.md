@@ -35,8 +35,8 @@ The latest version of the package can be installed via pip
 pip install normflows
 ```
 
-If you want to use a GPU, make sure that PyTorch is set up correctly by
-by following the instructions at the
+At least Python 3.7 is required. If you want to use a GPU, make sure that
+PyTorch is set up correctly by following the instructions at the
 [PyTorch website](https://pytorch.org/get-started/locally/).
 
 To run the example notebooks clone the repository first
