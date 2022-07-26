@@ -33,10 +33,7 @@ setup(
     keywords='',
     packages=find_packages(exclude=['docs', 'tests*']),
     include_package_data=True,
-    author=['Vincent Stimper <vincent.stimper@tuebingen.mpg.de>',
-            'David Liu <dl543@cam.ac.uk>',
-            'Lukas Ryll <lr487@cam.ac.uk>',
-            'Andrew Campbell <campbell@stats.ox.ac.uk>'],
-    install_requires=install_requires,
-    author_email=''
+    author='Vincent Stimper',
+    author_email='vincent.stimper@tuebingen.mpg.de',
+    install_requires=install_requires
 )

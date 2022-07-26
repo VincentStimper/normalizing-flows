@@ -1,5 +1,9 @@
 # Normalizing Flows
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![PyPI](https://img.shields.io/badge/PyPI-1.4-blue.svg)](https://pypi.org/project/normflows/)
+
+
 This is a PyTorch implementation of several normalizing flows, including 
 a variational autoencoder. It is used in the articles 
 [A Gradient Based Strategy for Hamiltonian Monte Carlo Hyperparameter Optimization](https://proceedings.mlr.press/v139/campbell21a.html)
