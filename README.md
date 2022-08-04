@@ -6,10 +6,13 @@
 [![Downloads](https://static.pepy.tech/personalized-badge/normflows?period=total&units=international_system&left_color=grey&right_color=orange&left_text=Downloads)](https://pepy.tech/project/normflows)
 
 
-This is a PyTorch implementation of several normalizing flows, including 
-a variational autoencoder. It is used in the articles 
-[A Gradient Based Strategy for Hamiltonian Monte Carlo Hyperparameter Optimization](https://proceedings.mlr.press/v139/campbell21a.html)
-and [Resampling Base Distributions of Normalizing Flows](https://arxiv.org/abs/2110.15828).
+This is a PyTorch implementation of normalizing flows. Many popular flow architectures are implemented,
+see the [list below](#implemented-flows). The package can be easily [installed via pip](#installation).
+The basic usage is described [here](#usage). There are several sample use cases implemented in the 
+[`example` folder](https://github.com/VincentStimper/normalizing-flows/tree/master/example), 
+including [Glow](https://github.com/VincentStimper/normalizing-flows/blob/master/example/glow.ipynb),
+a [VAE](https://github.com/VincentStimper/normalizing-flows/blob/master/example/vae.py), and
+a [Residual Flow](https://github.com/VincentStimper/normalizing-flows/blob/master/example/residual.ipynb).
 
 
 ## Implemented Flows
@@ -28,7 +31,7 @@ and [Resampling Base Distributions of Normalizing Flows](https://arxiv.org/abs/2
 Note that Neural Spline Flows with circular and non-circular coordinates
 are also supported.
 
-## Methods of Installation
+## Installation
 
 The latest version of the package can be installed via pip
 
@@ -120,6 +123,31 @@ directory. More advanced experiments can be done with the scripts listed in the
 [repository about resampled base distributions](https://github.com/VincentStimper/resampled-base-flows),
 see its [`experiments`](https://github.com/VincentStimper/resampled-base-flows/tree/master/experiments)
 folder.
+
+## Used by
+
+The library has been used in several research papers, which are listed below.
+
+> Andrew Campbell, Wenlong Chen, Vincent Stimper, José Miguel Hernández-Lobato, and Yichuan Zhang. 
+> [A gradient based strategy for Hamiltonian Monte Carlo hyperparameter optimization](https://proceedings.mlr.press/v139/campbell21a.html). 
+> In Proceedings of the 38th International Conference on Machine Learning, pp. 1238–1248. PMLR, 2021.
+> 
+> [Code available on GitHub.](https://github.com/VincentStimper/hmc-hyperparameter-tuning)
+
+> Vincent Stimper, Bernhard Schölkopf, José Miguel Hernández-Lobato. 
+> [Resampling Base Distributions of Normalizing Flows](https://proceedings.mlr.press/v151/stimper22a). 
+> In Proceedings of The 25th International Conference on Artificial Intelligence and Statistics, volume 151, pp. 4915–4936, 2022.
+> 
+> [Code available on GitHub.](https://github.com/VincentStimper/resampled-base-flows)
+
+> Laurence I. Midgley, Vincent Stimper, Gregor N. C. Simm, Bernhard Schölkopf, José Miguel Hernández-Lobato. 
+> [Flow Annealed Importance Sampling Bootstrap](https://arxiv.org/abs/2208.01893). 
+> ArXiv, abs/2208.01893, 2022.
+> 
+> [Code available on GitHub.](https://github.com/lollcat/fab-torch)
+
+Moreover, the [`boltzgen`](https://github.com/VincentStimper/boltzmann-generators) library
+has been build upon this package.
 
 
 
