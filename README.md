@@ -57,6 +57,8 @@ pip install -r requirements_examples.txt
 
 ## Usage
 
+<a href="https://colab.research.google.com/github/VincentStimper/normalizing-flows/blob/master/example/real_nvp_colab.ipynb" target="_parent"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a>
+
 A normalizing flow consists of a base distribution, defined in 
 [`nf.distributions.base`](https://github.com/VincentStimper/normalizing-flows/blob/master/normflows/distributions/base.py),
 and a list of flows, given in
@@ -71,16 +73,16 @@ other dimension. After each coupling layer we swap their roles.
 ```python
 import normflows as nf
 
-# Define 2D base distribution
+# Define 2D Gaussian base distribution
 base = nf.distributions.base.DiagGaussian(2)
 
 # Define list of flows
-num_layers = 16
+num_layers = 32
 flows = []
 for i in range(num_layers):
-    # Neural network with two hidden layers having 32 units each
+    # Neural network with two hidden layers having 64 units each
     # Last layer is initialized by zeros making training more stable
-    param_map = nf.nets.MLP([1, 32, 32, 2], init_zeros=True)
+    param_map = nf.nets.MLP([1, 64, 64, 2], init_zeros=True)
     # Add flow layer
     flows.append(nf.flows.AffineCouplingBlock(param_map))
     # Swap dimensions
@@ -110,12 +112,17 @@ The loss can be computed with the methods of the model and minimized.
 loss = model.forward_kld(x)
 
 # When minimizing the reverse KLD based on the given target distribution
-loss = model.reverse_kld(num_samples=1024)
+loss = model.reverse_kld(num_samples=512)
 
 # Optimization as usual
 loss.backward()
 optimizer.step()
 ```
+
+As more extensive version of this example is given as a 
+[notebook](https://github.com/VincentStimper/normalizing-flows/blob/master/example/real_nvp_colab.ipynb), 
+which can directly be opened in 
+[Colab](https://colab.research.google.com/github/VincentStimper/normalizing-flows/blob/master/example/real_nvp_colab.ipynb).
 
 For more illustrative examples of how to use the package see the
 [`example`](https://github.com/VincentStimper/normalizing-flows/tree/master/example)
