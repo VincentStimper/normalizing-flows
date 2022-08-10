@@ -7,7 +7,7 @@ from .coupling import PiecewiseRationalQuadraticCoupling
 from .autoregressive import MaskedPiecewiseRationalQuadraticAutoregressive
 from ...nets.resnet import ResidualNet
 from ...utils.masks import create_alternating_binary_mask
-from ...utils.nn import PeriodicFeatures
+from ...utils.nn import PeriodicFeaturesElementwise
 from ...utils.splines import DEFAULT_MIN_DERIVATIVE
 
 
@@ -148,7 +148,7 @@ class CircularCoupledRationalQuadraticSpline(Flow):
 
         def transform_net_create_fn(in_features, out_features):
             if len(ind_circ_id) > 0:
-                pf = PeriodicFeatures(in_features, ind_circ_id, scale_pf)
+                pf = PeriodicFeaturesElementwise(in_features, ind_circ_id, scale_pf)
             else:
                 pf = None
             net = ResidualNet(

@@ -58,9 +58,14 @@ class ClampExp(nn.Module):
         return torch.min(torch.exp(x), one)
 
 
-class PeriodicFeatures(nn.Module):
+class PeriodicFeaturesElementwise(nn.Module):
     """
-    Converts a specified part of the input to periodic features
+    Converts a specified part of the input to periodic features by
+    replacing those features f with
+    w1 * sin(scale * f) + w2 * cos(scale * f).
+
+    Note that this operation is done elementwise and, therefore,
+    some information about the feature can be lost.
     """
 
     def __init__(self, ndim, ind, scale=1.0, bias=False, activation=None):
@@ -75,7 +80,7 @@ class PeriodicFeatures(nn.Module):
         :param activation: Function or None, activation function to be
         applied
         """
-        super(PeriodicFeatures, self).__init__()
+        super(PeriodicFeaturesElementwise, self).__init__()
 
         # Set up indices and permutations
         self.ndim = ndim
@@ -122,6 +127,54 @@ class PeriodicFeatures(nn.Module):
         inputs_ = self.activation(inputs_)
         out = torch.cat((inputs_, inputs[..., self.ind_]), -1)
         return out[..., self.inv_perm]
+
+
+class PeriodicFeaturesCat(nn.Module):
+    """
+    Converts a specified part of the input to periodic features by
+    replacing those features f with [sin(scale * f), cos(scale * f)].
+
+    Note that this decreases the number of features and their order
+    is changed.
+    """
+
+    def __init__(self, ndim, ind, scale=1.0):
+        """
+        Constructor
+        :param ndim: Int, number of dimensions
+        :param ind: Iterable, indices of input elements to convert to
+        periodic features
+        :param scale: Scalar or iterable, used to scale inputs before
+        converting them to periodic features
+        """
+        super(PeriodicFeaturesCat, self).__init__()
+
+        # Set up indices and permutations
+        self.ndim = ndim
+        if torch.is_tensor(ind):
+            self.register_buffer("ind", torch._cast_Long(ind))
+        else:
+            self.register_buffer("ind", torch.tensor(ind, dtype=torch.long))
+
+        ind_ = []
+        for i in range(self.ndim):
+            if not i in self.ind:
+                ind_ += [i]
+        self.register_buffer("ind_", torch.tensor(ind_, dtype=torch.long))
+
+        if torch.is_tensor(scale):
+            self.register_buffer("scale", scale)
+        else:
+            self.scale = scale
+
+    def forward(self, inputs):
+        inputs_ = inputs[..., self.ind]
+        inputs_ = self.scale * inputs_
+        inputs_sin = torch.sin(inputs_)
+        inputs_cos = torch.cos(inputs_)
+        out = torch.cat((inputs_sin, inputs_cos,
+                         inputs[..., self.ind_]), -1)
+        return out
 
 
 def tile(x, n):
