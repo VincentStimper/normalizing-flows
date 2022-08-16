@@ -3,11 +3,8 @@ Tests for the coupling Transforms.
 Code taken from https://github.com/bayesiains/nsf
 """
 
-import itertools
 import torch
 import unittest
-
-from torch import nn
 
 from normflows import nets as nn_
 
