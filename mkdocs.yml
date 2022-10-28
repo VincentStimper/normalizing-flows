@@ -1,0 +1,15 @@
+site_name: Normalizing Flows
+site_url: https://github.com/VincentStimper/normalizing-flows
+
+
+theme:
+  name: "material"
+
+plugins:
+  - search
+  - autorefs
+  - mkdocstrings
+  - mkdocs-jupyter 
+
+nav:
+  - API: references.md
