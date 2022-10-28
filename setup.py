@@ -36,7 +36,7 @@ setup(
     author="Vincent Stimper",
     author_email="vincent.stimper@tuebingen.mpg.de",
     install_requires=install_requires,
-    extra_requires={
-        "docs": ["mkdocs","mkdocstrings[python]","mkdocs-material","mkdocs-jupyter"]
+    extras_require={
+        "docs": ["mkdocs","mkdocstrings[python]","mkdocs-jupyter"]
     },
 )
