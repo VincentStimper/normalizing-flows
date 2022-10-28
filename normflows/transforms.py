@@ -6,15 +6,19 @@ from . import flows
 
 
 class Logit(flows.Flow):
-    """
-    Logit mapping of image tensor, see RealNVP paper
+    """     Logit mapping of image tensor, see RealNVP paper
+
+    ```
     logit(alpha + (1 - alpha) * x) where logit(x) = log(x / (1 - x))
+    ```
+
     """
 
     def __init__(self, alpha=0.05):
-        """
-        Constructor
-        :param alpha: Alpha parameter, see above
+        """ Constructor
+
+        Args:
+          alpha: Alpha parameter, see above
         """
         super().__init__()
         self.alpha = alpha
@@ -44,15 +48,17 @@ class Logit(flows.Flow):
 
 
 class Shift(flows.Flow):
-    """
-    Shift data by a fixed constant, default is -0.5 to shift data from
+    """ Shift data by a fixed constant
+    
+    Default is -0.5 to shift data from
     interval [0, 1] to [-0.5, 0.5]
     """
 
     def __init__(self, shift=-0.5):
-        """
-        Constructor
-        :param shift: Shift to apply to the data
+        """ Constructor
+        
+        Args:
+          shift: Shift to apply to the data
         """
         super().__init__()
         self.shift = shift

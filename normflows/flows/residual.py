@@ -12,21 +12,20 @@ from .base import Flow
 class Residual(Flow):
     """
     Invertible residual net block, wrapper to the implementation of Chen et al.,
-    see https://github.com/rtqichen/residual-flows
+    see [sources](https://github.com/rtqichen/residual-flows)
     """
 
     def __init__(
         self, net, n_exact_terms=2, n_samples=1, reduce_memory=True, reverse=True
     ):
-        """
-        Constructor
-        :param net: Neural network, must be Lipschitz continuous with L < 1
-        :param n_exact_terms: Number of terms always included in the power series
-        :param n_samples: Number of samples used to estimate power series
-        :param reduce_memory: Flag, if true Neumann series and precomputations
-        for backward pass in forward pass are done
-        :param reverse: Flag, if true the map f(x) = x + net(x) is applied in
-        the inverse pass, otherwise it is done in forward
+        """ Constructor
+        
+        Args:
+          net: Neural network, must be Lipschitz continuous with L < 1
+          n_exact_terms: Number of terms always included in the power series
+          n_samples: Number of samples used to estimate power series
+          reduce_memory: Flag, if true Neumann series and precomputations, for backward pass in forward pass are done
+          reverse: Flag, if true the map ```f(x) = x + net(x)``` is applied in the inverse pass, otherwise it is done in forward
         """
         super().__init__()
         self.reverse = reverse
@@ -120,7 +119,7 @@ class iResBlock(nn.Module):
         return x
 
     def _logdetgrad(self, x):
-        """Returns g(x) and logdet|d(x+g(x))/dx|."""
+        """Returns g(x) and ```logdet|d(x+g(x))/dx|```"""
 
         with torch.enable_grad():
             if (self.brute_force or not self.training) and (

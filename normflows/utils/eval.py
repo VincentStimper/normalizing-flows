@@ -3,14 +3,17 @@ import numpy as np
 
 
 def bitsPerDim(model, x, y=None, trans="logit", trans_param=[0.05]):
-    """
-    Computes the bits per dim for a batch of data
-    :param model: Model to compute bits per dim for
-    :param x: Batch of data
-    :param y: Class labels for batch of data if base distribution is class conditional
-    :param trans: Transformation to be applied to images during training
-    :param trans_param: List of parameters of the transformation
-    :return: Bits per dim for data batch under model
+    """ Computes the bits per dim for a batch of data
+
+    Args:
+      model: Model to compute bits per dim for
+      x: Batch of data
+      y: Class labels for batch of data if base distribution is class conditional
+      trans: Transformation to be applied to images during training
+      trans_param: List of parameters of the transformation
+
+    Returns:
+      Bits per dim for data batch under model
     """
     dims = torch.prod(torch.tensor(x.size()[1:]))
     if trans == "logit":
@@ -34,14 +37,17 @@ def bitsPerDim(model, x, y=None, trans="logit", trans_param=[0.05]):
 def bitsPerDimDataset(
     model, data_loader, class_cond=True, trans="logit", trans_param=[0.05]
 ):
-    """
-    Computes average bits per dim for an entire dataset given by a data loader
-    :param model: Model to compute bits per dim for
-    :param data_loader: Data loader of dataset
-    :param class_cond: Flag indicating whether model is class_conditional
-    :param trans: Transformation to be applied to images during training
-    :param trans_param: List of parameters of the transformation
-    :return: Average bits per dim for dataset
+    """ Computes average bits per dim for an entire dataset given by a data loader
+    
+    Args:
+      model: Model to compute bits per dim for
+      data_loader: Data loader of dataset
+      class_cond: Flag indicating whether model is class_conditional
+      trans: Transformation to be applied to images during training
+      trans_param: List of parameters of the transformation
+
+    Returns:
+      Average bits per dim for dataset
     """
     n = 0
     b_cum = 0

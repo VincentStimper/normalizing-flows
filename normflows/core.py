@@ -12,11 +12,12 @@ class NormalizingFlow(nn.Module):
     """
 
     def __init__(self, q0, flows, p=None):
-        """
-        Constructor
-        :param q0: Base distribution
-        :param flows: List of flows
-        :param p: Target distribution
+        """ Constructor
+        
+        Args:
+          q0: Base distribution
+          flows: List of flows
+          p: Target distribution
         """
         super().__init__()
         self.q0 = q0
@@ -24,10 +25,13 @@ class NormalizingFlow(nn.Module):
         self.p = p
 
     def forward_kld(self, x):
-        """
-        Estimates forward KL divergence, see arXiv 1912.02762
-        :param x: Batch sampled from target distribution
-        :return: Estimate of forward KL divergence averaged over batch
+        """ Estimates forward KL divergence, see [arXiv 1912.02762](https://arxiv.org/abs/1912.02762)
+
+        Args:
+          x: Batch sampled from target distribution
+
+        Returns:
+          Estimate of forward KL divergence averaged over batch
         """
         log_q = torch.zeros(len(x), device=x.device)
         z = x
@@ -38,13 +42,15 @@ class NormalizingFlow(nn.Module):
         return -torch.mean(log_q)
 
     def reverse_kld(self, num_samples=1, beta=1.0, score_fn=True):
-        """
-        Estimates reverse KL divergence, see arXiv 1912.02762
-        :param num_samples: Number of samples to draw from base distribution
-        :param beta: Annealing parameter, see arXiv 1505.05770
-        :param score_fn: Flag whether to include score function in gradient, see
-        arXiv 1703.09194
-        :return: Estimate of the reverse KL divergence averaged over latent samples
+        """ Estimates reverse KL divergence, see [arXiv 1912.02762](https://arxiv.org/abs/1912.02762)
+        
+        Args:
+          num_samples: Number of samples to draw from base distribution
+          beta: Annealing parameter, see [arXiv 1505.05770](https://arxiv.org/abs/1505.05770)
+          score_fn: Flag whether to include score function in gradient, see [arXiv 1703.09194](https://arxiv.org/abs/1703.09194)
+
+        Returns:
+          Estimate of the reverse KL divergence averaged over latent samples
         """
         z, log_q_ = self.q0(num_samples)
         log_q = torch.zeros_like(log_q_)
@@ -65,12 +71,14 @@ class NormalizingFlow(nn.Module):
         return torch.mean(log_q) - beta * torch.mean(log_p)
 
     def reverse_alpha_div(self, num_samples=1, alpha=1, dreg=False):
-        """
-        Alpha divergence when sampling from q
-        :param num_samples: Number of samples to draw
-        :param dreg: Flag whether to use Double Reparametrized Gradient estimator,
-        see arXiv 1810.04152
-        :return: Alpha divergence
+        """ Alpha divergence when sampling from q
+        
+        Args:
+          num_samples: Number of samples to draw
+          dreg: Flag whether to use Double Reparametrized Gradient estimator, see [arXiv 1810.04152](https://arxiv.org/abs/1810.04152)
+
+        Returns:
+          Alpha divergence
         """
         z, log_q = self.q0(num_samples)
         for flow in self.flows:
@@ -97,10 +105,13 @@ class NormalizingFlow(nn.Module):
         return loss
 
     def sample(self, num_samples=1):
-        """
-        Samples from flow-based approximate distribution
-        :param num_samples: Number of samples to draw
-        :return: Samples, log probability
+        """ Samples from flow-based approximate distribution
+
+        Args:
+          num_samples: Number of samples to draw
+
+        Returns:
+          Samples, log probability
         """
         z, log_q = self.q0(num_samples)
         for flow in self.flows:
@@ -109,10 +120,13 @@ class NormalizingFlow(nn.Module):
         return z, log_q
 
     def log_prob(self, x):
-        """
-        Get log probability for batch
-        :param x: Batch
-        :return: log probability
+        """ Get log probability for batch
+        
+        Args:
+          x: Batch
+
+        Returns:
+          log probability
         """
         log_q = torch.zeros(len(x), dtype=x.dtype, device=x.device)
         z = x
@@ -123,16 +137,18 @@ class NormalizingFlow(nn.Module):
         return log_q
 
     def save(self, path):
-        """
-        Save state dict of model
-        :param path: Path including filename where to save model
+        """ Save state dict of model
+        
+        Args:
+          path: Path including filename where to save model
         """
         torch.save(self.state_dict(), path)
 
     def load(self, path):
-        """
-        Load model from state dict
-        :param path: Path including filename where to load model from
+        """ Load model from state dict
+        
+        Args:
+          path: Path including filename where to load model from
         """
         self.load_state_dict(torch.load(path))
 
@@ -143,20 +159,24 @@ class ClassCondFlow(nn.Module):
     """
 
     def __init__(self, q0, flows):
-        """
-        Constructor
-        :param q0: Base distribution
-        :param flows: List of flows
+        """ Constructor
+
+        Args:
+          q0: Base distribution
+          flows: List of flows
         """
         super().__init__()
         self.q0 = q0
         self.flows = nn.ModuleList(flows)
 
     def forward_kld(self, x, y):
-        """
-        Estimates forward KL divergence, see arXiv 1912.02762
-        :param x: Batch sampled from target distribution
-        :return: Estimate of forward KL divergence averaged over batch
+        """ Estimates forward KL divergence, see [arXiv 1912.02762](https://arxiv.org/abs/1912.02762)
+        
+        Args:
+          x: Batch sampled from target distribution
+
+        Returns:
+          Estimate of forward KL divergence averaged over batch
         """
         log_q = torch.zeros(len(x), dtype=x.dtype, device=x.device)
         z = x
@@ -167,11 +187,14 @@ class ClassCondFlow(nn.Module):
         return -torch.mean(log_q)
 
     def sample(self, num_samples=1, y=None):
-        """
-        Samples from flow-based approximate distribution
-        :param num_samples: Number of samples to draw
-        :param y: Classes to sample from, will be sampled uniformly if None
-        :return: Samples, log probability
+        """ Samples from flow-based approximate distribution
+
+        Args:
+          num_samples: Number of samples to draw
+          y: Classes to sample from, will be sampled uniformly if None
+
+        Returns:
+          Samples, log probability
         """
         z, log_q = self.q0(num_samples, y)
         for flow in self.flows:
@@ -180,11 +203,14 @@ class ClassCondFlow(nn.Module):
         return z, log_q
 
     def log_prob(self, x, y):
-        """
-        Get log probability for batch
-        :param x: Batch
-        :param y: Classes of x
-        :return: log probability
+        """ Get log probability for batch
+        
+        Args:
+          x: Batch
+          y: Classes of x
+
+        Returns:
+          log probability
         """
         log_q = torch.zeros(len(x), dtype=x.dtype, device=x.device)
         z = x
@@ -195,16 +221,18 @@ class ClassCondFlow(nn.Module):
         return log_q
 
     def save(self, path):
-        """
-        Save state dict of model
-        :param path: Path including filename where to save model
+        """ Save state dict of model
+
+        Args:
+         param path: Path including filename where to save model
         """
         torch.save(self.state_dict(), path)
 
     def load(self, path):
-        """
-        Load model from state dict
-        :param path: Path including filename where to load model from
+        """ Load model from state dict
+
+        Args:
+          path: Path including filename where to load model from
         """
         self.load_state_dict(torch.load(path))
 
@@ -215,13 +243,15 @@ class MultiscaleFlow(nn.Module):
     """
 
     def __init__(self, q0, flows, merges, transform=None, class_cond=True):
-        """
-        Constructor
-        :param q0: List of base distribution
-        :param flows: List of list of flows for each level
-        :param merges: List of merge/split operations (forward pass must do merge)
-        :param transform: Initial transformation of inputs
-        :param class_cond: Flag, indicated whether model has class conditional
+        """ Constructor
+
+        Args:
+        
+          q0: List of base distribution
+          flows: List of list of flows for each level
+          merges: List of merge/split operations (forward pass must do merge)
+          transform: Initial transformation of inputs
+          class_cond: Flag, indicated whether model has class conditional
         base distributions
         """
         super().__init__()
@@ -233,29 +263,35 @@ class MultiscaleFlow(nn.Module):
         self.class_cond = class_cond
 
     def forward_kld(self, x, y=None):
-        """
-        Estimates forward KL divergence, see arXiv 1912.02762
-        :param x: Batch sampled from target distribution
-        :return: Estimate of forward KL divergence averaged over batch
+        """ Estimates forward KL divergence, see see [arXiv 1912.02762](https://arxiv.org/abs/1912.02762)
+        
+        Args:
+          x: Batch sampled from target distribution
+
+        Returns:
+          Estimate of forward KL divergence averaged over batch
         """
         return -torch.mean(self.log_prob(x, y))
 
     def forward(self, x, y=None):
-        """
-        Get negative log-likelihood for maximum likelihood training
-        :param x: Batch of data
-        :param y: Batch of targets, if applicable
-        :return: NLL
+        """ Get negative log-likelihood for maximum likelihood training
+        
+        Args:
+          x: Batch of data
+          y: Batch of targets, if applicable
         """
         return -self.log_prob(x, y)
 
     def sample(self, num_samples=1, y=None, temperature=None):
-        """
-        Samples from flow-based approximate distribution
-        :param num_samples: Number of samples to draw
-        :param y: Classes to sample from, will be sampled uniformly if None
-        :param temperature: Temperature parameter for temp annealed sampling
-        :return: Samples, log probability
+        """ Samples from flow-based approximate distribution
+
+        Args:
+          num_samples: Number of samples to draw
+          y: Classes to sample from, will be sampled uniformly if None
+          temperature: Temperature parameter for temp annealed sampling
+
+        Returns:
+          Samples, log probability
         """
         if temperature is not None:
             self.set_temperature(temperature)
@@ -282,11 +318,14 @@ class MultiscaleFlow(nn.Module):
         return z, log_q
 
     def log_prob(self, x, y):
-        """
-        Get log probability for batch
-        :param x: Batch
-        :param y: Classes of x
-        :return: log probability
+        """ Get log probability for batch
+        
+        Args:
+          x: Batch
+          y: Classes of x
+
+        Returns:
+          log probability
         """
         log_q = 0
         z = x
@@ -309,23 +348,26 @@ class MultiscaleFlow(nn.Module):
         return log_q
 
     def save(self, path):
-        """
-        Save state dict of model
-        :param path: Path including filename where to save model
+        """ Save state dict of model
+        
+        Args:
+          path: Path including filename where to save model
         """
         torch.save(self.state_dict(), path)
 
     def load(self, path):
-        """
-        Load model from state dict
-        :param path: Path including filename where to load model from
+        """ Load model from state dict
+
+        Args:
+          path: Path including filename where to load model from
         """
         self.load_state_dict(torch.load(path))
 
     def set_temperature(self, temperature):
-        """
-        Set temperature for temperature a annealed sampling
-        :param temperature: Temperature parameter
+        """ Set temperature for temperature a annealed sampling
+        
+        Args:
+          temperature: Temperature parameter
         """
         for q0 in self.q0:
             if hasattr(q0, "temperature"):
@@ -349,12 +391,13 @@ class NormalizingFlowVAE(nn.Module):
     """
 
     def __init__(self, prior, q0=distributions.Dirac(), flows=None, decoder=None):
-        """
-        Constructor of normalizing flow model
-        :param prior: Prior distribution of te VAE, i.e. Gaussian
-        :param decoder: Optional decoder
-        :param flows: Flows to transform output of base encoder
-        :param q0: Base Encoder
+        """ Constructor of normalizing flow model
+        
+        Args:
+          prior: Prior distribution of te VAE, i.e. Gaussian
+          decoder: Optional decoder
+          flows: Flows to transform output of base encoder
+          q0: Base Encoder
         """
         super().__init__()
         self.prior = prior
@@ -363,11 +406,14 @@ class NormalizingFlowVAE(nn.Module):
         self.q0 = q0
 
     def forward(self, x, num_samples=1):
-        """
-        Takes data batch, samples num_samples for each data point from base distribution
-        :param x: data batch
-        :param num_samples: number of samples to draw for each data point
-        :return: latent variables for each batch and sample, log_q, and log_p
+        """ Takes data batch, samples num_samples for each data point from base distribution
+        
+        Args:
+          x: data batch
+          num_samples: number of samples to draw for each data point
+
+        Returns:
+          latent variables for each batch and sample, log_q, and log_p
         """
         z, log_q = self.q0(x, num_samples=num_samples)
         # Flatten batch and sample dim

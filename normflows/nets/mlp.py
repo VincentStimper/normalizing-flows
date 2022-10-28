@@ -19,19 +19,13 @@ class MLP(nn.Module):
         dropout=None,
     ):
         """
-        :param layers: list of layer sizes from start to end
-        :param leaky: slope of the leaky part of the ReLU,
-        if 0.0, standard ReLU is used
-        :param score_scale: Factor to apply to the scores, i.e. output before
-        output_fn.
-        :param output_fn: String, function to be applied to the output, either
-        None, "sigmoid", "relu", "tanh", or "clampexp"
-        :param output_scale: Rescale outputs if output_fn is specified, i.e.
-        scale * output_fn(out / scale)
-        :param init_zeros: Flag, if true, weights and biases of last layer
-        are initialized with zeros (helpful for deep models, see arXiv 1807.03039)
-        :param dropout: Float, if specified, dropout is done before last layer;
-        if None, no dropout is done
+          layers: list of layer sizes from start to end
+          leaky: slope of the leaky part of the ReLU, if 0.0, standard ReLU is used
+          score_scale: Factor to apply to the scores, i.e. output before output_fn.
+          output_fn: String, function to be applied to the output, either None, "sigmoid", "relu", "tanh", or "clampexp"
+          output_scale: Rescale outputs if output_fn is specified, i.e. ```scale * output_fn(out / scale)```
+          init_zeros: Flag, if true, weights and biases of last layer are initialized with zeros (helpful for deep models, see [arXiv 1807.03039](https://arxiv.org/abs/1807.03039))
+          dropout: Float, if specified, dropout is done before last layer; if None, no dropout is done
         """
         super().__init__()
         net = nn.ModuleList([])

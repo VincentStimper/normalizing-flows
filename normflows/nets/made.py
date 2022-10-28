@@ -84,8 +84,7 @@ class MaskedLinear(nn.Linear):
 class MaskedFeedforwardBlock(nn.Module):
     """A feedforward block based on a masked linear module.
 
-    NOTE: In this implementation, the number of output features is taken to be equal to
-    the number of input features.
+    **NOTE** In this implementation, the number of output features is taken to be equal to the number of input features.
     """
 
     def __init__(

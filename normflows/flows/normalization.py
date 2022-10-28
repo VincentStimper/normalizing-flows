@@ -41,7 +41,7 @@ class ActNorm(AffineConstFlow):
 
 class BatchNorm(Flow):
     """
-    Batch Normalization with out considering the derivatives of the batch statistics, see arXiv: 1605.08803
+    Batch Normalization with out considering the derivatives of the batch statistics, see [arXiv: 1605.08803](https://arxiv.org/abs/1605.08803)
     """
 
     def __init__(self, eps=1.0e-10):

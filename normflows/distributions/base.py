@@ -15,18 +15,24 @@ class BaseDistribution(nn.Module):
         super().__init__()
 
     def forward(self, num_samples=1):
-        """
-        Samples from base distribution and calculates log probability
-        :param num_samples: Number of samples to draw from the distriubtion
-        :return: Samples drawn from the distribution, log probability
+        """ Samples from base distribution and calculates log probability
+        
+        Args:
+          num_samples: Number of samples to draw from the distriubtion
+        
+        Returns:
+          Samples drawn from the distribution, log probability
         """
         raise NotImplementedError
 
     def log_prob(self, z):
-        """
-        Calculate log probability of batch of samples
-        :param z: Batch of random variables to determine log probability for
-        :return: log probability for each batch element
+        """ Calculate log probability of batch of samples
+        
+        Args:
+          z: Batch of random variables to determine log probability for
+
+        Returns:
+          log probability for each batch element
         """
         raise NotImplementedError
 
@@ -37,9 +43,10 @@ class DiagGaussian(BaseDistribution):
     """
 
     def __init__(self, shape, trainable=True):
-        """
-        Constructor
-        :param shape: Tuple with shape of data, if int shape has one dimension
+        """ Constructor
+
+        Args:
+          shape: Tuple with shape of data, if int shape has one dimension
         """
         super().__init__()
         if isinstance(shape, int):
@@ -88,12 +95,12 @@ class UniformGaussian(BaseDistribution):
     """
 
     def __init__(self, ndim, ind, scale=None):
-        """
-        Constructor
-        :param ndim: Int, number of dimensions
-        :param ind: Iterable, indices of uniformly distributed entries
-        :param scale: Iterable, standard deviation of Gaussian or width of
-        uniform distribution
+        """ Constructor
+
+        Args:
+          ndim: Int, number of dimensions
+          ind: Iterable, indices of uniformly distributed entries
+          scale: Iterable, standard deviation of Gaussian or width of uniform distribution
         """
         super().__init__()
         self.ndim = ndim
@@ -160,10 +167,11 @@ class ClassCondDiagGaussian(BaseDistribution):
     """
 
     def __init__(self, shape, num_classes):
-        """
-        Constructor
-        :param shape: Tuple with shape of data, if int shape has one dimension
-        :param num_classes: Number of classes to condition on
+        """ Constructor
+
+        Args:
+          shape: Tuple with shape of data, if int shape has one dimension
+          num_classes: Number of classes to condition on
         """
         super().__init__()
         if isinstance(shape, int):
@@ -232,12 +240,12 @@ class GlowBase(BaseDistribution):
     """
 
     def __init__(self, shape, num_classes=None, logscale_factor=3.0):
-        """
-        Constructor
-        :param shape: Shape of the variables
-        :param num_classes: Number of classes if the base is class conditional,
-        None otherwise
-        :param logscale_factor: Scaling factor for mean and log variance
+        """ Constructor
+
+        Args:
+          shape: Shape of the variables
+          num_classes: Number of classes if the base is class conditional, None otherwise
+          logscale_factor: Scaling factor for mean and log variance
         """
         super().__init__()
         # Save shape and related statistics
@@ -357,12 +365,12 @@ class AffineGaussian(BaseDistribution):
     """
 
     def __init__(self, shape, affine_shape, num_classes=None):
-        """
-        Constructor
-        :param shape: Shape of the variables
-        :param affine_shape: Shape of the parameters in the affine transformation
-        :param num_classes: Number of classes if the base is class conditional,
-        None otherwise
+        """ Constructor
+        
+        Args:
+          shape: Shape of the variables
+          affine_shape: Shape of the parameters in the affine transformation
+          num_classes: Number of classes if the base is class conditional, None otherwise
         """
         super().__init__()
         self.shape = shape
@@ -453,14 +461,15 @@ class GaussianMixture(BaseDistribution):
     def __init__(
         self, n_modes, dim, loc=None, scale=None, weights=None, trainable=True
     ):
-        """
-        Constructor
-        :param n_modes: Number of modes of the mixture model
-        :param dim: Number of dimensions of each Gaussian
-        :param loc: List of mean values
-        :param scale: List of diagonals of the covariance matrices
-        :param weights: List of mode probabilities
-        :param trainable: Flag, if true parameters will be optimized during training
+        """ Constructor
+
+        Args:
+          n_modes: Number of modes of the mixture model
+          dim: Number of dimensions of each Gaussian
+          loc: List of mean values
+          scale: List of diagonals of the covariance matrices
+          weights: List of mode probabilities
+          trainable: Flag, if true parameters will be optimized during training
         """
         super().__init__()
 
@@ -540,12 +549,13 @@ class GaussianPCA(BaseDistribution):
     """
 
     def __init__(self, dim, latent_dim=None, sigma=0.1):
-        """
-        Constructor
-        :param dim: Number of dimensions of the flow variables
-        :param latent_dim: Number of dimensions of the latent "content" variable;
+        """ Constructor
+        
+        Args:
+          dim: Number of dimensions of the flow variables
+          latent_dim: Number of dimensions of the latent "content" variable;
                            if None it is set equal to dim
-        :param sigma: Noise level
+          sigma: Noise level
         """
         super().__init__()
 

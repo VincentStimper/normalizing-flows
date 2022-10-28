@@ -9,12 +9,13 @@ from ... import nets
 
 
 class GlowBlock(Flow):
-    """
-    Glow: Generative Flow with Invertible 1×1 Convolutions, arXiv: 1807.03039
+    """ Glow: Generative Flow with Invertible 1×1 Convolutions, [arXiv: 1807.03039](https://arxiv.org/abs/1807.03039)
+    
     One Block of the Glow model, comprised of
-    MaskedAffineFlow (affine coupling layer
-    Invertible1x1Conv (dropped if there is only one channel)
-    ActNorm (first batch used for initialization)
+
+    - MaskedAffineFlow (affine coupling layer)
+    - Invertible1x1Conv (dropped if there is only one channel)
+    - ActNorm (first batch used for initialization)
     """
 
     def __init__(
@@ -29,20 +30,18 @@ class GlowBlock(Flow):
         use_lu=True,
         net_actnorm=False,
     ):
-        """
-        Constructor
-        :param channels: Number of channels of the data
-        :param hidden_channels: number of channels in the hidden layer of the ConvNet
-        :param scale: Flag, whether to include scale in affine coupling layer
-        :param scale_map: Map to be applied to the scale parameter, can be 'exp' as in
-        RealNVP or 'sigmoid' as in Glow
-        :param split_mode: Splitting mode, for possible values see Split class
-        :param leaky: Leaky parameter of LeakyReLUs of ConvNet2d
-        :param init_zeros: Flag whether to initialize last conv layer with zeros
-        :param use_lu: Flag whether to parametrize weights through the LU decomposition
-        in invertible 1x1 convolution layers
-        :param logscale_factor: Factor which can be used to control the scale of
-        the log scale factor, see https://github.com/openai/glow
+        """ Constructor
+
+        Args:
+          channels: Number of channels of the data
+          hidden_channels: number of channels in the hidden layer of the ConvNet
+          scale: Flag, whether to include scale in affine coupling layer
+          scale_map: Map to be applied to the scale parameter, can be 'exp' as in RealNVP or 'sigmoid' as in Glow
+          split_mode: Splitting mode, for possible values see Split class
+          leaky: Leaky parameter of LeakyReLUs of ConvNet2d
+          init_zeros: Flag whether to initialize last conv layer with zeros
+          use_lu: Flag whether to parametrize weights through the LU decomposition in invertible 1x1 convolution layers
+          logscale_factor: Factor which can be used to control the scale of the log scale factor, see [source](https://github.com/openai/glow)
         """
         super().__init__()
         self.flows = nn.ModuleList([])

@@ -6,17 +6,20 @@ from .base import Flow
 
 
 class Planar(Flow):
-    """
-    Planar flow as introduced in arXiv: 1505.05770
+    """     Planar flow as introduced in [arXiv: 1505.05770](https://arxiv.org/abs/1505.05770)
+    
+    ```
         f(z) = z + u * h(w * z + b)
+    ```
     """
 
     def __init__(self, shape, act="tanh", u=None, w=None, b=None):
-        """
-        Constructor of the planar flow
-        :param shape: shape of the latent variable z
-        :param h: nonlinear function h of the planar flow (see definition of f above)
-        :param u,w,b: optional initialization for parameters
+        """ Constructor of the planar flow
+        
+        Args:
+          shape: shape of the latent variable z
+          h: nonlinear function h of the planar flow (see definition of f above)
+          u,w,b: optional initialization for parameters
         """
         super().__init__()
         lim_w = np.sqrt(2.0 / np.prod(shape))

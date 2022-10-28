@@ -14,7 +14,7 @@ from ...utils.splines import DEFAULT_MIN_DERIVATIVE
 class CoupledRationalQuadraticSpline(Flow):
     """
     Neural spline flow coupling layer, wrapper for the implementation
-    of Durkan et al., see https://github.com/bayesiains/nsf
+    of Durkan et al., see [source](https://github.com/bayesiains/nsf)
     """
 
     def __init__(
@@ -29,28 +29,18 @@ class CoupledRationalQuadraticSpline(Flow):
         dropout_probability=0.0,
         reverse_mask=False,
     ):
-        """
-        Constructor
-        :param num_input_channels: Flow dimension
-        :type num_input_channels: Int
-        :param num_blocks: Number of residual blocks of the parameter NN
-        :type num_blocks: Int
-        :param num_hidden_channels: Number of hidden units of the NN
-        :type num_hidden_channels: Int
-        :param num_bins: Number of bins
-        :type num_bins: Int
-        :param tails: Behaviour of the tails of the distribution,
-        can be linear, circular for periodic distribution, or None for
-        distribution on the compact interval
-        :type tails: String
-        :param tail_bound: Bound of the spline tails
-        :type tail_bound: Float
-        :param activation: Activation function
-        :type activation: torch module
-        :param dropout_probability: Dropout probability of the NN
-        :type dropout_probability: Float
-        :param reverse_mask: Flag whether the reverse mask should be used
-        :type reverse_mask: Boolean
+        """ Constructor
+        
+        Args:
+          num_input_channels (int): Flow dimension
+          num_blocks (int): Number of residual blocks of the parameter NN
+          num_hidden_channels (int): Number of hidden units of the NN
+          num_bins (int): Number of bins
+          tails (str): Behaviour of the tails of the distribution, can be linear, circular for periodic distribution, or None for distribution on the compact interval
+          tail_bound (float): Bound of the spline tails
+          activation (torch module): Activation function
+          dropout_probability (float): Dropout probability of the NN
+          reverse_mask (bool): Flag whether the reverse mask should be used
         """
         super().__init__()
 
@@ -104,30 +94,20 @@ class CircularCoupledRationalQuadraticSpline(Flow):
         mask=None,
         init_identity=True,
     ):
-        """
-        Constructor
-        :param num_input_channels: Flow dimension
-        :type num_input_channels: Int
-        :param num_blocks: Number of residual blocks of the parameter NN
-        :type num_blocks: Int
-        :param num_hidden_channels: Number of hidden units of the NN
-        :type num_hidden_channels: Int
-        :param ind_circ: Indices of the circular coordinates
-        :type ind_circ: Iterable
-        :param num_bins: Number of bins
-        :type num_bins: Int
-        :param tail_bound: Bound of the spline tails
-        :type tail_bound: Float or Iterable
-        :param activation: Activation function
-        :type activation: torch module
-        :param dropout_probability: Dropout probability of the NN
-        :type dropout_probability: Float
-        :param reverse_mask: Flag whether the reverse mask should be used
-        :type reverse_mask: Boolean
-        :param mask: Mask to be used, alternating masked generated is None
-        :param mask: torch tensor
-        :param init_identity: Flag, initialize transform as identity
-        :type init_identity: Boolean
+        """ Constructor
+
+        Args:
+          num_input_channels (int): Flow dimension
+          num_blocks (int): Number of residual blocks of the parameter NN
+          num_hidden_channels (int): Number of hidden units of the NN
+          ind_circ (Iterable): Indices of the circular coordinates
+          num_bins (int): Number of bins
+          tail_bound (float or Iterable): Bound of the spline tails
+          activation (torch module): Activation function
+          dropout_probability (float): Dropout probability of the NN
+          reverse_mask (bool): Flag whether the reverse mask should be used
+          mask (torch tensor): Mask to be used, alternating masked generated is None
+          init_identity (bool): Flag, initialize transform as identity
         """
         super().__init__()
 
@@ -194,7 +174,7 @@ class CircularCoupledRationalQuadraticSpline(Flow):
 class AutoregressiveRationalQuadraticSpline(Flow):
     """
     Neural spline flow coupling layer, wrapper for the implementation
-    of Durkan et al., see https://github.com/bayesiains/nsf
+    of Durkan et al., see [sources](https://github.com/bayesiains/nsf)
     """
 
     def __init__(
@@ -209,26 +189,18 @@ class AutoregressiveRationalQuadraticSpline(Flow):
         permute_mask=False,
         init_identity=True,
     ):
-        """
-        Constructor
-        :param num_input_channels: Flow dimension
-        :type num_input_channels: Int
-        :param num_blocks: Number of residual blocks of the parameter NN
-        :type num_blocks: Int
-        :param num_hidden_channels: Number of hidden units of the NN
-        :type num_hidden_channels: Int
-        :param num_bins: Number of bins
-        :type num_bins: Int
-        :param tail_bound: Bound of the spline tails
-        :type tail_bound: Int
-        :param activation: Activation function
-        :type activation: torch module
-        :param dropout_probability: Dropout probability of the NN
-        :type dropout_probability: Float
-        :param permute_mask: Flag, permutes the mask of the NN
-        :type permute_mask: Boolean
-        :param init_identity: Flag, initialize transform as identity
-        :type init_identity: Boolean
+        """ Constructor
+
+        Args:
+          num_input_channels (int): Flow dimension
+          num_blocks (int): Number of residual blocks of the parameter NN
+          num_hidden_channels (int): Number of hidden units of the NN
+          num_bins (int): Number of bins
+          tail_bound (int): Bound of the spline tails
+          activation (torch module): Activation function
+          dropout_probability (float): Dropout probability of the NN
+          permute_mask (bool): Flag, permutes the mask of the NN
+          init_identity (bool): Flag, initialize transform as identity
         """
         super().__init__()
 
@@ -261,7 +233,7 @@ class AutoregressiveRationalQuadraticSpline(Flow):
 class CircularAutoregressiveRationalQuadraticSpline(Flow):
     """
     Neural spline flow coupling layer, wrapper for the implementation
-    of Durkan et al., see https://github.com/bayesiains/nsf
+    of Durkan et al., see [sources](https://github.com/bayesiains/nsf)
     """
 
     def __init__(
@@ -277,28 +249,19 @@ class CircularAutoregressiveRationalQuadraticSpline(Flow):
         permute_mask=True,
         init_identity=True,
     ):
-        """
-        Constructor
-        :param num_input_channels: Flow dimension
-        :type num_input_channels: Int
-        :param num_blocks: Number of residual blocks of the parameter NN
-        :type num_blocks: Int
-        :param num_hidden_channels: Number of hidden units of the NN
-        :type num_hidden_channels: Int
-        :param ind_circ: Indices of the circular coordinates
-        :type ind_circ: Iterable
-        :param num_bins: Number of bins
-        :type num_bins: Int
-        :param tail_bound: Bound of the spline tails
-        :type tail_bound: Int
-        :param activation: Activation function
-        :type activation: torch module
-        :param dropout_probability: Dropout probability of the NN
-        :type dropout_probability: Float
-        :param permute_mask: Flag, permutes the mask of the NN
-        :type permute_mask: Boolean
-        :param init_identity: Flag, initialize transform as identity
-        :type init_identity: Boolean
+        """ Constructor
+
+        Args:
+          num_input_channels (int): Flow dimension
+          num_blocks (int): Number of residual blocks of the parameter NN
+          num_hidden_channels (int): Number of hidden units of the NN
+          ind_circ (Iterable): Indices of the circular coordinates
+          num_bins (int): Number of bins
+          tail_bound (int): Bound of the spline tails
+          activation (torch module): Activation function
+          dropout_probability (float): Dropout probability of the NN
+          permute_mask (bool): Flag, permutes the mask of the NN
+          init_identity (bool): Flag, initialize transform as identity
         """
         super().__init__()
 

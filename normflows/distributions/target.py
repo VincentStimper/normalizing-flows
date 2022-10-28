@@ -9,10 +9,11 @@ class Target(nn.Module):
     """
 
     def __init__(self, prop_scale=torch.tensor(6.0), prop_shift=torch.tensor(-3.0)):
-        """
-        Constructor
-        :param prop_scale: Scale for the uniform proposal
-        :param prop_shift: Shift for the uniform proposal
+        """ Constructor
+        
+        Args:
+          prop_scale: Scale for the uniform proposal
+          prop_shift: Shift for the uniform proposal
         """
         super().__init__()
         self.register_buffer("prop_scale", prop_scale)
@@ -20,16 +21,22 @@ class Target(nn.Module):
 
     def log_prob(self, z):
         """
-        :param z: value or batch of latent variable
-        :return: log probability of the distribution for z
+        Args:
+          z: value or batch of latent variable
+
+        Returns:
+          log probability of the distribution for z
         """
         raise NotImplementedError("The log probability is not implemented yet.")
 
     def rejection_sampling(self, num_steps=1):
-        """
-        Perform rejection sampling on image distribution
-        :param num_steps: Number of rejection sampling steps to perform
-        :return: Accepted samples
+        """ Perform rejection sampling on image distribution
+        
+        Args:
+          num_steps: Number of rejection sampling steps to perform
+
+        Returns:
+          Accepted samples
         """
         eps = torch.rand(
             (num_steps, self.n_dims),
@@ -46,10 +53,13 @@ class Target(nn.Module):
         return z
 
     def sample(self, num_samples=1):
-        """
-        Sample from image distribution through rejection sampling
-        :param num_samples: Number of samples to draw
-        :return: Samples
+        """ Sample from image distribution through rejection sampling
+        
+        Args:
+          num_samples: Number of samples to draw
+
+        Returns:
+          Samples
         """
         z = torch.zeros(
             (0, self.n_dims), dtype=self.prop_scale.dtype, device=self.prop_scale.device
@@ -73,11 +83,17 @@ class TwoMoons(Target):
 
     def log_prob(self, z):
         """
+        ```
         log(p) = - 1/2 * ((norm(z) - 2) / 0.2) ** 2
                  + log(  exp(-1/2 * ((z[0] - 2) / 0.3) ** 2)
                        + exp(-1/2 * ((z[0] + 2) / 0.3) ** 2))
-        :param z: value or batch of latent variable
-        :return: log probability of the distribution for z
+        ```
+
+        Args:
+          z: value or batch of latent variable
+
+        Returns:
+          log probability of the distribution for z
         """
         a = torch.abs(z[:, 0])
         log_prob = (
@@ -94,9 +110,10 @@ class CircularGaussianMixture(nn.Module):
     """
 
     def __init__(self, n_modes=8):
-        """
-        Constructor
-        :param n_modes: Number of modes
+        """ Constructor
+        
+        Args:
+          n_modes: Number of modes
         """
         super(CircularGaussianMixture, self).__init__()
         self.n_modes = n_modes

@@ -13,13 +13,13 @@ class AffineConstFlow(Flow):
     """
 
     def __init__(self, shape, scale=True, shift=True):
-        """
-        Constructor
-        :param shape: Shape of the coupling layer
-        :param scale: Flag whether to apply scaling
-        :param shift: Flag whether to apply shift
-        :param logscale_factor: Optional factor which can be used to control
-        the scale of the log scale factor
+        """ Constructor
+        
+        Args:
+          shape: Shape of the coupling layer
+          scale: Flag whether to apply scaling
+          shift: Flag whether to apply shift
+          logscale_factor: Optional factor which can be used to control the scale of the log scale factor
         """
         super().__init__()
         if scale:
@@ -100,13 +100,12 @@ class AffineCoupling(Flow):
     """
 
     def __init__(self, param_map, scale=True, scale_map="exp"):
-        """
-        Constructor
-        :param param_map: Maps features to shift and scale parameter (if applicable)
-        :param scale: Flag whether scale shall be applied
-        :param scale_map: Map to be applied to the scale parameter, can be 'exp' as in
-        RealNVP or 'sigmoid' as in Glow, 'sigmoid_inv' uses multiplicative sigmoid
-        scale when sampling from the model
+        """ Constructor
+        
+        Args:
+          param_map: Maps features to shift and scale parameter (if applicable)
+          scale: Flag whether scale shall be applied
+          scale_map: Map to be applied to the scale parameter, can be 'exp' as in RealNVP or 'sigmoid' as in Glow, 'sigmoid_inv' uses multiplicative sigmoid scale when sampling from the model
         """
         super().__init__()
         self.add_module("param_map", param_map)
@@ -115,9 +114,12 @@ class AffineCoupling(Flow):
 
     def forward(self, z):
         """
-        z is a list of z1 and z2; z = [z1, z2]
+        z is a list of z1 and z2; ```z = [z1, z2]```
         z1 is left constant and affine map is applied to z2 with parameters depending
         on z1
+
+        Args:
+          z
         """
         z1, z2 = z
         param = self.param_map(z1)
@@ -168,21 +170,25 @@ class AffineCoupling(Flow):
 
 
 class MaskedAffineFlow(Flow):
-    """
-    RealNVP as introduced in arXiv: 1605.08803
-    Masked affine flow f(z) = b * z + (1 - b) * (z * exp(s(b * z)) + t)
-    class AffineHalfFlow(Flow): is MaskedAffineFlow with alternating bit mask
-    NICE is AffineFlow with only shifts (volume preserving)
+    """ RealNVP as introduced in [arXiv: 1605.08803](https://arxiv.org/abs/1605.08803)
+    
+    Masked affine flow:
+
+    ```
+    f(z) = b * z + (1 - b) * (z * exp(s(b * z)) + t)
+    ```
+
+    - class AffineHalfFlow(Flow): is MaskedAffineFlow with alternating bit mask
+    - NICE is AffineFlow with only shifts (volume preserving)
     """
 
     def __init__(self, b, t=None, s=None):
-        """
-        Constructor
-        :param b: mask for features, i.e. tensor of same size as latent data point filled with 0s and 1s
-        :param t: translation mapping, i.e. neural network, where first input dimension is batch dim,
-        if None no translation is applied
-        :param s: scale mapping, i.e. neural network, where first input dimension is batch dim,
-        if None no scale is applied
+        """ Constructor
+        
+        Args:
+          b: mask for features, i.e. tensor of same size as latent data point filled with 0s and 1s
+          t: translation mapping, i.e. neural network, where first input dimension is batch dim, if None no translation is applied
+          s: scale mapping, i.e. neural network, where first input dimension is batch dim, if None no scale is applied
         """
         super().__init__()
         self.b_cpu = b.view(1, *b.size())
@@ -227,13 +233,13 @@ class AffineCouplingBlock(Flow):
     """
 
     def __init__(self, param_map, scale=True, scale_map="exp", split_mode="channel"):
-        """
-        Constructor
-        :param param_map: Maps features to shift and scale parameter (if applicable)
-        :param scale: Flag whether scale shall be applied
-        :param scale_map: Map to be applied to the scale parameter, can be 'exp' as in
-        RealNVP or 'sigmoid' as in Glow
-        :param split_mode: Splitting mode, for possible values see Split class
+        """ Constructor
+        
+        Args:
+          param_map: Maps features to shift and scale parameter (if applicable)
+          scale: Flag whether scale shall be applied
+          scale_map: Map to be applied to the scale parameter, can be 'exp' as in RealNVP or 'sigmoid' as in Glow
+          split_mode: Splitting mode, for possible values see Split class
         """
         super().__init__()
         self.flows = nn.ModuleList([])

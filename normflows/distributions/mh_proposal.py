@@ -19,18 +19,27 @@ class MHProposal(nn.Module):
 
     def log_prob(self, z_, z):
         """
-        :param z_: Potential new sample
-        :param z: Previous sample
-        :return: Log probability of proposal distribution
+        Args:
+          z_: Potential new sample
+          z: Previous sample
+
+        Returns:
+          Log probability of proposal distribution
         """
         raise NotImplementedError
 
     def forward(self, z):
-        """
-        Draw samples given z and compute log probability difference
+        """ Draw samples given z and compute log probability difference
+
+        ```
         log(p(z | z_new)) - log(p(z_new | z))
-        :param z: Previous samples
-        :return: Proposal, difference of log probability ratio
+        ```
+
+        Args:
+          z: Previous samples
+
+        Returns:
+          Proposal, difference of log probability ratio
         """
         raise NotImplementedError
 
@@ -42,10 +51,11 @@ class DiagGaussianProposal(MHProposal):
     """
 
     def __init__(self, shape, scale):
-        """
-        Constructor
-        :param shape: Shape of variables to sample
-        :param scale: Standard deviation of distribution
+        """ Constructor
+        
+        Args:
+          shape: Shape of variables to sample
+          scale: Standard deviation of distribution
         """
         super().__init__()
         self.shape = shape

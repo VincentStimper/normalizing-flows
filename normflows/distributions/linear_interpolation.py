@@ -4,12 +4,18 @@ class LinearInterpolation:
     """
 
     def __init__(self, dist1, dist2, alpha):
-        """
-        Constructor
-        :param dist1: First distribution
-        :param dist2: Second distribution
-        :param alpha: Interpolation parameter,
+        """ Constructor
+        
+        Interpolation parameter alpha:
+
+        ```
         log_p = alpha * log_p_1 + (1 - alpha) * log_p_2
+        ```
+
+        Args:
+          dist1: First distribution
+          dist2: Second distribution
+          alpha: Interpolation parameter
         """
         self.alpha = alpha
         self.dist1 = dist1

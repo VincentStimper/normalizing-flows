@@ -8,18 +8,25 @@ class BaseDecoder(nn.Module):
         super().__init__()
 
     def forward(self, z):
-        """
-        Decodes z to x
-        :param z: latent variable
-        :return: x, std of x
+        """ Decodes z to x
+        
+        Args:
+          z: latent variable
+
+        Returns:
+          x, std of x
         """
         raise NotImplementedError
 
     def log_prob(self, x, z):
-        """
-        :param x: observable
-        :param z: latent variable
-        :return: log(p) of x given z
+        """ Log probability
+
+        Args:
+          x: observable
+          z: latent variable
+
+        Returns:
+          log(p) of x given z
         """
         raise NotImplementedError
 
@@ -30,9 +37,10 @@ class NNDiagGaussianDecoder(BaseDecoder):
     """
 
     def __init__(self, net):
-        """
-        Constructor
-        :param net: neural network parametrizing mean and standard deviation of diagonal Gaussian
+        """ Constructor
+        
+        Args:
+          net: neural network parametrizing mean and standard deviation of diagonal Gaussian
         """
         super().__init__()
         self.net = net
@@ -66,9 +74,10 @@ class NNBernoulliDecoder(BaseDecoder):
     """
 
     def __init__(self, net):
-        """
-        Constructor
-        :param net: neural network parametrizing mean Bernoulli (mean = sigmoid(nn_out)
+        """ Constructor
+
+        Args:
+          net: neural network parametrizing mean Bernoulli (mean = sigmoid(nn_out)
         """
         super().__init__()
         self.net = net

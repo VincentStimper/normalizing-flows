@@ -9,10 +9,10 @@ class PeriodicWrap(Flow):
     """
 
     def __init__(self, ind, bound=1.0):
-        """
-        Constructor
-        :param ind: Iterable, indices of coordinates to be mapped
-        :param bound: Float or iterable, bound of interval
+        """ Constructor
+        
+          ind: Iterable, indices of coordinates to be mapped
+          bound: Float or iterable, bound of interval
         """
         super().__init__()
         self.ind = ind
@@ -38,11 +38,12 @@ class PeriodicShift(Flow):
     """
 
     def __init__(self, ind, bound=1.0, shift=0.0):
-        """
-        Constructor
-        :param ind: Iterable, indices of coordinates to be mapped
-        :param bound: Float or iterable, bound of interval
-        :param shift: Tensor, shift to be applied
+        """ Constructor
+        
+        Args:
+          ind: Iterable, indices of coordinates to be mapped
+          bound: Float or iterable, bound of interval
+          shift: Tensor, shift to be applied
         """
         super().__init__()
         self.ind = ind

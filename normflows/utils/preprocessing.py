@@ -2,15 +2,18 @@ import torch
 
 
 class Logit:
-    """
-    Transform for dataloader
+    """ Transform for dataloader
+    
+    ```
     logit(alpha + (1 - alpha) * x) where logit(x) = log(x / (1 - x))
+    ```
     """
 
     def __init__(self, alpha=0):
-        """
-        Constructor
-        :param alpha: see above
+        """ Constructor
+        
+        Args:
+          alpha: see above
         """
         self.alpha = alpha
 
@@ -23,15 +26,14 @@ class Logit:
 
 
 class Jitter:
-    """
-    Transform for dataloader
-    Adds uniform jitter noise to data
+    """ Transform for dataloader, adds uniform jitter noise to data
     """
 
     def __init__(self, scale=1.0 / 256):
-        """
-        Constructor
-        :param scale: Scaling factor for noise
+        """ Constructor
+        
+        Args:
+          scale: Scaling factor for noise
         """
         self.scale = scale
 
@@ -42,15 +44,14 @@ class Jitter:
 
 
 class Scale:
-    """
-    Transform for dataloader
-    Adds uniform jitter noise to data
+    """ Transform for dataloader, adds uniform jitter noise to data
     """
 
     def __init__(self, scale=255.0 / 256.0):
-        """
-        Constructor
-        :param scale: Scaling factor for noise
+        """ Constructor
+        
+        Args:
+          scale: Scaling factor for noise
         """
         self.scale = scale
 
