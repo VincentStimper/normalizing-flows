@@ -3,7 +3,7 @@ import numpy as np
 
 
 def bitsPerDim(model, x, y=None, trans="logit", trans_param=[0.05]):
-    """ Computes the bits per dim for a batch of data
+    """Computes the bits per dim for a batch of data
 
     Args:
       model: Model to compute bits per dim for
@@ -37,8 +37,8 @@ def bitsPerDim(model, x, y=None, trans="logit", trans_param=[0.05]):
 def bitsPerDimDataset(
     model, data_loader, class_cond=True, trans="logit", trans_param=[0.05]
 ):
-    """ Computes average bits per dim for an entire dataset given by a data loader
-    
+    """Computes average bits per dim for an entire dataset given by a data loader
+
     Args:
       model: Model to compute bits per dim for
       data_loader: Data loader of dataset

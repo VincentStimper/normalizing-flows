@@ -15,19 +15,19 @@ class BaseDistribution(nn.Module):
         super().__init__()
 
     def forward(self, num_samples=1):
-        """ Samples from base distribution and calculates log probability
-        
+        """Samples from base distribution and calculates log probability
+
         Args:
           num_samples: Number of samples to draw from the distriubtion
-        
+
         Returns:
           Samples drawn from the distribution, log probability
         """
         raise NotImplementedError
 
     def log_prob(self, z):
-        """ Calculate log probability of batch of samples
-        
+        """Calculate log probability of batch of samples
+
         Args:
           z: Batch of random variables to determine log probability for
 
@@ -43,7 +43,7 @@ class DiagGaussian(BaseDistribution):
     """
 
     def __init__(self, shape, trainable=True):
-        """ Constructor
+        """Constructor
 
         Args:
           shape: Tuple with shape of data, if int shape has one dimension
@@ -95,7 +95,7 @@ class UniformGaussian(BaseDistribution):
     """
 
     def __init__(self, ndim, ind, scale=None):
-        """ Constructor
+        """Constructor
 
         Args:
           ndim: Int, number of dimensions
@@ -167,7 +167,7 @@ class ClassCondDiagGaussian(BaseDistribution):
     """
 
     def __init__(self, shape, num_classes):
-        """ Constructor
+        """Constructor
 
         Args:
           shape: Tuple with shape of data, if int shape has one dimension
@@ -240,7 +240,7 @@ class GlowBase(BaseDistribution):
     """
 
     def __init__(self, shape, num_classes=None, logscale_factor=3.0):
-        """ Constructor
+        """Constructor
 
         Args:
           shape: Shape of the variables
@@ -365,8 +365,8 @@ class AffineGaussian(BaseDistribution):
     """
 
     def __init__(self, shape, affine_shape, num_classes=None):
-        """ Constructor
-        
+        """Constructor
+
         Args:
           shape: Shape of the variables
           affine_shape: Shape of the parameters in the affine transformation
@@ -461,7 +461,7 @@ class GaussianMixture(BaseDistribution):
     def __init__(
         self, n_modes, dim, loc=None, scale=None, weights=None, trainable=True
     ):
-        """ Constructor
+        """Constructor
 
         Args:
           n_modes: Number of modes of the mixture model
@@ -549,8 +549,8 @@ class GaussianPCA(BaseDistribution):
     """
 
     def __init__(self, dim, latent_dim=None, sigma=0.1):
-        """ Constructor
-        
+        """Constructor
+
         Args:
           dim: Number of dimensions of the flow variables
           latent_dim: Number of dimensions of the latent "content" variable;

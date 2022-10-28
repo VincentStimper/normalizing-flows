@@ -12,7 +12,7 @@ class Permute(Flow):
     """
 
     def __init__(self, num_channels, mode="shuffle"):
-        """ Constructor
+        """Constructor
 
         Args:
           num_channel: Number of channels
@@ -61,8 +61,8 @@ class Invertible1x1Conv(Flow):
     """
 
     def __init__(self, num_channels, use_lu=False):
-        """ Constructor
-        
+        """Constructor
+
         Args:
           num_channels: Number of channels of the data
           use_lu: Flag whether to parametrize weights through the LU decomposition
@@ -140,7 +140,7 @@ class InvertibleAffine(Flow):
     """
 
     def __init__(self, num_channels, use_lu=True):
-        """ Constructor
+        """Constructor
 
         Args:
           num_channels: Number of channels of the data
@@ -421,7 +421,7 @@ class _LULinear(_Linear):
         ```
 
         where:
-        
+
         ```
             D = num of features
             N = num of inputs
@@ -510,7 +510,7 @@ class _LULinear(_Linear):
     def logabsdet(self):
         """
         Cost:
-        
+
         ```
             logabsdet = O(D)
         ```
@@ -531,8 +531,8 @@ class LULinearPermute(Flow):
     """
 
     def __init__(self, num_channels, identity_init=True):
-        """ Constructor
-        
+        """Constructor
+
         Args:
           num_channels: Number of dimensions of the data
           identity_init: Flag, whether to initialize linear transform as identity matrix

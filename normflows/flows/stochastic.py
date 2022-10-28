@@ -4,13 +4,13 @@ from .base import Flow
 
 
 class MetropolisHastings(Flow):
-    """ Sampling through Metropolis Hastings in Stochastic Normalizing Flow
+    """Sampling through Metropolis Hastings in Stochastic Normalizing Flow
 
     See [arXiv: 2002.06707](https://arxiv.org/abs/2002.06707)
     """
 
     def __init__(self, dist, proposal, steps):
-        """ Constructor
+        """Constructor
 
         Args:
           dist: Distribution to sample from
@@ -50,20 +50,20 @@ class MetropolisHastings(Flow):
 
 
 class HamiltonianMonteCarlo(Flow):
-    """ Flow layer using the HMC proposal in Stochastic Normalising Flows
+    """Flow layer using the HMC proposal in Stochastic Normalising Flows
 
     See [arXiv: 2002.06707](https://arxiv.org/abs/2002.06707)
     """
 
     def __init__(self, target, steps, log_step_size, log_mass, max_abs_grad=None):
-        """ Constructor
+        """Constructor
 
         Args:
           target: The stationary distribution of this Markov transition. Should be logp
           steps: The number of leapfrog steps
           log_step_size: The log step size used in the leapfrog integrator. shape (dim)
           log_mass: The log_mass determining the variance of the momentum samples. shape (dim)
-          max_abs_grad: Maximum absolute value of the gradient of the target distribution's log probability. If set to None then no gradient clipping is applied. Useful for improving numerical stability.        """
+          max_abs_grad: Maximum absolute value of the gradient of the target distribution's log probability. If set to None then no gradient clipping is applied. Useful for improving numerical stability."""
         super().__init__()
         self.target = target
         self.steps = steps

@@ -29,8 +29,8 @@ class CoupledRationalQuadraticSpline(Flow):
         dropout_probability=0.0,
         reverse_mask=False,
     ):
-        """ Constructor
-        
+        """Constructor
+
         Args:
           num_input_channels (int): Flow dimension
           num_blocks (int): Number of residual blocks of the parameter NN
@@ -94,7 +94,7 @@ class CircularCoupledRationalQuadraticSpline(Flow):
         mask=None,
         init_identity=True,
     ):
-        """ Constructor
+        """Constructor
 
         Args:
           num_input_channels (int): Flow dimension
@@ -189,7 +189,7 @@ class AutoregressiveRationalQuadraticSpline(Flow):
         permute_mask=False,
         init_identity=True,
     ):
-        """ Constructor
+        """Constructor
 
         Args:
           num_input_channels (int): Flow dimension
@@ -249,7 +249,7 @@ class CircularAutoregressiveRationalQuadraticSpline(Flow):
         permute_mask=True,
         init_identity=True,
     ):
-        """ Constructor
+        """Constructor
 
         Args:
           num_input_channels (int): Flow dimension

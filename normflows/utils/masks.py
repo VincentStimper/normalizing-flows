@@ -2,8 +2,8 @@ import torch
 
 
 def create_alternating_binary_mask(features, even=True):
-    """ Creates a binary mask of a given dimension which alternates its masking.
-    
+    """Creates a binary mask of a given dimension which alternates its masking.
+
     Args:
       features: Dimension of mask.
       even: If True, even values are assigned 1s, odd 0s. If False, vice versa.
@@ -18,8 +18,8 @@ def create_alternating_binary_mask(features, even=True):
 
 
 def create_mid_split_binary_mask(features):
-    """ Creates a binary mask of a given dimension which splits its masking at the midpoint.
-    
+    """Creates a binary mask of a given dimension which splits its masking at the midpoint.
+
     Args:
       features: Dimension of mask.
 
@@ -33,7 +33,7 @@ def create_mid_split_binary_mask(features):
 
 
 def create_random_binary_mask(features, seed=None):
-    """ Creates a random binary mask of a given dimension with half of its entries randomly set to 1s.
+    """Creates a random binary mask of a given dimension with half of its entries randomly set to 1s.
 
     Args:
       features: Dimension of mask.

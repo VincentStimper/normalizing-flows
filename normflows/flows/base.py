@@ -14,7 +14,7 @@ class Flow(nn.Module):
         """
         Args:
           z: input variable, first dimension is batch dim
-        
+
         Returns:
           transformed z and log of absolute determinant
         """
@@ -30,8 +30,8 @@ class Reverse(Flow):
     """
 
     def __init__(self, flow):
-        """ Constructor
-        
+        """Constructor
+
         Args:
           flow: Flow layer to be reversed
         """
@@ -51,8 +51,8 @@ class Composite(Flow):
     """
 
     def __init__(self, flows):
-        """ Constructor
-        
+        """Constructor
+
         Args:
           flows: Iterable of flows to composite
         """

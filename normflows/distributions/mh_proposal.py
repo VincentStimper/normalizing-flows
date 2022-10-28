@@ -29,7 +29,7 @@ class MHProposal(nn.Module):
         raise NotImplementedError
 
     def forward(self, z):
-        """ Draw samples given z and compute log probability difference
+        """Draw samples given z and compute log probability difference
 
         ```
         log(p(z | z_new)) - log(p(z_new | z))
@@ -51,8 +51,8 @@ class DiagGaussianProposal(MHProposal):
     """
 
     def __init__(self, shape, scale):
-        """ Constructor
-        
+        """Constructor
+
         Args:
           shape: Shape of variables to sample
           scale: Standard deviation of distribution

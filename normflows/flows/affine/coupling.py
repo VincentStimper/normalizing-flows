@@ -13,8 +13,8 @@ class AffineConstFlow(Flow):
     """
 
     def __init__(self, shape, scale=True, shift=True):
-        """ Constructor
-        
+        """Constructor
+
         Args:
           shape: Shape of the coupling layer
           scale: Flag whether to apply scaling
@@ -100,8 +100,8 @@ class AffineCoupling(Flow):
     """
 
     def __init__(self, param_map, scale=True, scale_map="exp"):
-        """ Constructor
-        
+        """Constructor
+
         Args:
           param_map: Maps features to shift and scale parameter (if applicable)
           scale: Flag whether scale shall be applied
@@ -170,8 +170,8 @@ class AffineCoupling(Flow):
 
 
 class MaskedAffineFlow(Flow):
-    """ RealNVP as introduced in [arXiv: 1605.08803](https://arxiv.org/abs/1605.08803)
-    
+    """RealNVP as introduced in [arXiv: 1605.08803](https://arxiv.org/abs/1605.08803)
+
     Masked affine flow:
 
     ```
@@ -183,8 +183,8 @@ class MaskedAffineFlow(Flow):
     """
 
     def __init__(self, b, t=None, s=None):
-        """ Constructor
-        
+        """Constructor
+
         Args:
           b: mask for features, i.e. tensor of same size as latent data point filled with 0s and 1s
           t: translation mapping, i.e. neural network, where first input dimension is batch dim, if None no translation is applied
@@ -233,8 +233,8 @@ class AffineCouplingBlock(Flow):
     """
 
     def __init__(self, param_map, scale=True, scale_map="exp", split_mode="channel"):
-        """ Constructor
-        
+        """Constructor
+
         Args:
           param_map: Maps features to shift and scale parameter (if applicable)
           scale: Flag whether scale shall be applied

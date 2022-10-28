@@ -35,8 +35,8 @@ class HAIS:
             ]
 
     def sample(self, num_samples):
-        """ Run HAIS to draw samples from the target with appropriate weights.
-        
+        """Run HAIS to draw samples from the target with appropriate weights.
+
         Args:
           num_samples: The number of samples to draw.a
         """

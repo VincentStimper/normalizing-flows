@@ -12,8 +12,7 @@ from itertools import repeat
 
 
 class LipschitzMLP(nn.Module):
-    """ Fully connected neural net which is Lipschitz continuou with Lipschitz constant L < 1
-    """
+    """Fully connected neural net which is Lipschitz continuou with Lipschitz constant L < 1"""
 
     def __init__(
         self,
@@ -83,7 +82,7 @@ class LipschitzCNN(nn.Module):
         lipschitz_tolerance=None,
         init_zeros=True,
     ):
-        """ Constructor
+        """Constructor
 
         Args:
           channels: Integer list with the number of channels of the layers

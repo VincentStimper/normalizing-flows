@@ -9,8 +9,8 @@ from ... import nets
 
 
 class GlowBlock(Flow):
-    """ Glow: Generative Flow with Invertible 1×1 Convolutions, [arXiv: 1807.03039](https://arxiv.org/abs/1807.03039)
-    
+    """Glow: Generative Flow with Invertible 1×1 Convolutions, [arXiv: 1807.03039](https://arxiv.org/abs/1807.03039)
+
     One Block of the Glow model, comprised of
 
     - MaskedAffineFlow (affine coupling layer)
@@ -30,7 +30,7 @@ class GlowBlock(Flow):
         use_lu=True,
         net_actnorm=False,
     ):
-        """ Constructor
+        """Constructor
 
         Args:
           channels: Number of channels of the data

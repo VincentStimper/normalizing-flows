@@ -13,7 +13,7 @@ class BaseEncoder(nn.Module):
         super().__init__()
 
     def forward(self, x, num_samples=1):
-        """ 
+        """
         Args:
           x: Variable to condition on, first dimension is batch size
           num_samples: number of samples to draw per element of mini-batch
@@ -73,8 +73,8 @@ class Uniform(BaseEncoder):
 
 class ConstDiagGaussian(BaseEncoder):
     def __init__(self, loc, scale):
-        """ Multivariate Gaussian distribution with diagonal covariance and parameters being constant wrt x
-        
+        """Multivariate Gaussian distribution with diagonal covariance and parameters being constant wrt x
+
         Args:
           loc: mean vector of the distribution
           scale: vector of the standard deviations on the diagonal of the covariance matrix
@@ -133,7 +133,7 @@ class NNDiagGaussian(BaseEncoder):
     """
 
     def __init__(self, net):
-        """ Construtor
+        """Construtor
 
         Args:
           net: net computing mean (first n / 2 outputs), standard deviation (second n / 2 outputs)
@@ -166,7 +166,7 @@ class NNDiagGaussian(BaseEncoder):
 
     def log_prob(self, z, x):
         """
-        
+
         Args:
           z: Primary random variable, first dimension is batch dimension
           x: Variable to condition on, first dimension is batch dimension

@@ -12,8 +12,8 @@ class Split(Flow):
     """
 
     def __init__(self, mode="channel"):
-        """ Constructor
-        
+        """Constructor
+
         The splitting mode can be:
 
         - channel: Splits first feature dimension, usually channels, into two halfs

@@ -24,8 +24,8 @@ class ImagePrior(nn.Module):
     """
 
     def __init__(self, image, x_range=[-3, 3], y_range=[-3, 3], eps=1.0e-10):
-        """ Constructor
-        
+        """Constructor
+
         Args:
           image: image as np matrix
           x_range: x range to position image at
@@ -69,13 +69,13 @@ class ImagePrior(nn.Module):
         return self.density[ind[:, 0], ind[:, 1]]
 
     def rejection_sampling(self, num_steps=1):
-         """Perform rejection sampling on image distribution
-        
-         Args:
-          num_steps: Number of rejection sampling steps to perform
+        """Perform rejection sampling on image distribution
 
-         Returns:
-           Accepted samples
+        Args:
+         num_steps: Number of rejection sampling steps to perform
+
+        Returns:
+          Accepted samples
         """
         z_ = torch.rand(
             (num_steps, 2), dtype=self.image.dtype, device=self.image.device
@@ -88,8 +88,8 @@ class ImagePrior(nn.Module):
         return z
 
     def sample(self, num_samples=1):
-        """ Sample from image distribution through rejection sampling
-        
+        """Sample from image distribution through rejection sampling
+
         Args:
           num_samples: Number of samples to draw
 
@@ -106,7 +106,7 @@ class ImagePrior(nn.Module):
 
 class TwoModes(PriorDistribution):
     def __init__(self, loc, scale):
-        """ Distribution 2d with two modes
+        """Distribution 2d with two modes
 
         Distribution 2d with two modes at:
         ```z[0] = -loc```  and ```z[0] = loc```
@@ -125,7 +125,7 @@ class TwoModes(PriorDistribution):
         log(p) = 1/2 * ((norm(z) - loc) / (2 * scale)) ** 2
                 - log(exp(-1/2 * ((z[0] - loc) / (3 * scale)) ** 2) + exp(-1/2 * ((z[0] + loc) / (3 * scale)) ** 2))
         ```
-        
+
         Args:
           z: value or batch of latent variable
 
@@ -146,8 +146,8 @@ class TwoModes(PriorDistribution):
 
 class Sinusoidal(PriorDistribution):
     def __init__(self, scale, period):
-        """ Distribution 2d with sinusoidal density
-        
+        """Distribution 2d with sinusoidal density
+
         Args:
           loc: distance of modes from the origin
           scale: scale of modes
@@ -157,12 +157,12 @@ class Sinusoidal(PriorDistribution):
 
     def log_prob(self, z):
         """
-        
+
         ```
         log(p) = - 1/2 * ((z[1] - w_1(z)) / (2 * scale)) ** 2
         w_1(z) = sin(2*pi / period * z[0])
         ```
-        
+
         Args:
           z: value or batch of latent variable
 
@@ -185,8 +185,8 @@ class Sinusoidal(PriorDistribution):
 
 class Sinusoidal_gap(PriorDistribution):
     def __init__(self, scale, period):
-        """ Distribution 2d with sinusoidal density with gap
-        
+        """Distribution 2d with sinusoidal density with gap
+
         Args:
           loc: distance of modes from the origin
           scale: scale of modes
@@ -229,8 +229,8 @@ class Sinusoidal_gap(PriorDistribution):
 
 class Sinusoidal_split(PriorDistribution):
     def __init__(self, scale, period):
-        """ Distribution 2d with sinusoidal density with split
-        
+        """Distribution 2d with sinusoidal density with split
+
         Args:
           loc: distance of modes from the origin
           scale: scale of modes
@@ -273,8 +273,8 @@ class Sinusoidal_split(PriorDistribution):
 
 class Smiley(PriorDistribution):
     def __init__(self, scale):
-        """ Distribution 2d of a smiley :)
-        
+        """Distribution 2d of a smiley :)
+
         Args:
           loc: distance of modes from the origin
           scale: scale of modes

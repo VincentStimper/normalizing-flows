@@ -18,8 +18,8 @@ class Residual(Flow):
     def __init__(
         self, net, n_exact_terms=2, n_samples=1, reduce_memory=True, reverse=True
     ):
-        """ Constructor
-        
+        """Constructor
+
         Args:
           net: Neural network, must be Lipschitz continuous with L < 1
           n_exact_terms: Number of terms always included in the power series

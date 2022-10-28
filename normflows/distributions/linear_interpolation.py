@@ -4,8 +4,8 @@ class LinearInterpolation:
     """
 
     def __init__(self, dist1, dist2, alpha):
-        """ Constructor
-        
+        """Constructor
+
         Interpolation parameter alpha:
 
         ```

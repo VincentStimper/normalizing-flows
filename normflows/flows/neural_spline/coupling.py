@@ -20,8 +20,8 @@ class Coupling(Flow):
     provided 1D mask."""
 
     def __init__(self, mask, transform_net_create_fn, unconditional_transform=None):
-        """ Constructor.
-        
+        """Constructor.
+
         mask: a 1-dim tensor, tuple or list. It indexes inputs as follows:
 
         - if `mask[i] > 0`, `input[i]` will be transformed.

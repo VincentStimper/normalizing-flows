@@ -17,8 +17,8 @@ class ConvNet2d(nn.Module):
         actnorm=False,
         weight_std=None,
     ):
-        """ Constructor
-        
+        """Constructor
+
         Args:
           channels: List of channels of conv layers, first entry is in_channels
           kernel_size: List of kernel sizes, same for height and width

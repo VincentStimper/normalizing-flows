@@ -9,8 +9,8 @@ class Target(nn.Module):
     """
 
     def __init__(self, prop_scale=torch.tensor(6.0), prop_shift=torch.tensor(-3.0)):
-        """ Constructor
-        
+        """Constructor
+
         Args:
           prop_scale: Scale for the uniform proposal
           prop_shift: Shift for the uniform proposal
@@ -30,8 +30,8 @@ class Target(nn.Module):
         raise NotImplementedError("The log probability is not implemented yet.")
 
     def rejection_sampling(self, num_steps=1):
-        """ Perform rejection sampling on image distribution
-        
+        """Perform rejection sampling on image distribution
+
         Args:
           num_steps: Number of rejection sampling steps to perform
 
@@ -53,8 +53,8 @@ class Target(nn.Module):
         return z
 
     def sample(self, num_samples=1):
-        """ Sample from image distribution through rejection sampling
-        
+        """Sample from image distribution through rejection sampling
+
         Args:
           num_samples: Number of samples to draw
 
@@ -110,8 +110,8 @@ class CircularGaussianMixture(nn.Module):
     """
 
     def __init__(self, n_modes=8):
-        """ Constructor
-        
+        """Constructor
+
         Args:
           n_modes: Number of modes
         """

@@ -10,8 +10,8 @@ class ConstScaleLayer(nn.Module):
     """
 
     def __init__(self, scale=1.0):
-        """ Constructor
-        
+        """Constructor
+
         Args:
           scale: Scale to apply to features
         """
@@ -29,8 +29,8 @@ class ActNorm(nn.Module):
     """
 
     def __init__(self, shape, logscale_factor=None):
-        """ Constructor
-        
+        """Constructor
+
         Args:
           shape: Same as shape in flows.ActNorm
           logscale_factor: Same as shape in flows.ActNorm
@@ -49,8 +49,8 @@ class ClampExp(nn.Module):
     """
 
     def __init__(self):
-        """ Constructor
-        
+        """Constructor
+
         Args:
           lam: Lambda parameter
         """
@@ -67,8 +67,8 @@ class PeriodicFeatures(nn.Module):
     """
 
     def __init__(self, ndim, ind, scale=1.0, bias=False, activation=None):
-        """ Constructor
-        
+        """Constructor
+
         Args:
           ndim (int): number of dimensions
           ind (iterable): indices of input elements to convert to periodic features
