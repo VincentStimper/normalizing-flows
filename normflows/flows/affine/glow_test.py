@@ -8,7 +8,7 @@ from normflows.flows.flow_test import FlowTest
 
 class GlowTest(FlowTest):
     def test_glow(self):
-        img_size = (8, 8)
+        img_size = (4, 4)
         hidden_channels = 8
         for batch_size, channels, scale, split_mode, use_lu, net_actnorm in [
             (1, 3, True, "channel", True, False),
