@@ -1,5 +1,4 @@
 import unittest
-
 import torch
 
 from normflows.flows import GlowBlock
