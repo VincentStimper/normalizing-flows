@@ -22,11 +22,11 @@ class GlowTest(FlowTest):
             with self.subTest(batch_size=batch_size, channels=channels,
                               scale=scale, split_mode=split_mode,
                               use_lu=use_lu, net_actnorm=net_actnorm):
-                input = torch.rand((batch_size, channels) + img_size)
+                inputs = torch.rand((batch_size, channels) + img_size)
                 flow = GlowBlock(channels, hidden_channels,
                                  scale=scale, split_mode=split_mode,
                                  use_lu=use_lu, net_actnorm=net_actnorm)
-                self.checkForwardInverse(flow, input)
+                self.checkForwardInverse(flow, inputs)
 
 
 if __name__ == "__main__":

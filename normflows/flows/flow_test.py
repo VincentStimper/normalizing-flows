@@ -11,32 +11,32 @@ class FlowTest(unittest.TestCase):
     def assertClose(self, actual, expected):
         assert_close(actual, expected)
 
-    def checkForward(self, flow, input):
+    def checkForward(self, flow, inputs):
         # Do forward transform
-        output, log_det = flow(input)
+        outputs, log_det = flow(inputs)
         # Check type
-        assert output.dtype == input.dtype
+        assert outputs.dtype == inputs.dtype
         # Check shape
-        assert output.shape == input.shape
+        assert outputs.shape == inputs.shape
         # Return results
-        return output, log_det
+        return outputs, log_det
 
-    def checkInverse(self, flow, input):
+    def checkInverse(self, flow, inputs):
         # Do inverse transform
-        output, log_det = flow.inverse(input)
+        outputs, log_det = flow.inverse(inputs)
         # Check type
-        assert output.dtype == input.dtype
+        assert outputs.dtype == inputs.dtype
         # Check shape
-        assert output.shape == input.shape
+        assert outputs.shape == inputs.shape
         # Return results
-        return output, log_det
+        return outputs, log_det
 
-    def checkForwardInverse(self, flow, input):
+    def checkForwardInverse(self, flow, inputs):
         # Check forward
-        output, log_det = self.checkForward(flow, input)
+        outputs, log_det = self.checkForward(flow, inputs)
         # Check inverse
-        input_, log_det_ = self.checkInverse(flow, output)
+        input_, log_det_ = self.checkInverse(flow, outputs)
         # Check identity
-        self.assertClose(input_, input)
+        self.assertClose(input_, inputs)
         ld_id = log_det + log_det_
         self.assertClose(ld_id, torch.zeros_like(ld_id))

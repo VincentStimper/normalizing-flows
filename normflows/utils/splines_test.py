@@ -1,10 +1,12 @@
+import unittest
+
 import torch
-import torchtestcase
 
 from normflows.utils import splines
+from torch.testing import assert_close
 
 
-class RationalQuadraticSplineTest(torchtestcase.TorchTestCase):
+class RationalQuadraticSplineTest(unittest.TestCase):
     def test_forward_inverse_are_consistent(self):
         num_bins = 10
         shape = [2, 3, 4]
@@ -26,12 +28,12 @@ class RationalQuadraticSplineTest(torchtestcase.TorchTestCase):
         outputs, logabsdet = call_spline_fn(inputs, inverse=False)
         inputs_inv, logabsdet_inv = call_spline_fn(outputs, inverse=True)
 
-        self.eps = 1e-4
-        self.assertEqual(inputs, inputs_inv)
-        self.assertEqual(logabsdet + logabsdet_inv, torch.zeros_like(logabsdet))
+        assert_close(inputs, inputs_inv)
+        assert_close(logabsdet + logabsdet_inv, torch.zeros_like(logabsdet),
+                     atol=1e-4, rtol=1e-4)
 
 
-class UnconstrainedRationalQuadraticSplineTest(torchtestcase.TorchTestCase):
+class UnconstrainedRationalQuadraticSplineTest(unittest.TestCase):
     def test_forward_inverse_are_consistent(self):
         num_bins = 10
         shape = [2, 3, 4]
@@ -49,10 +51,10 @@ class UnconstrainedRationalQuadraticSplineTest(torchtestcase.TorchTestCase):
                 inverse=inverse,
             )
 
-        inputs = 3 * torch.randn(*shape)  # Note inputs are outside [0,1].
+        inputs = torch.randn(*shape)  # Note inputs are outside [0,1].
         outputs, logabsdet = call_spline_fn(inputs, inverse=False)
         inputs_inv, logabsdet_inv = call_spline_fn(outputs, inverse=True)
 
-        self.eps = 1e-4
-        self.assertEqual(inputs, inputs_inv)
-        self.assertEqual(logabsdet + logabsdet_inv, torch.zeros_like(logabsdet))
+        assert_close(inputs, inputs_inv)
+        assert_close(logabsdet + logabsdet_inv, torch.zeros_like(logabsdet),
+                     atol=1e-4, rtol=1e-4)
