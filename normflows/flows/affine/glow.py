@@ -50,11 +50,11 @@ class GlowBlock(Flow):
         kernel_size = (3, 1, 3)
         num_param = 2 if scale else 1
         if "channel" == split_mode:
-            channels_ = (channels // 2,) + 2 * (hidden_channels,)
-            channels_ += (num_param * ((channels + 1) // 2),)
-        elif "channel_inv" == split_mode:
             channels_ = ((channels + 1) // 2,) + 2 * (hidden_channels,)
             channels_ += (num_param * (channels // 2),)
+        elif "channel_inv" == split_mode:
+            channels_ = (channels // 2,) + 2 * (hidden_channels,)
+            channels_ += (num_param * ((channels + 1) // 2),)
         elif "checkerboard" in split_mode:
             channels_ = (channels,) + 2 * (hidden_channels,)
             channels_ += (num_param * channels,)
