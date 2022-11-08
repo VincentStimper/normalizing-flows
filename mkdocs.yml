@@ -1,0 +1,17 @@
+site_name: Normalizing Flows
+site_url: https://github.com/VincentStimper/normalizing-flows
+
+
+plugins:
+  - search
+  - autorefs
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            show_submodules: true
+  - mkdocs-jupyter 
+
+nav:
+  - about: index.md
+  - API: references.md

@@ -12,13 +12,17 @@ class Split(Flow):
     """
 
     def __init__(self, mode="channel"):
-        """
-        Constructor
-        :param mode: Splitting mode, can be
-            channel: Splits first feature dimension, usually channels, into two halfs
-            channel_inv: Same as channel, but with z1 and z2 flipped
-            checkerboard: Splits features using a checkerboard pattern (last feature dimension must be even)
-            checkerboard_inv: Same as checkerboard, but with inverted coloring
+        """Constructor
+
+        The splitting mode can be:
+
+        - channel: Splits first feature dimension, usually channels, into two halfs
+        - channel_inv: Same as channel, but with z1 and z2 flipped
+        - checkerboard: Splits features using a checkerboard pattern (last feature dimension must be even)
+        - checkerboard_inv: Same as checkerboard, but with inverted coloring
+
+        Args:
+         mode: splitting mode
         """
         super().__init__()
         self.mode = mode

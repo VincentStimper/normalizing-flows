@@ -12,11 +12,11 @@ class Permute(Flow):
     """
 
     def __init__(self, num_channels, mode="shuffle"):
-        """
-        Constructor
-        :param num_channel: Number of channels
-        :param mode: Mode of permuting features, can be shuffle for
-        random permutation or swap for interchanging upper and lower part
+        """Constructor
+
+        Args:
+          num_channel: Number of channels
+          mode: Mode of permuting features, can be shuffle for random permutation or swap for interchanging upper and lower part
         """
         super().__init__()
         self.mode = mode
@@ -61,10 +61,11 @@ class Invertible1x1Conv(Flow):
     """
 
     def __init__(self, num_channels, use_lu=False):
-        """
-        Constructor
-        :param num_channels: Number of channels of the data
-        :param use_lu: Flag whether to parametrize weights through the LU decomposition
+        """Constructor
+
+        Args:
+          num_channels: Number of channels of the data
+          use_lu: Flag whether to parametrize weights through the LU decomposition
         """
         super().__init__()
         self.num_channels = num_channels
@@ -139,11 +140,11 @@ class InvertibleAffine(Flow):
     """
 
     def __init__(self, num_channels, use_lu=True):
-        """
-        Constructor
-        :param num_channels: Number of channels of the data
-        :param use_lu: Flag whether to parametrize weights through the
-        LU decomposition
+        """Constructor
+
+        Args:
+          num_channels: Number of channels of the data
+          use_lu: Flag whether to parametrize weights through the LU decomposition
         """
         super().__init__()
         self.num_channels = num_channels
@@ -411,12 +412,20 @@ class _LULinear(_Linear):
         return lower, upper
 
     def forward_no_cache(self, inputs):
-        """Cost:
+        """
+        Cost:
+
+        ```
             output = O(D^2N)
             logabsdet = O(D)
+        ```
+
         where:
+
+        ```
             D = num of features
             N = num of inputs
+        ```
         """
         lower, upper = self._create_lower_upper()
         outputs = F.linear(inputs, upper)
@@ -425,12 +434,20 @@ class _LULinear(_Linear):
         return outputs, logabsdet
 
     def inverse_no_cache(self, inputs):
-        """Cost:
+        """
+        Cost:
+
+        ```
             output = O(D^2N)
             logabsdet = O(D)
+        ```
+
         where:
+
+        ```
             D = num of features
             N = num of inputs
+        ```
         """
         lower, upper = self._create_lower_upper()
         outputs = inputs - self.bias
@@ -448,19 +465,35 @@ class _LULinear(_Linear):
         return outputs, logabsdet
 
     def weight(self):
-        """Cost:
+        """
+        Cost:
+
+        ```
             weight = O(D^3)
+        ```
+
         where:
+
+        ```
             D = num of features
+        ```
         """
         lower, upper = self._create_lower_upper()
         return lower @ upper
 
     def weight_inverse(self):
-        """Cost:
+        """
+        Cost:
+
+        ```
             inverse = O(D^3)
+        ```
+
         where:
+
+        ```
             D = num of features
+        ```
         """
         lower, upper = self._create_lower_upper()
         identity = torch.eye(self.features, self.features)
@@ -475,10 +508,18 @@ class _LULinear(_Linear):
         return F.softplus(self.unconstrained_upper_diag) + self.eps
 
     def logabsdet(self):
-        """Cost:
+        """
+        Cost:
+
+        ```
             logabsdet = O(D)
+        ```
+
         where:
+
+        ```
             D = num of features
+        ```
         """
         return torch.sum(torch.log(self.upper_diag))
 
@@ -490,11 +531,11 @@ class LULinearPermute(Flow):
     """
 
     def __init__(self, num_channels, identity_init=True):
-        """
-        Constructor
-        :param num_channels: Number of dimensions of the data
-        :param identity_init: Flag, whether to initialize linear
-        transform as identity matrix
+        """Constructor
+
+        Args:
+          num_channels: Number of dimensions of the data
+          identity_init: Flag, whether to initialize linear transform as identity matrix
         """
         # Initialize
         super().__init__()

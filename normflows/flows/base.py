@@ -12,8 +12,11 @@ class Flow(nn.Module):
 
     def forward(self, z):
         """
-        :param z: input variable, first dimension is batch dim
-        :return: transformed z and log of absolute determinant
+        Args:
+          z: input variable, first dimension is batch dim
+
+        Returns:
+          transformed z and log of absolute determinant
         """
         raise NotImplementedError("Forward pass has not been implemented.")
 
@@ -27,9 +30,10 @@ class Reverse(Flow):
     """
 
     def __init__(self, flow):
-        """
-        Constructor
-        :param flow: Flow layer to be reversed
+        """Constructor
+
+        Args:
+          flow: Flow layer to be reversed
         """
         super().__init__()
         self.flow = flow
@@ -47,9 +51,10 @@ class Composite(Flow):
     """
 
     def __init__(self, flows):
-        """
-        Constructor
-        :param flows: Iterable of flows to composite
+        """Constructor
+
+        Args:
+          flows: Iterable of flows to composite
         """
         super().__init__()
         self._flows = nn.ModuleList(flows)

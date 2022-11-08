@@ -12,10 +12,7 @@ from itertools import repeat
 
 
 class LipschitzMLP(nn.Module):
-    """
-    Fully connected neural net which is Lipschitz continuous
-    with Lipschitz constant L < 1
-    """
+    """Fully connected neural net which is Lipschitz continuou with Lipschitz constant L < 1"""
 
     def __init__(
         self,
@@ -27,15 +24,15 @@ class LipschitzMLP(nn.Module):
     ):
         """
         Constructor
-        :param channels: Integer list with the number of channels of
+          channels: Integer list with the number of channels of
         the layers
-        :param lipschitz_const: Maximum Lipschitz constant of each layer
-        :param max_lipschitz_iter: Maximum number of iterations used to
+          lipschitz_const: Maximum Lipschitz constant of each layer
+          max_lipschitz_iter: Maximum number of iterations used to
         ensure that layers are Lipschitz continuous with L smaller than
         set maximum; if None, tolerance is used
-        :param lipschitz_tolerance: Float, tolerance used to ensure
+          lipschitz_tolerance: Float, tolerance used to ensure
         Lipschitz continuity if max_lipschitz_iter is None, typically 1e-3
-        :param init_zeros: Flag, whether to initialize last layer
+          init_zeros: Flag, whether to initialize last layer
         approximately with zeros
         """
         super().__init__()
@@ -85,19 +82,15 @@ class LipschitzCNN(nn.Module):
         lipschitz_tolerance=None,
         init_zeros=True,
     ):
-        """
-        Constructor
-        :param channels: Integer list with the number of channels of
-        the layers
-        :param kernel_size: Integer list of kernel sizes of the layers
-        :param lipschitz_const: Maximum Lipschitz constant of each layer
-        :param max_lipschitz_iter: Maximum number of iterations used to
-        ensure that layers are Lipschitz continuous with L smaller than
-        set maximum; if None, tolerance is used
-        :param lipschitz_tolerance: Float, tolerance used to ensure
-        Lipschitz continuity if max_lipschitz_iter is None, typically 1e-3
-        :param init_zeros: Flag, whether to initialize last layer
-        approximately with zeros
+        """Constructor
+
+        Args:
+          channels: Integer list with the number of channels of the layers
+          kernel_size: Integer list of kernel sizes of the layers
+          lipschitz_const: Maximum Lipschitz constant of each layer
+          max_lipschitz_iter: Maximum number of iterations used to ensure that layers are Lipschitz continuous with L smaller than set maximum; if None, tolerance is used
+          lipschitz_tolerance: Float, tolerance used to ensure Lipschitz continuity if max_lipschitz_iter is None, typically 1e-3
+          init_zeros: Flag, whether to initialize last layer approximately with zeros
         """
         super().__init__()
 
