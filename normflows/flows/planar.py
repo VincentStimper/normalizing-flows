@@ -50,19 +50,12 @@ class Planar(Flow):
 
     def forward(self, z):
         lin = torch.sum(self.w * z, list(range(1, self.w.dim()))) + self.b
+        inner = torch.sum(self.w * self.u)
+        u = self.u + (torch.log(1 + torch.exp(inner)) - 1 - inner) \
+            * self.w / torch.sum(self.w ** 2)  # constraint w.T * u > -1
         if self.act == "tanh":
-            inner = torch.sum(self.w * self.u)
-            u = self.u + (
-                torch.log(1 + torch.exp(inner)) - 1 - inner
-            ) * self.w / torch.sum(self.w**2)
             h_ = lambda x: 1 / torch.cosh(x) ** 2
         elif self.act == "leaky_relu":
-            inner = torch.sum(self.w * self.u)
-            u = self.u + (
-                torch.log(1 + torch.exp(inner)) - 1 - inner
-            ) * self.w / torch.sum(
-                self.w**2
-            )  # constraint w.T * u neq -1, use >
             h_ = lambda x: (x < 0) * (self.h.negative_slope - 1.0) + 1.0
 
         z_ = z + u * self.h(lin.unsqueeze(1))
@@ -72,21 +65,16 @@ class Planar(Flow):
     def inverse(self, z):
         if self.act != "leaky_relu":
             raise NotImplementedError("This flow has no algebraic inverse.")
-        lin = torch.sum(self.w * z, list(range(2, self.w.dim())), keepdim=True) + self.b
-        inner = torch.sum(self.w * self.u)
-        a = ((lin + self.b) / (1 + inner) < 0) * (
+        lin = torch.sum(self.w * z, list(range(1, self.w.dim()))) + self.b
+        a = (lin < 0) * (
             self.h.negative_slope - 1.0
         ) + 1.0  # absorb leakyReLU slope into u
-        u = a * (
-            self.u
-            + (torch.log(1 + torch.exp(inner)) - 1 - inner)
-            * self.w
-            / torch.sum(self.w**2)
-        )
-        z_ = z - 1 / (1 + inner) * (lin + u * self.b)
-        log_det = -torch.log(torch.abs(1 + torch.sum(self.w * u)))
-        if log_det.dim() == 0:
-            log_det = log_det.unsqueeze(0)
-        if log_det.dim() == 1:
-            log_det = log_det.unsqueeze(1)
+        inner = torch.sum(self.w * self.u)
+        u = self.u + (torch.log(1 + torch.exp(inner)) - 1 - inner) \
+            * self.w / torch.sum(self.w ** 2)
+        dims = [-1] + (u.dim() - 1) * [1]
+        u = a.reshape(*dims) * u
+        inner_ = torch.sum(self.w * u, list(range(1, self.w.dim())))
+        z_ = z - u * (lin / (1 + inner_)).reshape(*dims)
+        log_det = -torch.log(torch.abs(1 + inner_))
         return z_, log_det
