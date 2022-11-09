@@ -14,17 +14,24 @@ class BaseEncoder(nn.Module):
 
     def forward(self, x, num_samples=1):
         """
-        :param x: Variable to condition on, first dimension is batch size
-        :param num_samples: number of samples to draw per element of mini-batch
-        :return: sample of z for x, log probability for sample
+        Args:
+          x: Variable to condition on, first dimension is batch size
+          num_samples: number of samples to draw per element of mini-batch
+
+        Returns
+          sample of z for x, log probability for sample
         """
         raise NotImplementedError
 
     def log_prob(self, z, x):
         """
-        :param z: Primary random variable, first dimension is batch size
-        :param x: Variable to condition on, first dimension is batch size
-        :return: log probability of z given x
+
+        Args:
+          z: Primary random variable, first dimension is batch size
+          x: Variable to condition on, first dimension is batch size
+
+        Returns:
+          log probability of z given x
         """
         raise NotImplementedError
 
@@ -66,10 +73,11 @@ class Uniform(BaseEncoder):
 
 class ConstDiagGaussian(BaseEncoder):
     def __init__(self, loc, scale):
-        """
-        Multivariate Gaussian distribution with diagonal covariance and parameters being constant wrt x
-        :param loc: mean vector of the distribution
-        :param scale: vector of the standard deviations on the diagonal of the covariance matrix
+        """Multivariate Gaussian distribution with diagonal covariance and parameters being constant wrt x
+
+        Args:
+          loc: mean vector of the distribution
+          scale: vector of the standard deviations on the diagonal of the covariance matrix
         """
         super().__init__()
         self.d = len(loc)
@@ -82,9 +90,12 @@ class ConstDiagGaussian(BaseEncoder):
 
     def forward(self, x=None, num_samples=1):
         """
-        :param x: Variable to condition on, will only be used to determine the batch size
-        :param num_samples: number of samples to draw per element of mini-batch
-        :return: sample of z for x, log probability for sample
+        Args:
+          x: Variable to condition on, will only be used to determine the batch size
+          num_samples: number of samples to draw per element of mini-batch
+
+        Returns:
+          sample of z for x, log probability for sample
         """
         if x is not None:
             batch_size = len(x)
@@ -99,9 +110,12 @@ class ConstDiagGaussian(BaseEncoder):
 
     def log_prob(self, z, x):
         """
-        :param z: Primary random variable, first dimension is batch dimension
-        :param x: Variable to condition on, first dimension is batch dimension
-        :return: log probability of z given x
+        Args:
+          z: Primary random variable, first dimension is batch dimension
+          x: Variable to condition on, first dimension is batch dimension
+
+        Returns:
+          log probability of z given x
         """
         if z.dim() == 1:
             z = z.unsqueeze(0)
@@ -119,18 +133,22 @@ class NNDiagGaussian(BaseEncoder):
     """
 
     def __init__(self, net):
-        """
-        Constructor
-        :param net: net computing mean (first n / 2 outputs), standard deviation (second n / 2 outputs)
+        """Construtor
+
+        Args:
+          net: net computing mean (first n / 2 outputs), standard deviation (second n / 2 outputs)
         """
         super().__init__()
         self.net = net
 
     def forward(self, x, num_samples=1):
         """
-        :param x: Variable to condition on
-        :param num_samples: number of samples to draw per element of mini-batch
-        :return: sample of z for x, log probability for sample
+        Args:
+          x: Variable to condition on
+          num_samples: number of samples to draw per element of mini-batch
+
+        Returns:
+          sample of z for x, log probability for sample
         """
         batch_size = len(x)
         mean_std = self.net(x)
@@ -148,9 +166,13 @@ class NNDiagGaussian(BaseEncoder):
 
     def log_prob(self, z, x):
         """
-        :param z: Primary random variable, first dimension is batch dimension
-        :param x: Variable to condition on, first dimension is batch dimension
-        :return: log probability of z given x
+
+        Args:
+          z: Primary random variable, first dimension is batch dimension
+          x: Variable to condition on, first dimension is batch dimension
+
+        Returns:
+          log probability of z given x
         """
         if z.dim() == 1:
             z = z.unsqueeze(0)

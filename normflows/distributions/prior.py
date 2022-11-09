@@ -9,8 +9,11 @@ class PriorDistribution:
 
     def log_prob(self, z):
         """
-        :param z: value or batch of latent variable
-        :return: log probability of the distribution for z
+        Args:
+         z: value or batch of latent variable
+
+        Returns:
+          log probability of the distribution for z
         """
         raise NotImplementedError
 
@@ -21,12 +24,13 @@ class ImagePrior(nn.Module):
     """
 
     def __init__(self, image, x_range=[-3, 3], y_range=[-3, 3], eps=1.0e-10):
-        """
-        Constructor
-        :param image: image as np matrix
-        :param x_range: x range to position image at
-        :param y_range: y range to position image at
-        :param eps: small value to add to image to avoid log(0) problems
+        """Constructor
+
+        Args:
+          image: image as np matrix
+          x_range: x range to position image at
+          y_range: y range to position image at
+          eps: small value to add to image to avoid log(0) problems
         """
         super().__init__()
         image_ = np.flip(image, 0).transpose() + eps
@@ -54,18 +58,24 @@ class ImagePrior(nn.Module):
 
     def log_prob(self, z):
         """
-        :param z: value or batch of latent variable
-        :return: log probability of the distribution for z
+        Args:
+          z: value or batch of latent variable
+
+        Returns:
+          log probability of the distribution for z
         """
         z_ = torch.clamp((z - self.shift) / self.scale, max=1, min=0)
         ind = (z_ * (self.image_size - 1)).long()
         return self.density[ind[:, 0], ind[:, 1]]
 
     def rejection_sampling(self, num_steps=1):
-        """
-        Perform rejection sampling on image distribution
-        :param num_steps: Number of rejection sampling steps to perform
-        :return: Accepted samples
+        """Perform rejection sampling on image distribution
+
+        Args:
+         num_steps: Number of rejection sampling steps to perform
+
+        Returns:
+          Accepted samples
         """
         z_ = torch.rand(
             (num_steps, 2), dtype=self.image.dtype, device=self.image.device
@@ -78,10 +88,13 @@ class ImagePrior(nn.Module):
         return z
 
     def sample(self, num_samples=1):
-        """
-        Sample from image distribution through rejection sampling
-        :param num_samples: Number of samples to draw
-        :return: Samples
+        """Sample from image distribution through rejection sampling
+
+        Args:
+          num_samples: Number of samples to draw
+
+        Returns:
+          Samples
         """
         z = torch.ones((0, 2), dtype=self.image.dtype, device=self.image.device)
         while len(z) < num_samples:
@@ -93,20 +106,31 @@ class ImagePrior(nn.Module):
 
 class TwoModes(PriorDistribution):
     def __init__(self, loc, scale):
-        """
-        Distribution 2d with two modes at z[0] = -loc and z[0] = loc
-        :param loc: distance of modes from the origin
-        :param scale: scale of modes
+        """Distribution 2d with two modes
+
+        Distribution 2d with two modes at:
+        ```z[0] = -loc```  and ```z[0] = loc```
+
+        Args:
+          loc: distance of modes from the origin
+          scale: scale of modes
         """
         self.loc = loc
         self.scale = scale
 
     def log_prob(self, z):
         """
+
+        ```
         log(p) = 1/2 * ((norm(z) - loc) / (2 * scale)) ** 2
                 - log(exp(-1/2 * ((z[0] - loc) / (3 * scale)) ** 2) + exp(-1/2 * ((z[0] + loc) / (3 * scale)) ** 2))
-        :param z: value or batch of latent variable
-        :return: log probability of the distribution for z
+        ```
+
+        Args:
+          z: value or batch of latent variable
+
+        Returns:
+          log probability of the distribution for z
         """
         a = torch.abs(z[:, 0])
         eps = torch.abs(torch.tensor(self.loc))
@@ -122,20 +146,28 @@ class TwoModes(PriorDistribution):
 
 class Sinusoidal(PriorDistribution):
     def __init__(self, scale, period):
-        """
-        Distribution 2d with sinusoidal density
-        :param loc: distance of modes from the origin
-        :param scale: scale of modes
+        """Distribution 2d with sinusoidal density
+
+        Args:
+          loc: distance of modes from the origin
+          scale: scale of modes
         """
         self.scale = scale
         self.period = period
 
     def log_prob(self, z):
         """
+
+        ```
         log(p) = - 1/2 * ((z[1] - w_1(z)) / (2 * scale)) ** 2
         w_1(z) = sin(2*pi / period * z[0])
-        :param z: value or batch of latent variable
-        :return: log probability of the distribution for z
+        ```
+
+        Args:
+          z: value or batch of latent variable
+
+        Returns:
+          log probability of the distribution for z
         """
         if z.dim() > 1:
             z_ = z.permute((z.dim() - 1,) + tuple(range(0, z.dim() - 1)))
@@ -153,10 +185,11 @@ class Sinusoidal(PriorDistribution):
 
 class Sinusoidal_gap(PriorDistribution):
     def __init__(self, scale, period):
-        """
-        Distribution 2d with sinusoidal density with gap
-        :param loc: distance of modes from the origin
-        :param scale: scale of modes
+        """Distribution 2d with sinusoidal density with gap
+
+        Args:
+          loc: distance of modes from the origin
+          scale: scale of modes
         """
         self.scale = scale
         self.period = period
@@ -166,8 +199,11 @@ class Sinusoidal_gap(PriorDistribution):
 
     def log_prob(self, z):
         """
-        :param z: value or batch of latent variable
-        :return: log probability of the distribution for z
+        Args:
+          z: value or batch of latent variable
+
+        Returns:
+          log probability of the distribution for z
         """
         if z.dim() > 1:
             z_ = z.permute((z.dim() - 1,) + tuple(range(0, z.dim() - 1)))
@@ -193,10 +229,11 @@ class Sinusoidal_gap(PriorDistribution):
 
 class Sinusoidal_split(PriorDistribution):
     def __init__(self, scale, period):
-        """
-        Distribution 2d with sinusoidal density with split
-        :param loc: distance of modes from the origin
-        :param scale: scale of modes
+        """Distribution 2d with sinusoidal density with split
+
+        Args:
+          loc: distance of modes from the origin
+          scale: scale of modes
         """
         self.scale = scale
         self.period = period
@@ -206,8 +243,11 @@ class Sinusoidal_split(PriorDistribution):
 
     def log_prob(self, z):
         """
-        :param z: value or batch of latent variable
-        :return: log probability of the distribution for z
+        Args:
+          z: value or batch of latent variable
+
+        Returns:
+          log probability of the distribution for z
         """
         if z.dim() > 1:
             z_ = z.permute((z.dim() - 1,) + tuple(range(0, z.dim() - 1)))
@@ -233,18 +273,22 @@ class Sinusoidal_split(PriorDistribution):
 
 class Smiley(PriorDistribution):
     def __init__(self, scale):
-        """
-        Distribution 2d of a smiley :)
-        :param loc: distance of modes from the origin
-        :param scale: scale of modes
+        """Distribution 2d of a smiley :)
+
+        Args:
+          loc: distance of modes from the origin
+          scale: scale of modes
         """
         self.scale = scale
         self.loc = 2.0
 
     def log_prob(self, z):
         """
-        :param z: value or batch of latent variable
-        :return: log probability of the distribution for z
+        Args:
+          z: value or batch of latent variable
+
+        Returns:
+          log probability of the distribution for z
         """
         if z.dim() > 1:
             z_ = z.permute((z.dim() - 1,) + tuple(range(0, z.dim() - 1)))

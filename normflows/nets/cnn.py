@@ -16,17 +16,17 @@ class ConvNet2d(nn.Module):
         actnorm=False,
         weight_std=None,
     ):
-        """
-        Constructor
-        :param channels: List of channels of conv layers, first entry is in_channels
-        :param kernel_size: List of kernel sizes, same for height and width
-        :param leaky: Leaky part of ReLU
-        :param init_zeros: Flag whether last layer shall be initialized with zeros
-        :param scale_output: Flag whether to scale output with a log scale parameter
-        :param logscale_factor: Constant factor to be multiplied to log scaling
-        :param actnorm: Flag whether activation normalization shall be done after
-        each conv layer except output
-        :param weight_std: Fixed std used to initialize every layer
+        """Constructor
+
+        Args:
+          channels: List of channels of conv layers, first entry is in_channels
+          kernel_size: List of kernel sizes, same for height and width
+          leaky: Leaky part of ReLU
+          init_zeros: Flag whether last layer shall be initialized with zeros
+          scale_output: Flag whether to scale output with a log scale parameter
+          logscale_factor: Constant factor to be multiplied to log scaling
+          actnorm: Flag whether activation normalization shall be done after each conv layer except output
+          weight_std: Fixed std used to initialize every layer
         """
         super().__init__()
         # Build network

@@ -6,16 +6,19 @@ from .base import Flow
 
 
 class Radial(Flow):
-    """
-    Radial flow as introduced in arXiv: 1505.05770
+    """Radial flow as introduced in [arXiv: 1505.05770](https://arxiv.org/abs/1505.05770)
+
+    ```
         f(z) = z + beta * h(alpha, r) * (z - z_0)
+    ```
     """
 
     def __init__(self, shape, z_0=None):
-        """
-        Constructor of the radial flow
-        :param shape: shape of the latent variable z
-        :param z_0: parameter of the radial flow
+        """Constructor of the radial flow
+
+        Args:
+          shape: shape of the latent variable z
+          z_0: parameter of the radial flow
         """
         super().__init__()
         self.d_cpu = torch.prod(torch.tensor(shape))

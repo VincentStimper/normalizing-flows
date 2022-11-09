@@ -13,7 +13,7 @@ class Autoregressive(Flow):
     The parameters of each invertible elementwise transformation can be functions of previous input
     variables, but they must not depend on the current or any following input variables.
 
-    NOTE: Calculating the inverse transform is D times slower than calculating the
+    **NOTE** Calculating the inverse transform is D times slower than calculating the
     forward transform, where D is the dimensionality of the input to the transform.
     """
 

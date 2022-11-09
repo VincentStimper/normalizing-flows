@@ -10,9 +10,10 @@ class ConstScaleLayer(nn.Module):
     """
 
     def __init__(self, scale=1.0):
-        """
-        Constructor
-        :param scale: Scale to apply to features
+        """Constructor
+
+        Args:
+          scale: Scale to apply to features
         """
         super().__init__()
         self.scale_cpu = torch.tensor(scale)
@@ -26,11 +27,13 @@ class ActNorm(nn.Module):
     """
     ActNorm layer with just one forward pass
     """
-
     def __init__(self, shape):
-        """
-        Constructor
-        :param shape: Same as shape in flows.ActNorm
+        """Constructor
+
+        Args:
+          shape: Same as shape in flows.ActNorm
+          logscale_factor: Same as shape in flows.ActNorm
+
         """
         super().__init__()
         self.actNorm = flows.ActNorm(shape)
@@ -46,9 +49,10 @@ class ClampExp(nn.Module):
     """
 
     def __init__(self):
-        """
-        Constructor
-        :param lam: Lambda parameter
+        """Constructor
+
+        Args:
+          lam: Lambda parameter
         """
         super(ClampExp, self).__init__()
 
@@ -68,16 +72,14 @@ class PeriodicFeaturesElementwise(nn.Module):
     """
 
     def __init__(self, ndim, ind, scale=1.0, bias=False, activation=None):
-        """
-        Constructor
-        :param ndim: Int, number of dimensions
-        :param ind: Iterable, indices of input elements to convert to
-        periodic features
-        :param scale: Scalar or iterable, used to scale inputs before
-        converting them to periodic features
-        :param bias: Flag, whether to add a bias
-        :param activation: Function or None, activation function to be
-        applied
+        """Constructor
+
+        Args:
+          ndim (int): number of dimensions
+          ind (iterable): indices of input elements to convert to periodic features
+          scale: Scalar or iterable, used to scale inputs before converting them to periodic features
+          bias: Flag, whether to add a bias
+          activation: Function or None, activation function to be applied
         """
         super(PeriodicFeaturesElementwise, self).__init__()
 
