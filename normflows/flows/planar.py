@@ -49,7 +49,8 @@ class Planar(Flow):
             raise NotImplementedError("Nonlinearity is not implemented.")
 
     def forward(self, z):
-        lin = torch.sum(self.w * z, list(range(1, self.w.dim()))) + self.b
+        lin = torch.sum(self.w * z, list(range(1, self.w.dim())),
+                        keepdim=True) + self.b
         inner = torch.sum(self.w * self.u)
         u = self.u + (torch.log(1 + torch.exp(inner)) - 1 - inner) \
             * self.w / torch.sum(self.w ** 2)  # constraint w.T * u > -1
@@ -58,8 +59,8 @@ class Planar(Flow):
         elif self.act == "leaky_relu":
             h_ = lambda x: (x < 0) * (self.h.negative_slope - 1.0) + 1.0
 
-        z_ = z + u * self.h(lin.unsqueeze(1))
-        log_det = torch.log(torch.abs(1 + torch.sum(self.w * u) * h_(lin)))
+        z_ = z + u * self.h(lin)
+        log_det = torch.log(torch.abs(1 + torch.sum(self.w * u) * h_(lin.reshape(-1))))
         return z_, log_det
 
     def inverse(self, z):
