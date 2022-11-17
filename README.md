@@ -8,7 +8,8 @@
 
 This is a PyTorch implementation of normalizing flows. Many popular flow architectures are implemented,
 see the [list below](#implemented-flows). The package can be easily [installed via pip](#installation).
-The basic usage is described [here](#usage). There are several sample use cases implemented in the 
+The basic usage is described [here](#usage), and a [full documentation](https://vincentstimper.github.io/normalizing-flows/). 
+is available as well. There are several sample use cases implemented in the 
 [`example` folder](https://github.com/VincentStimper/normalizing-flows/tree/master/example), 
 including [Glow](https://github.com/VincentStimper/normalizing-flows/blob/master/example/glow.ipynb),
 a [VAE](https://github.com/VincentStimper/normalizing-flows/blob/master/example/vae.py), and
