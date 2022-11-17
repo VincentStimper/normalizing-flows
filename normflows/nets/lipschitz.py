@@ -119,7 +119,7 @@ class LipschitzCNN(nn.Module):
                     n_iterations=max_lipschitz_iter,
                     atol=lipschitz_tolerance,
                     rtol=lipschitz_tolerance,
-                    zero_init=init_zeros if i == self.n_layers - 1 else False,
+                    zero_init=init_zeros if i == (self.n_layers - 1) else False,
                 ),
             ]
 
@@ -307,6 +307,7 @@ class InducedNormConv2d(nn.Module):
         n_iterations=None,
         atol=None,
         rtol=None,
+        zero_init=False,
         **unused_kwargs
     ):
         del unused_kwargs
@@ -329,7 +330,7 @@ class InducedNormConv2d(nn.Module):
             self.bias = nn.Parameter(torch.Tensor(out_channels))
         else:
             self.register_parameter("bias", None)
-        self.reset_parameters()
+        self.reset_parameters(zero_init)
         self.register_buffer("initialized", torch.tensor(0))
         self.register_buffer("spatial_dims", torch.tensor([1.0, 1.0]))
         self.register_buffer("scale", torch.tensor(0.0))
@@ -344,8 +345,11 @@ class InducedNormConv2d(nn.Module):
             domain, codomain = self.domain, self.codomain
         return domain, codomain
 
-    def reset_parameters(self):
+    def reset_parameters(self, zero_init=False):
         init.kaiming_uniform_(self.weight, a=math.sqrt(5))
+        if zero_init:
+            # normalize cannot handle zero weight in some cases.
+            self.weight.data.div_(1000)
         if self.bias is not None:
             fan_in, _ = init._calculate_fan_in_and_fan_out(self.weight)
             bound = 1 / math.sqrt(fan_in)
