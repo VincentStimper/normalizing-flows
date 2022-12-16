@@ -37,7 +37,7 @@ class Radial(Flow):
     def forward(self, z):
         beta = torch.log(1 + torch.exp(self.beta)) - torch.abs(self.alpha)
         dz = z - self.z_0
-        r = torch.linalg.norm(dz, dim=list(range(1, self.z_0.dim())), keepdim=True)
+        r = torch.linalg.vector_norm(dz, dim=list(range(1, self.z_0.dim())), keepdim=True)
         h_arr = beta / (torch.abs(self.alpha) + r)
         h_arr_ = -beta * r / (torch.abs(self.alpha) + r) ** 2
         z_ = z + h_arr * dz
