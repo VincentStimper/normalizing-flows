@@ -11,7 +11,7 @@ from ... import utils
 from ..affine.autoregressive import Autoregressive
 from normflows.nets import made as made_module
 from normflows.utils import splines
-from normflows.utils.nn import PeriodicFeatures
+from normflows.utils.nn import PeriodicFeaturesElementwise
 
 
 class MaskedPiecewiseRationalQuadraticAutoregressive(Autoregressive):
@@ -50,7 +50,7 @@ class MaskedPiecewiseRationalQuadraticAutoregressive(Autoregressive):
                 scale_pf = np.pi / tail_bound[ind_circ]
             else:
                 scale_pf = np.pi / tail_bound
-            preprocessing = PeriodicFeatures(features, ind_circ, scale_pf)
+            preprocessing = PeriodicFeaturesElementwise(features, ind_circ, scale_pf)
         else:
             preprocessing = None
 

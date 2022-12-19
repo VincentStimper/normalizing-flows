@@ -1,22 +1,22 @@
 """
 Tests for MADE.
-Code taken from https://github.com/bayesiains/nsf
+Code partially taken from https://github.com/bayesiains/nsf
 """
 
 import torch
-import torchtestcase
 import unittest
 
 from normflows.nets import made
+from torch.testing import assert_close
 
 
-class ShapeTest(torchtestcase.TorchTestCase):
+class ShapeTest(unittest.TestCase):
     def test_unconditional(self):
-        features = 100
-        hidden_features = 200
-        num_blocks = 5
+        features = 10
+        hidden_features = 20
+        num_blocks = 3
         output_multiplier = 3
-        batch_size = 16
+        batch_size = 4
 
         inputs = torch.randn(batch_size, features)
 
@@ -37,16 +37,16 @@ class ShapeTest(torchtestcase.TorchTestCase):
                     random_mask=random_mask,
                 )
                 outputs = model(inputs)
-                self.assertEqual(outputs.dim(), 2)
-                self.assertEqual(outputs.shape[0], batch_size)
-                self.assertEqual(outputs.shape[1], output_multiplier * features)
+                assert outputs.dim() == 2
+                assert outputs.shape[0] == batch_size
+                assert outputs.shape[1] == output_multiplier * features
 
 
-class ConnectivityTest(torchtestcase.TorchTestCase):
+class ConnectivityTest(unittest.TestCase):
     def test_gradients(self):
         features = 10
-        hidden_features = 256
-        num_blocks = 20
+        hidden_features = 32
+        num_blocks = 5
         output_multiplier = 3
 
         for use_residual_blocks, random_mask in [
@@ -72,11 +72,11 @@ class ConnectivityTest(torchtestcase.TorchTestCase):
                     outputs[0, k].backward()
                     depends = inputs.grad.data[0] != 0.0
                     dim = k // output_multiplier
-                    self.assertEqual(torch.all(depends[dim:] == 0), 1)
+                    assert torch.all(depends[dim:] == 0) == 1
 
     def test_total_mask_sequential(self):
         features = 10
-        hidden_features = 50
+        hidden_features = 32
         num_blocks = 5
         output_multiplier = 1
 
@@ -102,11 +102,11 @@ class ConnectivityTest(torchtestcase.TorchTestCase):
                 total_mask = model.final_layer.mask @ total_mask
                 total_mask = (total_mask > 0).float()
                 reference = torch.tril(torch.ones([features, features]), -1)
-                self.assertEqual(total_mask, reference)
+                assert_close(total_mask, reference)
 
     def test_total_mask_random(self):
         features = 10
-        hidden_features = 50
+        hidden_features = 32
         num_blocks = 5
         output_multiplier = 1
 
@@ -120,11 +120,11 @@ class ConnectivityTest(torchtestcase.TorchTestCase):
         )
         total_mask = model.initial_layer.mask
         for block in model.blocks:
-            self.assertIsInstance(block, made.MaskedFeedforwardBlock)
+            assert isinstance(block, made.MaskedFeedforwardBlock)
             total_mask = block.linear.mask @ total_mask
         total_mask = model.final_layer.mask @ total_mask
         total_mask = (total_mask > 0).float()
-        self.assertEqual(torch.triu(total_mask), torch.zeros([features, features]))
+        assert_close(torch.triu(total_mask), torch.zeros([features, features]))
 
 
 if __name__ == "__main__":

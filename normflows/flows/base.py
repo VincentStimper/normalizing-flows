@@ -76,3 +76,7 @@ class Composite(Flow):
     def inverse(self, inputs):
         funcs = (flow.inverse for flow in self._flows[::-1])
         return self._cascade(inputs, funcs)
+
+
+def zero_log_det_like_z(z):
+    return torch.zeros(z.shape[0], dtype=z.dtype, device=z.device)

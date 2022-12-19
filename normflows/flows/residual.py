@@ -16,16 +16,33 @@ class Residual(Flow):
     """
 
     def __init__(
-        self, net, n_exact_terms=2, n_samples=1, reduce_memory=True, reverse=True
+        self,
+        net,
+        reverse=True,
+        reduce_memory=True,
+        geom_p=0.5,
+        lamb=2.0,
+        n_power_series=None,
+        exact_trace=False,
+        brute_force=False,
+        n_samples=1,
+        n_exact_terms=2,
+        n_dist="geometric"
     ):
         """Constructor
 
         Args:
           net: Neural network, must be Lipschitz continuous with L < 1
-          n_exact_terms: Number of terms always included in the power series
-          n_samples: Number of samples used to estimate power series
-          reduce_memory: Flag, if true Neumann series and precomputations, for backward pass in forward pass are done
           reverse: Flag, if true the map ```f(x) = x + net(x)``` is applied in the inverse pass, otherwise it is done in forward
+          reduce_memory: Flag, if true Neumann series and precomputations, for backward pass in forward pass are done
+          geom_p: Parameter of the geometric distribution used for the Neumann series
+          lamb: Parameter of the geometric distribution used for the Neumann series
+          n_power_series: Number of terms in the Neumann series
+          exact_trace: Flag, if true the trace of the Jacobian is computed exactly
+          brute_force: Flag, if true the Jacobian is computed exactly in 2D
+          n_samples: Number of samples used to estimate power series
+          n_exact_terms: Number of terms always included in the power series
+          n_dist: Distribution used for the power series, either "geometric" or "poisson"
         """
         super().__init__()
         self.reverse = reverse
@@ -35,6 +52,12 @@ class Residual(Flow):
             n_exact_terms=n_exact_terms,
             neumann_grad=reduce_memory,
             grad_in_forward=reduce_memory,
+            exact_trace=exact_trace,
+            geom_p=geom_p,
+            lamb=lamb,
+            n_power_series=n_power_series,
+            brute_force=brute_force,
+            n_dist=n_dist,
         )
 
     def forward(self, z):

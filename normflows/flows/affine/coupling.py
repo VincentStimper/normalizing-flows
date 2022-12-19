@@ -2,7 +2,7 @@ import numpy as np
 import torch
 from torch import nn
 
-from ..base import Flow
+from ..base import Flow, zero_log_det_like_z
 from ..reshape import Split, Merge
 
 
@@ -140,8 +140,8 @@ class AffineCoupling(Flow):
             else:
                 raise NotImplementedError("This scale map is not implemented.")
         else:
-            z2 += param
-            log_det = 0
+            z2 = z2 + param
+            log_det = zero_log_det_like_z(z2)
         return [z1, z2], log_det
 
     def inverse(self, z):
@@ -164,8 +164,8 @@ class AffineCoupling(Flow):
             else:
                 raise NotImplementedError("This scale map is not implemented.")
         else:
-            z2 -= param
-            log_det = 0
+            z2 = z2 - param
+            log_det = zero_log_det_like_z(z2)
         return [z1, z2], log_det
 
 

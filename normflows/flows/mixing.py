@@ -70,7 +70,7 @@ class Invertible1x1Conv(Flow):
         super().__init__()
         self.num_channels = num_channels
         self.use_lu = use_lu
-        Q = torch.qr(torch.randn(self.num_channels, self.num_channels))[0]
+        Q, _ = torch.linalg.qr(torch.randn(self.num_channels, self.num_channels))
         if use_lu:
             P, L, U = torch.lu_unpack(*Q.lu())
             self.register_buffer("P", P)  # remains fixed during optimization
@@ -149,7 +149,7 @@ class InvertibleAffine(Flow):
         super().__init__()
         self.num_channels = num_channels
         self.use_lu = use_lu
-        Q = torch.qr(torch.randn(self.num_channels, self.num_channels))[0]
+        Q, _ = torch.linalg.qr(torch.randn(self.num_channels, self.num_channels))
         if use_lu:
             P, L, U = torch.lu_unpack(*Q.lu())
             self.register_buffer("P", P)  # remains fixed during optimization
