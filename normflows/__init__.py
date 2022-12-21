@@ -10,4 +10,4 @@ from . import utils
 from . import sampling
 from .sampling import HAIS
 
-__version__ = "1.4"
+__version__ = "1.5"
