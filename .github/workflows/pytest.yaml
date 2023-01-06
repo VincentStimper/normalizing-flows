@@ -24,7 +24,9 @@ jobs:
           pytest --cov
       - name: Coverage Bagdge
         uses: tj-actions/coverage-badge-py@v1.8
+        with:
+          output: coverage/coverage.svg
       - name: Publish coverage report to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4
         with:
-          file: coverage.svg
+          folder: coverage
