@@ -1,0 +1,36 @@
+name: Unit tests
+
+on:
+  push:
+    branches: ["master", "vberenz-ci"]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version-file: '.python-version'
+          cache: 'pip'
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install pytest pytest-coverage
+      - name: Test with pytest
+        run: |
+          pytest --cov
+      - name: Creating coverage folder
+        run: |
+          mkdir -p coverage
+      - name: Coverage Bagdge
+        uses: tj-actions/coverage-badge-py@v1.8
+        with:
+          output: coverage/coverage.svg
+      - name: Publish coverage report to coverage-badge branch
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          branch: coverage-badge
+          folder: coverage
