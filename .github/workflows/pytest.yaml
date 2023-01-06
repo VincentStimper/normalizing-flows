@@ -1,4 +1,4 @@
-name: Unit testing and test coverage with pytest
+name: Unit tests
 
 on:
   push:
@@ -24,3 +24,7 @@ jobs:
           pytest --cov
       - name: Coverage Bagdge
         uses: tj-actions/coverage-badge-py@v1.8
+      - name: Publish coverage report to GitHub Pages
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          file: coverage.svg
