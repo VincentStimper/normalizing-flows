@@ -2,7 +2,7 @@ name: Unit testing and test coverage with pytest
 
 on:
   push:
-    branches: ["master", "vberenz/ci"]
+    branches: ["master", "vberenz-ci"]
   pull_request:
 
 jobs:
