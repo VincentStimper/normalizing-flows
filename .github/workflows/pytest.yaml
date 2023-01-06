@@ -25,7 +25,7 @@ jobs:
       run: |
         pytest
     - name: Coverage Bagdge
-    - uses: tj-actions/coverage-badge-py@v1.8
+      uses: tj-actions/coverage-badge-py@v1.8
 
 
 
