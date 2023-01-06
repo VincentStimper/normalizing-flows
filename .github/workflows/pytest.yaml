@@ -32,4 +32,5 @@ jobs:
       - name: Publish coverage report to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4
         with:
+          branch: coverage-badge
           folder: coverage
