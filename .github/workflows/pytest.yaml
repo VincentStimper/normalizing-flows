@@ -7,21 +7,19 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-    
     steps:
-    - uses: actions/checkout@v3
-    - name: Set up Python
-      uses: actions/setup-python@v3
-      with:
-        python-version-file: '.python-version'
-        cache: 'pip'
-      run: |
-        pip install -r requirements.txt
-	pip install pytest pytest-coverage
-    - name: Test with pytest
-      run: |
-        pytest --cov
-    - name: Coverage Bagdge
-      uses: tj-actions/coverage-badge-py@v1.8
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version-file: '.python-version'
+          cache: 'pip'
+        run: |
+          pip install -r requirements.txt
+          pip install pytest pytest-coverage
+      - name: Test with pytest
+        run: |
+          pytest --cov
+      - name: Coverage Bagdge
+        uses: tj-actions/coverage-badge-py@v1.8
