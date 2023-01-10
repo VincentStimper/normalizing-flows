@@ -451,12 +451,20 @@ class _LULinear(_Linear):
         """
         lower, upper = self._create_lower_upper()
         outputs = inputs - self.bias
-        outputs = torch.linalg.solve_triangular(
-            lower, outputs.t(), upper=False, unitriangular=True
-        )
-        outputs = torch.linalg.solve_triangular(
-            upper, outputs, upper=True, unitriangular=False
-        )
+        try:
+            outputs = torch.linalg.solve_triangular(
+                lower, outputs.t(), upper=False, unitriangular=True
+            )
+            outputs = torch.linalg.solve_triangular(
+                upper, outputs, upper=True, unitriangular=False
+            )
+        except:
+            outputs, _ = torch.triangular_solve(
+                outputs.t(), lower, upper=False, unitriangular=True
+            )
+            outputs, _ = torch.triangular_solve(
+                outputs, upper, upper=True, unitriangular=False
+            )
         outputs = outputs.t()
 
         logabsdet = -self.logabsdet()
