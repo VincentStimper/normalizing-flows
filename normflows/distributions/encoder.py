@@ -42,12 +42,12 @@ class Dirac(BaseEncoder):
 
     def forward(self, x, num_samples=1):
         z = x.unsqueeze(1).repeat(1, num_samples, 1)
-        log_p = torch.zeros(z.size()[0:2])
-        return z, log_p
+        log_q = torch.zeros(z.size()[0:2])
+        return z, log_q
 
     def log_prob(self, z, x):
-        log_p = torch.zeros(z.size()[0:2])
-        return log_p
+        log_q = torch.zeros(z.size()[0:2])
+        return log_q
 
 
 class Uniform(BaseEncoder):
@@ -55,7 +55,7 @@ class Uniform(BaseEncoder):
         super().__init__()
         self.zmin = zmin
         self.zmax = zmax
-        self.log_p = -torch.log(zmax - zmin)
+        self.log_q = -torch.log(zmax - zmin)
 
     def forward(self, x, num_samples=1):
         z = (
@@ -63,12 +63,12 @@ class Uniform(BaseEncoder):
             .repeat(1, num_samples, 1)
             .uniform_(min=self.zmin, max=self.zmax)
         )
-        log_p = torch.zeros(z.size()[0:2]).fill_(self.log_p)
-        return z, log_p
+        log_q = torch.zeros(z.size()[0:2]).fill_(self.log_q)
+        return z, log_q
 
     def log_prob(self, z, x):
-        log_p = torch.zeros(z.size()[0:2]).fill_(self.log_p)
-        return log_p
+        log_q = torch.zeros(z.size()[0:2]).fill_(self.log_q)
+        return log_q
 
 
 class ConstDiagGaussian(BaseEncoder):
@@ -103,10 +103,10 @@ class ConstDiagGaussian(BaseEncoder):
             batch_size = 1
         eps = torch.randn((batch_size, num_samples, self.d), device=x.device)
         z = self.loc + self.scale * eps
-        log_p = -0.5 * self.d * np.log(2 * np.pi) - torch.sum(
+        log_q = -0.5 * self.d * np.log(2 * np.pi) - torch.sum(
             torch.log(self.scale) + 0.5 * torch.pow(eps, 2), 2
         )
-        return z, log_p
+        return z, log_q
 
     def log_prob(self, z, x):
         """
@@ -121,10 +121,10 @@ class ConstDiagGaussian(BaseEncoder):
             z = z.unsqueeze(0)
         if z.dim() == 2:
             z = z.unsqueeze(0)
-        log_p = -0.5 * self.d * np.log(2 * np.pi) - torch.sum(
+        log_q = -0.5 * self.d * np.log(2 * np.pi) - torch.sum(
             torch.log(self.scale) + 0.5 * ((z - self.loc) / self.scale) ** 2, 2
         )
-        return log_p
+        return log_q
 
 
 class NNDiagGaussian(BaseEncoder):
@@ -159,10 +159,10 @@ class NNDiagGaussian(BaseEncoder):
             (batch_size, num_samples) + tuple(mean.size()[2:]), device=x.device
         )
         z = mean + std * eps
-        log_p = -0.5 * torch.prod(torch.tensor(z.size()[2:])) * np.log(
+        log_q = -0.5 * torch.prod(torch.tensor(z.size()[2:])) * np.log(
             2 * np.pi
         ) - torch.sum(torch.log(std) + 0.5 * torch.pow(eps, 2), list(range(2, z.dim())))
-        return z, log_p
+        return z, log_q
 
     def log_prob(self, z, x):
         """
@@ -182,7 +182,7 @@ class NNDiagGaussian(BaseEncoder):
         n_hidden = mean_std.size()[1] // 2
         mean = mean_std[:, :n_hidden, ...].unsqueeze(1)
         var = torch.exp(mean_std[:, n_hidden : (2 * n_hidden), ...].unsqueeze(1))
-        log_p = -0.5 * torch.prod(torch.tensor(z.size()[2:])) * np.log(
+        log_q = -0.5 * torch.prod(torch.tensor(z.size()[2:])) * np.log(
             2 * np.pi
         ) - 0.5 * torch.sum(torch.log(var) + (z - mean) ** 2 / var, 2)
-        return log_p
+        return log_q
