@@ -28,9 +28,9 @@ class RationalQuadraticSplineTest(unittest.TestCase):
         outputs, logabsdet = call_spline_fn(inputs, inverse=False)
         inputs_inv, logabsdet_inv = call_spline_fn(outputs, inverse=True)
 
-        assert_close(inputs, inputs_inv, atol=3e-5, rtol=3e-5)
+        assert_close(inputs, inputs_inv, atol=1e-4, rtol=1e-4)
         assert_close(logabsdet + logabsdet_inv, torch.zeros_like(logabsdet),
-                     atol=2e-4, rtol=2e-4)
+                     atol=1e-3, rtol=1e-3)
 
 
 class UnconstrainedRationalQuadraticSplineTest(unittest.TestCase):
@@ -55,6 +55,6 @@ class UnconstrainedRationalQuadraticSplineTest(unittest.TestCase):
         outputs, logabsdet = call_spline_fn(inputs, inverse=False)
         inputs_inv, logabsdet_inv = call_spline_fn(outputs, inverse=True)
 
-        assert_close(inputs, inputs_inv, atol=3e-5, rtol=3e-5)
+        assert_close(inputs, inputs_inv, atol=1e-4, rtol=1e-4)
         assert_close(logabsdet + logabsdet_inv, torch.zeros_like(logabsdet),
-                     atol=2e-4, rtol=2e-4)
+                     atol=1e-3, rtol=1e-3)

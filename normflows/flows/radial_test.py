@@ -5,8 +5,8 @@ from normflows.flows import Radial
 from normflows.flows.flow_test import FlowTest
 
 
-class PlanarTest(FlowTest):
-    def test_normal_nsf(self):
+class RadialTest(FlowTest):
+    def test_radial(self):
         batch_size = 3
         for latent_size in [(2,), (5, 2), (2, 3, 4)]:
             with self.subTest(latent_size=latent_size):
