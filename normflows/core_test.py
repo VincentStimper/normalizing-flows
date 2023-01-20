@@ -2,12 +2,15 @@ import unittest
 import torch
 
 from torch.testing import assert_close
-from normflows import NormalizingFlow, ClassCondFlow
+from normflows import NormalizingFlow, ClassCondFlow, \
+    NormalizingFlowVAE
 from normflows.flows import MaskedAffineFlow
 from normflows.nets import MLP
 from normflows.distributions.base import DiagGaussian, \
     ClassCondDiagGaussian
 from normflows.distributions.target import CircularGaussianMixture
+from normflows.distributions.encoder import NNDiagGaussian
+from normflows.distributions.decoder import NNDiagGaussianDecoder
 
 
 class CoreTest(unittest.TestCase):
@@ -75,6 +78,39 @@ class CoreTest(unittest.TestCase):
         assert s.shape == (batch_size, latent_size)
         loss = model.forward_kld(x, y)
         assert loss.dim() == 0
+
+    def test_normalizing_flow_vae(self):
+        batch_size = 5
+        n_dim = 10
+        n_layers = 2
+        n_bottleneck = 3
+        n_hidden_untis = 16
+        hidden_units_encoder = [n_dim, n_hidden_untis, n_bottleneck * 2]
+        hidden_units_decoder = [n_bottleneck, n_hidden_untis, 2 * n_dim]
+
+        # Construct flow model
+        layers = []
+        for i in range(n_layers):
+            b = torch.Tensor([j if i % 2 == j % 2 else 0 for j in range(n_bottleneck)])
+            s = MLP([n_bottleneck, 2 * n_bottleneck, n_bottleneck], init_zeros=True)
+            t = MLP([n_bottleneck, 2 * n_bottleneck, n_bottleneck], init_zeros=True)
+            layers.append(MaskedAffineFlow(b, t, s))
+        prior = torch.distributions.MultivariateNormal(torch.zeros(n_bottleneck),
+                                                       torch.eye(n_bottleneck))
+        encoder_nn = MLP(hidden_units_encoder)
+        encoder = NNDiagGaussian(encoder_nn)
+        decoder_nn = MLP(hidden_units_decoder)
+        decoder = NNDiagGaussianDecoder(decoder_nn)
+        model = NormalizingFlowVAE(prior, encoder, layers, decoder)
+
+        # Test model
+        for num_samples in [1, 4]:
+            with self.subTest(num_samples=num_samples):
+                x = torch.randn((batch_size, n_dim))
+                z, log_p, log_q = model(x, num_samples=num_samples)
+                assert z.shape == (batch_size, num_samples, n_bottleneck)
+                assert log_p.shape == (batch_size, num_samples)
+                assert log_q.shape == (batch_size, num_samples)
 
 
 if __name__ == "__main__":
