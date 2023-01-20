@@ -9,16 +9,16 @@ class MetropolisHastings(Flow):
     See [arXiv: 2002.06707](https://arxiv.org/abs/2002.06707)
     """
 
-    def __init__(self, dist, proposal, steps):
+    def __init__(self, target, proposal, steps):
         """Constructor
 
         Args:
-          dist: Distribution to sample from
+          target: The stationary distribution of this Markov transition, i.e. the target distribution to sample from.
           proposal: Proposal distribution
           steps: Number of MCMC steps to perform
         """
         super().__init__()
-        self.dist = dist
+        self.target = target
         self.proposal = proposal
         self.steps = steps
 
@@ -27,11 +27,11 @@ class MetropolisHastings(Flow):
         num_samples = len(z)
         log_det = torch.zeros(num_samples, dtype=z.dtype, device=z.device)
         # Get log(p) for current samples
-        log_p = self.dist.log_prob(z)
+        log_p = self.target.log_prob(z)
         for i in range(self.steps):
             # Make proposal and get log(p)
             z_, log_p_diff = self.proposal(z)
-            log_p_ = self.dist.log_prob(z_)
+            log_p_ = self.target.log_prob(z_)
             # Make acceptance decision
             w = torch.rand(num_samples, dtype=z.dtype, device=z.device)
             log_w_accept = log_p_ - log_p + log_p_diff
@@ -59,7 +59,7 @@ class HamiltonianMonteCarlo(Flow):
         """Constructor
 
         Args:
-          target: The stationary distribution of this Markov transition. Should be logp
+          target: The stationary distribution of this Markov transition, i.e. the target distribution to sample from.
           steps: The number of leapfrog steps
           log_step_size: The log step size used in the leapfrog integrator. shape (dim)
           log_mass: The log_mass determining the variance of the momentum samples. shape (dim)
