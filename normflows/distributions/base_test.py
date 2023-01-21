@@ -81,6 +81,15 @@ class BaseTest(DistributionTest):
                     self.checkForwardLogProb(distribution, num_samples)
                     _ = self.checkSample(distribution, num_samples)
 
+    def test_gaussian_pca(self):
+        params = [(1, 1), (4, 2), (5, 1)]
+        for dim, latent_dim in params:
+            for num_samples in [1, 3]:
+                with self.subTest(dim=dim, latent_dim=latent_dim):
+                    distribution = GaussianMixture(dim, latent_dim)
+                    self.checkForwardLogProb(distribution, num_samples)
+                    _ = self.checkSample(distribution, num_samples)
+
 
 if __name__ == "__main__":
     unittest.main()
