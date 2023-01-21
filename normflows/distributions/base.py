@@ -36,6 +36,18 @@ class BaseDistribution(nn.Module):
         """
         raise NotImplementedError
 
+    def sample(self, num_samples=1):
+        """Samples from base distribution
+
+        Args:
+          num_samples: Number of samples to draw from the distriubtion
+
+        Returns:
+          Samples drawn from the distribution
+        """
+        z, _ = self.forward(num_samples)
+        return z
+
 
 class DiagGaussian(BaseDistribution):
     """
@@ -51,6 +63,8 @@ class DiagGaussian(BaseDistribution):
         super().__init__()
         if isinstance(shape, int):
             shape = (shape,)
+        if isinstance(shape, list):
+            shape = tuple(shape)
         self.shape = shape
         self.n_dim = len(shape)
         self.d = np.prod(shape)
@@ -104,6 +118,8 @@ class UniformGaussian(BaseDistribution):
         """
         super().__init__()
         self.ndim = ndim
+        if isinstance(ind, int):
+            ind = [ind]
 
         # Set up indices and permutations
         self.ndim = ndim
