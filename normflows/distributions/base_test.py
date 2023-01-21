@@ -2,7 +2,9 @@ import unittest
 import torch
 import numpy as np
 
-from normflows.distributions.base import DiagGaussian, UniformGaussian
+from normflows.distributions.base import DiagGaussian, UniformGaussian, \
+    ClassCondDiagGaussian, GlowBase, AffineGaussian, GaussianMixture, \
+    GaussianPCA
 from normflows.distributions.distribution_test import DistributionTest
 
 
@@ -23,6 +25,59 @@ class BaseTest(DistributionTest):
                 with self.subTest(ndim=ndim, ind=ind, scale=scale,
                                   num_samples=num_samples):
                     distribution = UniformGaussian(ndim, ind, scale)
+                    self.checkForwardLogProb(distribution, num_samples)
+                    _ = self.checkSample(distribution, num_samples)
+
+    def test_cc_diag_gaussian(self):
+        params = [(1, 3), ((3,), 1), ([2, 3], 5)]
+        for shape, num_classes in params:
+            for num_samples in [1, 3]:
+                with self.subTest(shape=shape, num_classes=num_classes,
+                                  num_samples=num_samples):
+                    distribution = ClassCondDiagGaussian(shape, num_classes)
+                    y = torch.randint(num_classes, (num_samples,))
+                    self.checkForwardLogProb(distribution, num_samples, y=y)
+                    _ = self.checkSample(distribution, num_samples)
+
+    def test_glow_base(self):
+        params = [(1, 3), ((3,), 1), ([2, 3], None), ((3, 2, 2), 5)]
+        for shape, num_classes in params:
+            for num_samples in [1, 3]:
+                with self.subTest(shape=shape, num_classes=num_classes,
+                                  num_samples=num_samples):
+                    distribution = GlowBase(shape, num_classes)
+                    if num_classes is None:
+                        y = None
+                    else:
+                        y = torch.randint(num_classes, (num_samples,))
+                    self.checkForwardLogProb(distribution, num_samples, y=y)
+                    _ = self.checkSample(distribution, num_samples)
+
+    def test_affine_gaussian(self):
+        params = [(1, (1,), 2), ((3,), 1, 1),
+                  ([2, 3], (2, 1), None), ((3, 2, 2), (3, 1, 2), 5)]
+        for shape, affine_shape, num_classes in params:
+            for num_samples in [1, 3]:
+                with self.subTest(shape=shape, num_classes=num_classes,
+                                  num_samples=num_samples):
+                    distribution = AffineGaussian(shape, affine_shape,
+                                                  num_classes)
+                    if num_classes is None:
+                        y = None
+                    else:
+                        y = torch.randint(num_classes, (num_samples,))
+                    self.checkForwardLogProb(distribution, num_samples, y=y)
+                    _ = self.checkSample(distribution, num_samples)
+
+    def test_gaussian_mixture(self):
+        params = [(4, 1, True), (1, 2, False), (2, 3, True)]
+        for n_modes, dim, trainable in params:
+            for num_samples in [1, 3]:
+                with self.subTest(n_modes=n_modes, dim=dim,
+                                  trainable=trainable,
+                                  num_samples=num_samples):
+                    distribution = GaussianMixture(n_modes, dim,
+                                                   trainable)
                     self.checkForwardLogProb(distribution, num_samples)
                     _ = self.checkSample(distribution, num_samples)
 

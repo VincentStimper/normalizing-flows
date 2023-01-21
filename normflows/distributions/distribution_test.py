@@ -34,9 +34,9 @@ class DistributionTest(unittest.TestCase):
         # Return results
         return log_p
 
-    def checkSample(self, distribution, num_samples=1):
+    def checkSample(self, distribution, num_samples=1, **kwargs):
         # Do forward
-        outputs = distribution.sample(num_samples)
+        outputs = distribution.sample(num_samples, **kwargs)
         # Check shape
         assert outputs.shape[0] == num_samples
         # Check dim

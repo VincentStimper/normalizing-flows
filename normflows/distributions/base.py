@@ -36,7 +36,7 @@ class BaseDistribution(nn.Module):
         """
         raise NotImplementedError
 
-    def sample(self, num_samples=1):
+    def sample(self, num_samples=1, **kwargs):
         """Samples from base distribution
 
         Args:
@@ -45,7 +45,7 @@ class BaseDistribution(nn.Module):
         Returns:
           Samples drawn from the distribution
         """
-        z, _ = self.forward(num_samples)
+        z, _ = self.forward(num_samples, **kwargs)
         return z
 
 
@@ -192,6 +192,8 @@ class ClassCondDiagGaussian(BaseDistribution):
         super().__init__()
         if isinstance(shape, int):
             shape = (shape,)
+        if isinstance(shape, list):
+            shape = tuple(shape)
         self.shape = shape
         self.n_dim = len(shape)
         self.perm = [self.n_dim] + list(range(self.n_dim))
@@ -267,6 +269,8 @@ class GlowBase(BaseDistribution):
         # Save shape and related statistics
         if isinstance(shape, int):
             shape = (shape,)
+        if isinstance(shape, list):
+            shape = tuple(shape)
         self.shape = shape
         self.n_dim = len(shape)
         self.num_pix = np.prod(shape[1:])
@@ -389,6 +393,10 @@ class AffineGaussian(BaseDistribution):
           num_classes: Number of classes if the base is class conditional, None otherwise
         """
         super().__init__()
+        if isinstance(shape, int):
+            shape = (shape,)
+        if isinstance(shape, list):
+            shape = tuple(shape)
         self.shape = shape
         self.n_dim = len(shape)
         self.d = np.prod(shape)
@@ -437,6 +445,9 @@ class AffineGaussian(BaseDistribution):
         else:
             z, log_det = self.transform(z)
         log_p -= log_det
+        print(y)
+        print(eps)
+        print(z)
         return z, log_p
 
     def log_prob(self, z, y=None):
@@ -466,6 +477,8 @@ class AffineGaussian(BaseDistribution):
             - 0.5 * self.d * np.log(2 * np.pi)
             - 0.5 * torch.sum(torch.pow(z, 2), dim=self.sum_dim)
         )
+        print(y)
+        print(z)
         return log_p
 
 

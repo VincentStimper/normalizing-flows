@@ -61,6 +61,8 @@ class CCAffineConst(Flow):
 
     def __init__(self, shape, num_classes):
         super().__init__()
+        if isinstance(shape, int):
+            shape = (shape,)
         self.shape = shape
         self.s = nn.Parameter(torch.zeros(shape)[None])
         self.t = nn.Parameter(torch.zeros(shape)[None])
