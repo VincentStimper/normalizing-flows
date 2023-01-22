@@ -150,8 +150,8 @@ class Sinusoidal(PriorDistribution):
         given by
 
         ```
-        log(p) = - 1/2 * ((z[1] - w_1(z)) / (2 * scale)) ** 2
         w_1(z) = sin(2*pi / period * z[0])
+        log(p) = - 1/2 * ((z[1] - w_1(z)) / (2 * scale)) ** 2
         ```
 
         Args:
@@ -192,6 +192,13 @@ class Sinusoidal(PriorDistribution):
 class Sinusoidal_gap(PriorDistribution):
     def __init__(self, scale, period):
         """Distribution 2d with sinusoidal density with gap
+        given by
+
+        ```
+        w_1(z) = sin(2*pi / period * z[0])
+        w_2(z) = 3 * exp(-0.5 * ((z[0] - 1) / 0.6) ** 2)
+        log(p) = -log(exp(-0.5 * ((z[1] - w_1(z)) / 0.35) ** 2) + exp(-0.5 * ((z[1] - w_1(z) + w_2(z)) / 0.35) ** 2))
+        ```
 
         Args:
           loc: distance of modes from the origin
@@ -236,6 +243,13 @@ class Sinusoidal_gap(PriorDistribution):
 class Sinusoidal_split(PriorDistribution):
     def __init__(self, scale, period):
         """Distribution 2d with sinusoidal density with split
+        given by
+
+        ```
+        w_1(z) = sin(2*pi / period * z[0])
+        w_3(z) = 3 * sigmoid((z[0] - 1) / 0.3)
+        log(p) = -log(exp(-0.5 * ((z[1] - w_1(z)) / 0.4) ** 2) + exp(-0.5 * ((z[1] - w_1(z) + w_3(z)) / 0.35) ** 2))
+        ```
 
         Args:
           loc: distance of modes from the origin
