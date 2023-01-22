@@ -8,7 +8,7 @@ from normflows.distributions.decoder import NNDiagGaussianDecoder, \
 
 class DecoderTest(unittest.TestCase):
 
-    def test_normalizing_flow_vae(self):
+    def test_decoder(self):
         batch_size = 5
         n_dim = 10
         n_bottleneck = 3

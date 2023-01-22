@@ -55,13 +55,13 @@ class Uniform(BaseEncoder):
         super().__init__()
         self.zmin = zmin
         self.zmax = zmax
-        self.log_q = -torch.log(zmax - zmin)
+        self.log_q = -np.log(zmax - zmin)
 
     def forward(self, x, num_samples=1):
         z = (
             x.unsqueeze(1)
             .repeat(1, num_samples, 1)
-            .uniform_(min=self.zmin, max=self.zmax)
+            .uniform_(self.zmin, self.zmax)
         )
         log_q = torch.zeros(z.size()[0:2]).fill_(self.log_q)
         return z, log_q
@@ -82,9 +82,9 @@ class ConstDiagGaussian(BaseEncoder):
         super().__init__()
         self.d = len(loc)
         if not torch.is_tensor(loc):
-            loc = torch.tensor(loc).float()
+            loc = torch.tensor(loc)
         if not torch.is_tensor(scale):
-            scale = torch.tensor(scale).float()
+            scale = torch.tensor(scale)
         self.loc = nn.Parameter(loc.reshape((1, 1, self.d)))
         self.scale = nn.Parameter(scale)
 

@@ -147,10 +147,16 @@ class TwoModes(PriorDistribution):
 class Sinusoidal(PriorDistribution):
     def __init__(self, scale, period):
         """Distribution 2d with sinusoidal density
+        given by
+
+        ```
+        log(p) = - 1/2 * ((z[1] - w_1(z)) / (2 * scale)) ** 2
+        w_1(z) = sin(2*pi / period * z[0])
+        ```
 
         Args:
-          loc: distance of modes from the origin
-          scale: scale of modes
+          scale: scale of the distribution, see formula
+          period: period of the sinosoidal
         """
         self.scale = scale
         self.period = period
@@ -276,8 +282,7 @@ class Smiley(PriorDistribution):
         """Distribution 2d of a smiley :)
 
         Args:
-          loc: distance of modes from the origin
-          scale: scale of modes
+          scale: scale of the smiley
         """
         self.scale = scale
         self.loc = 2.0
