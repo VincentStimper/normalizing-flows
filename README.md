@@ -63,7 +63,7 @@ pip install -r requirements_examples.txt
 
 ## Usage
 
-<a href="https://colab.research.google.com/github/VincentStimper/normalizing-flows/blob/master/example/real_nvp_colab.ipynb" target="_parent"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a>
+<a href="https://colab.research.google.com/github/VincentStimper/normalizing-flows/blob/master/examples/real_nvp_colab.ipynb" target="_parent"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a>
 
 A normalizing flow consists of a base distribution, defined in 
 [`nf.distributions.base`](https://github.com/VincentStimper/normalizing-flows/blob/master/normflows/distributions/base.py),
@@ -126,9 +126,9 @@ optimizer.step()
 ```
 
 As more extensive version of this example is given as a 
-[notebook](https://github.com/VincentStimper/normalizing-flows/blob/master/example/real_nvp_colab.ipynb), 
+[notebook](https://github.com/VincentStimper/normalizing-flows/blob/master/examples/real_nvp_colab.ipynb), 
 which can directly be opened in 
-[Colab](https://colab.research.google.com/github/VincentStimper/normalizing-flows/blob/master/example/real_nvp_colab.ipynb).
+[Colab](https://colab.research.google.com/github/VincentStimper/normalizing-flows/blob/master/examples/real_nvp_colab.ipynb).
 There, we apply a Real NVP model to a bimodal target distribution and obtain the following results.
 
 ![2D target distribution and Real NVP model](https://github.com/VincentStimper/normalizing-flows/blob/master/figures/real_nvp.png)
