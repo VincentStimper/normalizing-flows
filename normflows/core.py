@@ -327,6 +327,7 @@ class MultiscaleFlow(nn.Module):
 
         Args:
           x: Batch sampled from target distribution
+          y: Batch of targets, if applicable
 
         Returns:
           Estimate of forward KL divergence averaged over batch
@@ -339,6 +340,9 @@ class MultiscaleFlow(nn.Module):
         Args:
           x: Batch of data
           y: Batch of targets, if applicable
+
+        Returns:
+            Negative log-likelihood of the batch
         """
         return -self.log_prob(x, y)
 
