@@ -13,10 +13,10 @@ This is a PyTorch implementation of normalizing flows. Many popular flow archite
 see the [list below](#implemented-flows). The package can be easily [installed via pip](#installation).
 The basic usage is described [here](#usage), and a [full documentation](https://vincentstimper.github.io/normalizing-flows/) 
 is available as well. There are several sample use cases implemented in the 
-[`example` folder](example), 
-including [Glow](example/glow.ipynb),
-a [VAE](example/vae.py), and
-a [Residual Flow](example/residual.ipynb).
+[`examples` folder](examples), 
+including [Glow](examples/glow.ipynb),
+a [VAE](examples/vae.py), and
+a [Residual Flow](examples/residual.ipynb).
 
 
 ## Implemented Flows
@@ -133,13 +133,13 @@ There, we apply a Real NVP model to a bimodal target distribution and obtain the
 
 ![2D target distribution and Real NVP model](figures/real_nvp.png)
 
-In [another example](example/paper_example_nsf.ipynb), we apply a Neural Spline Flow model to a 
+In [another example](examples/paper_example_nsf.ipynb), we apply a Neural Spline Flow model to a 
 distribution defined on a cylinder. The resulting density is visualized below.
 
 ![Neural Spline Flow applied to target distribution on a cylinder](figures/nsf_cylinder.png)
 
 For more illustrative examples of how to use the package see the
-[`example`](example)
+[`examples`](examples)
 directory. More advanced experiments can be done with the scripts listed in the
 [repository about resampled base distributions](https://github.com/VincentStimper/resampled-base-flows),
 see its [`experiments`](https://github.com/VincentStimper/resampled-base-flows/tree/master/experiments)
