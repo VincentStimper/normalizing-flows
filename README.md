@@ -1,4 +1,4 @@
-# Normalizing Flows
+# `normflows`: A PyTorch Package for Normalizing Flows
 
 [![documentation](https://github.com/VincentStimper/normalizing-flows/actions/workflows/mkdocs.yaml/badge.svg)](https://vincentstimper.github.io/normalizing-flows/)
 ![unit-tests](https://github.com/VincentStimper/normalizing-flows/actions/workflows/pytest.yaml/badge.svg)
@@ -11,7 +11,7 @@
 
 This is a PyTorch implementation of normalizing flows. Many popular flow architectures are implemented,
 see the [list below](#implemented-flows). The package can be easily [installed via pip](#installation).
-The basic usage is described [here](#usage), and a [full documentation](https://vincentstimper.github.io/normalizing-flows/). 
+The basic usage is described [here](#usage), and a [full documentation](https://vincentstimper.github.io/normalizing-flows/) 
 is available as well. There are several sample use cases implemented in the 
 [`example` folder](https://github.com/VincentStimper/normalizing-flows/tree/master/example), 
 including [Glow](https://github.com/VincentStimper/normalizing-flows/blob/master/example/glow.ipynb),
@@ -21,19 +21,21 @@ a [Residual Flow](https://github.com/VincentStimper/normalizing-flows/blob/maste
 
 ## Implemented Flows
 
-* Planar Flow ([Rezende & Mohamed, 2015](https://arxiv.org/abs/1505.05770))
-* Radial Flow ([Rezende & Mohamed, 2015](https://arxiv.org/abs/1505.05770))
-* NICE ([Dinh et al., 2014](https://arxiv.org/abs/1410.8516))
-* Real NVP ([Dinh et al., 2016](https://arxiv.org/abs/1605.08803))
-* Glow ([Kingma & Dhariwal, 2018](https://arxiv.org/abs/1807.03039))
-* Masked Autoregressive Flow ([Papamakarios et al., 2017](https://proceedings.neurips.cc/paper/2017/hash/6c1da886822c67822bcf3679d04369fa-Abstract.html))
-* Neural Spline Flow ([Durkan et al., 2019](https://arxiv.org/abs/1906.04032))
-* Circular Neural Spline Flow ([Rezende et al., 2020](http://proceedings.mlr.press/v119/rezende20a.html))
-* Residual Flow ([Chen et al., 2019](https://arxiv.org/abs/1906.02735))
-* Stochastic Normalizing Flows ([Wu et al., 2020](https://arxiv.org/abs/2002.06707))
+| Architecture | Reference                                                                                                                 |
+|--------------|---------------------------------------------------------------------------------------------------------------------------|
+| Planar Flow  | [Rezende & Mohamed, 2015](http://proceedings.mlr.press/v37/rezende15.html)                                                |
+| Radial Flow  | [Rezende & Mohamed, 2015](http://proceedings.mlr.press/v37/rezende15.html)                                                |
+| NICE         | [Dinh et al., 2014](https://arxiv.org/abs/1410.8516)                                                                      |
+| Real NVP     | [Dinh et al., 2017](https://openreview.net/forum?id=HkpbnH9lx)                                                            |
+| Glow         | [Kingma et al., 2018](https://proceedings.neurips.cc/paper/2018/hash/d139db6a236200b21cc7f752979132d0-Abstract.html)                                                                   |
+| Masked Autoregressive Flow | [Papamakarios et al., 2017](https://proceedings.neurips.cc/paper/2017/hash/6c1da886822c67822bcf3679d04369fa-Abstract.html) |
+| Neural Spline Flow | [Durkan et al., 2019](https://proceedings.neurips.cc/paper/2019/hash/7ac71d433f282034e088473244df8c02-Abstract.html)                                                                    |
+| Circular Neural Spline Flow | [Rezende et al., 2020](http://proceedings.mlr.press/v119/rezende20a.html)                                                 |
+| Residual Flow | [Chen et al., 2019](https://proceedings.neurips.cc/paper/2019/hash/5d0d5594d24f0f955548f0fc0ff83d10-Abstract.html)                                                                     |
+| Stochastic Normalizing Flow | [Wu et al., 2020](https://proceedings.neurips.cc/paper/2020/hash/41d80bfc327ef980528426fc810a6d7a-Abstract.html)                                                                       |
 
 Note that Neural Spline Flows with circular and non-circular coordinates
-are also supported.
+are supported as well.
 
 ## Installation
 
