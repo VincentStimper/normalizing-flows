@@ -13,10 +13,10 @@ This is a PyTorch implementation of normalizing flows. Many popular flow archite
 see the [list below](#implemented-flows). The package can be easily [installed via pip](#installation).
 The basic usage is described [here](#usage), and a [full documentation](https://vincentstimper.github.io/normalizing-flows/) 
 is available as well. There are several sample use cases implemented in the 
-[`example` folder](https://github.com/VincentStimper/normalizing-flows/tree/master/example), 
-including [Glow](https://github.com/VincentStimper/normalizing-flows/blob/master/example/glow.ipynb),
-a [VAE](https://github.com/VincentStimper/normalizing-flows/blob/master/example/vae.py), and
-a [Residual Flow](https://github.com/VincentStimper/normalizing-flows/blob/master/example/residual.ipynb).
+[`example` folder](example), 
+including [Glow](example/glow.ipynb),
+a [VAE](example/vae.py), and
+a [Residual Flow](example/residual.ipynb).
 
 
 ## Implemented Flows
@@ -66,12 +66,12 @@ pip install -r requirements_examples.txt
 <a href="https://colab.research.google.com/github/VincentStimper/normalizing-flows/blob/master/example/real_nvp_colab.ipynb" target="_parent"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a>
 
 A normalizing flow consists of a base distribution, defined in 
-[`nf.distributions.base`](https://github.com/VincentStimper/normalizing-flows/blob/master/normflows/distributions/base.py),
+[`nf.distributions.base`](normflows/distributions/base.py),
 and a list of flows, given in
-[`nf.flows`](https://github.com/VincentStimper/normalizing-flows/tree/master/normflows/flows).
+[`nf.flows`](normflows/flows).
 Let's assume our target is a 2D distribution. We pick a diagonal Gaussian
 base distribution, which is the most popular choice. Our flow shall be a
-[Real NVP model](https://arxiv.org/abs/1605.08803) and, therefore, we need
+[Real NVP model](https://openreview.net/forum?id=HkpbnH9lx) and, therefore, we need
 to define a neural network for computing the parameters of the affine coupling
 map. One dimension is used to compute the scale and shift parameter for the
 other dimension. After each coupling layer we swap their roles.
@@ -96,10 +96,10 @@ for i in range(num_layers):
 ```
 
 Once they are set up, we can define a
-[`nf.NormalizingFlow`](https://github.com/VincentStimper/normalizing-flows/blob/master/normflows/core.py#L7)
+[`nf.NormalizingFlow`](normflows/core.py#L7)
 model. If the target density is available, it can be added to the model
 to be used during training. Sample target distributions are given in
-[`nf.distributions.target`](https://github.com/VincentStimper/normalizing-flows/blob/master/normflows/distributions/target.py).
+[`nf.distributions.target`](normflows/distributions/target.py).
 
 ```python
 # If the target density is not given
@@ -129,9 +129,17 @@ As more extensive version of this example is given as a
 [notebook](https://github.com/VincentStimper/normalizing-flows/blob/master/example/real_nvp_colab.ipynb), 
 which can directly be opened in 
 [Colab](https://colab.research.google.com/github/VincentStimper/normalizing-flows/blob/master/example/real_nvp_colab.ipynb).
+There, we apply a Real NVP model to a bimodal target distribution and obtain the following results.
+
+![2D target distribution and Real NVP model](figures/real_nvp.png)
+
+In [another example](example/paper_example_nsf.ipynb), we apply a Neural Spline Flow model to a 
+distribution defined on a cylinder. The resulting density is visualized below.
+
+![Neural Spline Flow applied to target distribution on a cylinder](figures/nsf_cylinder.png)
 
 For more illustrative examples of how to use the package see the
-[`example`](https://github.com/VincentStimper/normalizing-flows/tree/master/example)
+[`example`](example)
 directory. More advanced experiments can be done with the scripts listed in the
 [repository about resampled base distributions](https://github.com/VincentStimper/resampled-base-flows),
 see its [`experiments`](https://github.com/VincentStimper/resampled-base-flows/tree/master/experiments)
