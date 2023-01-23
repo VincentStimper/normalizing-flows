@@ -96,7 +96,7 @@ for i in range(num_layers):
 ```
 
 Once they are set up, we can define a
-[`nf.NormalizingFlow`](normflows/core.py#L7)
+[`nf.NormalizingFlow`](normflows/core.py#L9)
 model. If the target density is available, it can be added to the model
 to be used during training. Sample target distributions are given in
 [`nf.distributions.target`](normflows/distributions/target.py).
