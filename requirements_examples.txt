@@ -1,6 +1,6 @@
 matplotlib
 jupyterlab
 tqdm
-sklearn
+scikit-learn
 ipywidgets
 pandas
