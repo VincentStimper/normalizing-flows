@@ -6,7 +6,7 @@ from normflows.flows.flow_test import FlowTest
 
 
 class PlanarTest(FlowTest):
-    def test_normal_nsf(self):
+    def test_planar(self):
         batch_size = 3
         for latent_size in [(2,), (5,), (2, 3, 4)]:
             for act in ["tanh", "leaky_relu"]:

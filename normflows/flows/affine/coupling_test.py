@@ -1,7 +1,6 @@
 import unittest
 import torch
 
-from torch.testing import assert_close
 from normflows.flows import MaskedAffineFlow, CCAffineConst
 from normflows.nets import MLP
 from normflows.flows.flow_test import FlowTest
@@ -36,9 +35,9 @@ class CouplingTest(FlowTest):
                     assert x_.shape == x.shape
                     assert x__.shape == x.shape
 
-                    assert_close(x__, x)
+                    self.assertClose(x__, x)
                     id_ld = log_det + log_det_
-                    assert_close(id_ld, torch.zeros_like(id_ld))
+                    self.assertClose(id_ld, torch.zeros_like(id_ld))
 
 
 

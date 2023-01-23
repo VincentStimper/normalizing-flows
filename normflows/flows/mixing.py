@@ -38,7 +38,7 @@ class Permute(Flow):
             z = torch.cat([z2, z1], dim=1)
         else:
             raise NotImplementedError("The mode " + self.mode + " is not implemented.")
-        log_det = 0
+        log_det = torch.zeros(len(z), device=z.device)
         return z, log_det
 
     def inverse(self, z):
@@ -50,7 +50,7 @@ class Permute(Flow):
             z = torch.cat([z2, z1], dim=1)
         else:
             raise NotImplementedError("The mode " + self.mode + " is not implemented.")
-        log_det = 0
+        log_det = torch.zeros(len(z), device=z.device)
         return z, log_det
 
 

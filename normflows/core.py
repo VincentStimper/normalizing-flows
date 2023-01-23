@@ -24,6 +24,66 @@ class NormalizingFlow(nn.Module):
         self.flows = nn.ModuleList(flows)
         self.p = p
 
+    def forward(self, z):
+        """Transforms latent variable z to the flow variable x
+
+        Args:
+          z: Batch in the latent space
+
+        Returns:
+          Batch in the space of the target distribution
+        """
+        for flow in self.flows:
+            z, _ = flow(z)
+        return z
+
+    def forward_and_log_det(self, z):
+        """Transforms latent variable z to the flow variable x and
+        computes log determinant of the Jacobian
+
+        Args:
+          z: Batch in the latent space
+
+        Returns:
+          Batch in the space of the target distribution,
+          log determinant of the Jacobian
+        """
+        log_det = torch.zeros(len(z), device=z.device)
+        for flow in self.flows:
+            z, log_d = flow(z)
+            log_det -= log_d
+        return z, log_det
+
+    def inverse(self, x):
+        """Transforms flow variable x to the latent variable z
+
+        Args:
+          x: Batch in the space of the target distribution
+
+        Returns:
+          Batch in the latent space
+        """
+        for i in range(len(self.flows) - 1, -1, -1):
+            x, _ = self.flows[i].inverse(x)
+        return x
+
+    def inverse_and_log_det(self, x):
+        """Transforms flow variable x to the latent variable z and
+        computes log determinant of the Jacobian
+
+        Args:
+          x: Batch in the space of the target distribution
+
+        Returns:
+          Batch in the latent space, log determinant of the
+          Jacobian
+        """
+        log_det = torch.zeros(len(x), device=x.device)
+        for i in range(len(self.flows) - 1, -1, -1):
+            x, log_d = self.flows[i].inverse(x)
+            log_det += log_d
+        return x, log_det
+
     def forward_kld(self, x):
         """Estimates forward KL divergence, see [arXiv 1912.02762](https://arxiv.org/abs/1912.02762)
 
@@ -267,6 +327,7 @@ class MultiscaleFlow(nn.Module):
 
         Args:
           x: Batch sampled from target distribution
+          y: Batch of targets, if applicable
 
         Returns:
           Estimate of forward KL divergence averaged over batch
@@ -279,6 +340,9 @@ class MultiscaleFlow(nn.Module):
         Args:
           x: Batch of data
           y: Batch of targets, if applicable
+
+        Returns:
+            Negative log-likelihood of the batch
         """
         return -self.log_prob(x, y)
 
