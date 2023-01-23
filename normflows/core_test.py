@@ -3,8 +3,9 @@ import torch
 
 from torch.testing import assert_close
 from normflows import NormalizingFlow, ClassCondFlow, \
-    NormalizingFlowVAE
-from normflows.flows import MaskedAffineFlow
+    MultiscaleFlow, NormalizingFlowVAE
+from normflows.flows import MaskedAffineFlow, GlowBlock, \
+    Merge, Squeeze
 from normflows.nets import MLP
 from normflows.distributions.base import DiagGaussian, \
     ClassCondDiagGaussian
@@ -41,7 +42,11 @@ class CoreTest(unittest.TestCase):
                 assert loss.dim() == 0
                 loss = model.reverse_kld(batch_size)
                 assert loss.dim() == 0
+                loss = model.reverse_kld(batch_size, score_fn=False)
+                assert loss.dim() == 0
                 loss = model.reverse_alpha_div(batch_size)
+                assert loss.dim() == 0
+                loss = model.reverse_alpha_div(batch_size, dreg=True)
                 assert loss.dim() == 0
                 # Test forward and inverse
                 outputs = model.forward(inputs)
@@ -78,6 +83,55 @@ class CoreTest(unittest.TestCase):
         assert s.shape == (batch_size, latent_size)
         loss = model.forward_kld(x, y)
         assert loss.dim() == 0
+
+    def test_multiscale_flow(self):
+        # Set parameters
+        batch_size = 5
+        K = 2
+        hidden_channels = 32
+        split_mode = 'channel'
+        scale = True
+        params = [(2, 1, (3, 8, 8)), (3, 5, (1, 16, 16))]
+
+        for L, num_classes, input_shape in params:
+            with self.subTest(L=L, num_classes=num_classes,
+                              input_shape=input_shape):
+                # Set up flows, distributions and merge operations
+                base = []
+                merges = []
+                flows = []
+                for i in range(L):
+                    flows_ = []
+                    for j in range(K):
+                        flows_ += [GlowBlock(input_shape[0] * 2 ** (L + 1 - i), hidden_channels,
+                                             split_mode=split_mode, scale=scale)]
+                    flows_ += [Squeeze()]
+                    flows += [flows_]
+                    if i > 0:
+                        merges += [Merge()]
+                        latent_shape = (input_shape[0] * 2 ** (L - i), input_shape[1] // 2 ** (L - i),
+                                        input_shape[2] // 2 ** (L - i))
+                    else:
+                        latent_shape = (input_shape[0] * 2 ** (L + 1), input_shape[1] // 2 ** L,
+                                        input_shape[2] // 2 ** L)
+                    base += [ClassCondDiagGaussian(latent_shape, num_classes)]
+
+                # Construct flow model
+                model = MultiscaleFlow(base, flows, merges)
+                # Test model
+                y = torch.randint(num_classes, (batch_size,))
+                x, log_q = model.sample(batch_size, y)
+                log_q_ = model.log_prob(x, y)
+                assert x.shape == (batch_size,) + (input_shape)
+                assert log_q.shape == (batch_size,)
+                assert log_q_.shape == (batch_size,)
+                assert log_q.dtype == x.dtype
+                assert log_q_.dtype == x.dtype
+                assert_close(log_q, log_q_)
+                fwd = model.forward(x, y)
+                fwd_kld = model.forward_kld(x, y)
+                assert_close(torch.mean(fwd), fwd_kld)
+
 
     def test_normalizing_flow_vae(self):
         batch_size = 5
