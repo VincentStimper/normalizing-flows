@@ -108,8 +108,13 @@ class TwoModes(PriorDistribution):
     def __init__(self, loc, scale):
         """Distribution 2d with two modes
 
-        Distribution 2d with two modes at:
+        Distribution 2d with two modes at
         ```z[0] = -loc```  and ```z[0] = loc```
+        following the density
+        ```
+        log(p) = 1/2 * ((norm(z) - loc) / (2 * scale)) ** 2
+                - log(exp(-1/2 * ((z[0] - loc) / (3 * scale)) ** 2) + exp(-1/2 * ((z[0] + loc) / (3 * scale)) ** 2))
+        ```
 
         Args:
           loc: distance of modes from the origin
