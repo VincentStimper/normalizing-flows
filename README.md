@@ -3,7 +3,7 @@
 [![documentation](https://github.com/VincentStimper/normalizing-flows/actions/workflows/mkdocs.yaml/badge.svg)](https://vincentstimper.github.io/normalizing-flows/)
 ![unit-tests](https://github.com/VincentStimper/normalizing-flows/actions/workflows/pytest.yaml/badge.svg)
 ![code coverage](https://raw.githubusercontent.com/VincentStimper/normalizing-flows/coverage-badge/coverage.svg?raw=true)
-[![Code Style: Black](https://img.shields.io/badge/Code%20Style-black-black.svg)](https://github.com/psf/black)
+[![arXiv](https://img.shields.io/badge/arXiv-2301.XXXXX-b31b1b.svg)](https://arxiv.org/) 
 [![License: MIT](https://img.shields.io/badge/Licence-MIT-lightgrey)](https://opensource.org/licenses/MIT)
 [![PyPI](https://img.shields.io/badge/PyPI-1.5-blue.svg)](https://pypi.org/project/normflows/)
 [![Downloads](https://static.pepy.tech/personalized-badge/normflows?period=total&units=international_system&left_color=grey&right_color=orange&left_text=Downloads)](https://pepy.tech/project/normflows)
@@ -62,8 +62,6 @@ pip install -r requirements_examples.txt
 ```
 
 ## Usage
-
-<a href="https://colab.research.google.com/github/VincentStimper/normalizing-flows/blob/master/examples/real_nvp_colab.ipynb" target="_parent"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a>
 
 A normalizing flow consists of a base distribution, defined in 
 [`nf.distributions.base`](https://github.com/VincentStimper/normalizing-flows/blob/master/normflows/distributions/base.py),
@@ -125,25 +123,48 @@ loss.backward()
 optimizer.step()
 ```
 
-As more extensive version of this example is given as a 
-[notebook](https://github.com/VincentStimper/normalizing-flows/blob/master/examples/real_nvp_colab.ipynb), 
-which can directly be opened in 
-[Colab](https://colab.research.google.com/github/VincentStimper/normalizing-flows/blob/master/examples/real_nvp_colab.ipynb).
-There, we apply a Real NVP model to a bimodal target distribution and obtain the following results.
+## Examples
 
-![2D target distribution and Real NVP model](https://github.com/VincentStimper/normalizing-flows/blob/master/figures/real_nvp.png)
-
-In [another example](https://github.com/VincentStimper/normalizing-flows/blob/master/examples/paper_example_nsf.ipynb), we apply a Neural Spline Flow model to a 
-distribution defined on a cylinder. The resulting density is visualized below.
-
-![Neural Spline Flow applied to target distribution on a cylinder](https://github.com/VincentStimper/normalizing-flows/blob/master/figures/nsf_cylinder.png)
-
-For more illustrative examples of how to use the package see the
+We provide several illustrative examples of how to use the package in the
 [`examples`](https://github.com/VincentStimper/normalizing-flows/blob/master/examples)
-directory. More advanced experiments can be done with the scripts listed in the
+directory. Amoung them are implementations of 
+[Glow](https://github.com/VincentStimper/normalizing-flows/blob/master/examples/glow.ipynb),
+a [VAE](https://github.com/VincentStimper/normalizing-flows/blob/master/examples/vae.py), and
+a [Residual Flow](https://github.com/VincentStimper/normalizing-flows/blob/master/examples/residual.ipynb). 
+More advanced experiments can be done with the scripts listed in the
 [repository about resampled base distributions](https://github.com/VincentStimper/resampled-base-flows),
 see its [`experiments`](https://github.com/VincentStimper/resampled-base-flows/tree/master/experiments)
 folder.
+
+Below, we consider two simple 2D examples.
+
+### Real NVP applied to a 2D bimodal target distribution
+
+<a href="https://colab.research.google.com/github/VincentStimper/normalizing-flows/blob/master/examples/real_nvp_colab.ipynb" target="_parent"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a>
+
+In [this notebook](https://github.com/VincentStimper/normalizing-flows/blob/master/examples/real_nvp_colab.ipynb), 
+which can directly be opened in 
+[Colab](https://colab.research.google.com/github/VincentStimper/normalizing-flows/blob/master/examples/real_nvp_colab.ipynb),
+we consider a 2D distribution with two half-moon-shaped modes as a target. We approximate it with a Real NVP model
+and obtain the following results.
+
+![2D target distribution and Real NVP model](https://github.com/VincentStimper/normalizing-flows/blob/master/figures/real_nvp.png)
+
+Note that there might be a density filament connecting the two modes, which is due to an architectural limitation 
+of normalizing flows, especially prominent in Real NVP. You can find out more about it in 
+[this paper](https://proceedings.mlr.press/v151/stimper22a).
+
+### Distribution on a cylinder surface
+
+<a href="https://colab.research.google.com/github/VincentStimper/normalizing-flows/blob/master/examples/paper_example_nsf_colab.ipynb" target="_parent"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a>
+
+In [another example](https://github.com/VincentStimper/normalizing-flows/blob/master/examples/paper_example_nsf_colab.ipynb),
+which is available in [Colab](https://colab.research.google.com/github/VincentStimper/normalizing-flows/blob/master/examples/paper_example_nsf_colab.ipynb)
+as well, we apply a Neural Spline Flow model to a distribution defined on a cylinder. The resulting density is visualized below.
+
+![Neural Spline Flow applied to target distribution on a cylinder](https://github.com/VincentStimper/normalizing-flows/blob/master/figures/nsf_cylinder.png)
+
+This example is considered in the [paper](https://arxiv.org) accompanying this repository.
 
 ## Used by
 
@@ -163,12 +184,30 @@ The package has been used in several research papers, which are listed below.
 
 > Laurence I. Midgley, Vincent Stimper, Gregor N. C. Simm, Bernhard Schölkopf, José Miguel Hernández-Lobato. 
 > [Flow Annealed Importance Sampling Bootstrap](https://arxiv.org/abs/2208.01893). 
-> ArXiv, abs/2208.01893, 2022.
+> arXiv preprint arXiv:2208.01893, 2022.
 > 
 > [Code available on GitHub.](https://github.com/lollcat/fab-torch)
 
 Moreover, the [`boltzgen`](https://github.com/VincentStimper/boltzmann-generators) package
 has been build upon `normflows`.
+
+## Citation
+
+If you use this package in your research, please cite it as:
+
+> Vincent Stimper, David Liu, Andrew Campbell, Vincent Berenz, Lukas Ryll, Bernhard Schölkopf, José Miguel 
+> Hernández-Lobato. normflows: A PyTorch Package for Normalizing Flows. arXiv preprint arXiv:2301.XXXXX, 2023.
+
+**Bibtex**
+
+```
+@article{Stimper2023,
+  title={normflows: A PyTorch Package for Normalizing Flows},
+  author={Vincent Stimper and David Liu and Andrew Campbell and Vincent Berenz and Lukas Ryll and Bernhard Sch\"olkopf and Jos{\'e} Miguel Hern{\'a}ndez-Lobato},
+  journal={arXiv preprint arXiv:2208.XXXXX},
+  year={2023}
+}
+```
 
 
 
