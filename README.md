@@ -5,7 +5,7 @@
 ![code coverage](https://raw.githubusercontent.com/VincentStimper/normalizing-flows/coverage-badge/coverage.svg?raw=true)
 [![arXiv](https://img.shields.io/badge/arXiv-2301.XXXXX-b31b1b.svg)](https://arxiv.org/) 
 [![License: MIT](https://img.shields.io/badge/Licence-MIT-lightgrey)](https://opensource.org/licenses/MIT)
-[![PyPI](https://img.shields.io/badge/PyPI-1.5-blue.svg)](https://pypi.org/project/normflows/)
+[![PyPI](https://img.shields.io/badge/PyPI-1.6-blue.svg)](https://pypi.org/project/normflows/)
 [![Downloads](https://static.pepy.tech/personalized-badge/normflows?period=total&units=international_system&left_color=grey&right_color=orange&left_text=Downloads)](https://pepy.tech/project/normflows)
 
 
@@ -203,7 +203,7 @@ If you use this package in your research, please cite it as:
 ```
 @article{Stimper2023,
   title={normflows: A PyTorch Package for Normalizing Flows},
-  author={Vincent Stimper and David Liu and Andrew Campbell and Vincent Berenz and Lukas Ryll and Bernhard Sch\"olkopf and Jos{\'e} Miguel Hern{\'a}ndez-Lobato},
+  author={Vincent Stimper and David Liu and Andrew Campbell and Vincent Berenz and Lukas Ryll and Bernhard Sch\"olkopf and Jos\'e Miguel Hern\'andez-Lobato},
   journal={arXiv preprint arXiv:2208.XXXXX},
   year={2023}
 }
