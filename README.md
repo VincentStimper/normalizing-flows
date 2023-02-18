@@ -147,7 +147,7 @@ which can directly be opened in
 we consider a 2D distribution with two half-moon-shaped modes as a target. We approximate it with a Real NVP model
 and obtain the following results.
 
-![2D target distribution and Real NVP model](https://github.com/VincentStimper/normalizing-flows/blob/master/figures/real_nvp.png)
+![2D target distribution and Real NVP model](https://raw.githubusercontent.com/VincentStimper/normalizing-flows/master/figures/real_nvp.png)
 
 Note that there might be a density filament connecting the two modes, which is due to an architectural limitation 
 of normalizing flows, especially prominent in Real NVP. You can find out more about it in 
@@ -161,9 +161,9 @@ In [another example](https://github.com/VincentStimper/normalizing-flows/blob/ma
 which is available in [Colab](https://colab.research.google.com/github/VincentStimper/normalizing-flows/blob/master/examples/paper_example_nsf_colab.ipynb)
 as well, we apply a Neural Spline Flow model to a distribution defined on a cylinder. The resulting density is visualized below.
 
-![Neural Spline Flow applied to target distribution on a cylinder](https://github.com/VincentStimper/normalizing-flows/blob/master/figures/nsf_cylinder_3d.png)
+![Neural Spline Flow applied to target distribution on a cylinder](https://raw.githubusercontent.com/VincentStimper/normalizing-flows/master/figures/nsf_cylinder_3d.png)
 
-This example is considered in the [paper](paper/paper.md) accompanying this repository.
+This example is considered in the [paper](https://github.com/VincentStimper/normalizing-flows/blob/master/paper/paper.md) accompanying this repository.
 
 ## Used by
 

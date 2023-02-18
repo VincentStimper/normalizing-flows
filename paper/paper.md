@@ -113,7 +113,7 @@ spotting bugs.
 José Miguel Hernández-Lobato acknowledges support from a Turing AI Fellowship under grant EP/V023756/1.
 This work was supported by the German Federal Ministry of Education and Research (BMBF): Tübingen AI 
 Center, FKZ: 01IS18039B; and by the Machine Learning Cluster of Excellence, EXC number 2064/1 - Project 
-wannumber 390727645. 
+number 390727645. 
 
 
 # References
