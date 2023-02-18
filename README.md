@@ -3,7 +3,6 @@
 [![documentation](https://github.com/VincentStimper/normalizing-flows/actions/workflows/mkdocs.yaml/badge.svg)](https://vincentstimper.github.io/normalizing-flows/)
 ![unit-tests](https://github.com/VincentStimper/normalizing-flows/actions/workflows/pytest.yaml/badge.svg)
 ![code coverage](https://raw.githubusercontent.com/VincentStimper/normalizing-flows/coverage-badge/coverage.svg?raw=true)
-[![arXiv](https://img.shields.io/badge/arXiv-2301.XXXXX-b31b1b.svg)](https://arxiv.org/) 
 [![License: MIT](https://img.shields.io/badge/Licence-MIT-lightgrey)](https://opensource.org/licenses/MIT)
 [![PyPI](https://img.shields.io/badge/PyPI-1.6-blue.svg)](https://pypi.org/project/normflows/)
 [![Downloads](https://static.pepy.tech/personalized-badge/normflows?period=total&units=international_system&left_color=grey&right_color=orange&left_text=Downloads)](https://pepy.tech/project/normflows)
@@ -162,9 +161,9 @@ In [another example](https://github.com/VincentStimper/normalizing-flows/blob/ma
 which is available in [Colab](https://colab.research.google.com/github/VincentStimper/normalizing-flows/blob/master/examples/paper_example_nsf_colab.ipynb)
 as well, we apply a Neural Spline Flow model to a distribution defined on a cylinder. The resulting density is visualized below.
 
-![Neural Spline Flow applied to target distribution on a cylinder](https://github.com/VincentStimper/normalizing-flows/blob/master/figures/nsf_cylinder.png)
+![Neural Spline Flow applied to target distribution on a cylinder](https://github.com/VincentStimper/normalizing-flows/blob/master/figures/nsf_cylinder_3d.png)
 
-This example is considered in the [paper](https://arxiv.org) accompanying this repository.
+This example is considered in the [paper](paper/paper.md) accompanying this repository.
 
 ## Used by
 
@@ -190,24 +189,6 @@ The package has been used in several research papers, which are listed below.
 
 Moreover, the [`boltzgen`](https://github.com/VincentStimper/boltzmann-generators) package
 has been build upon `normflows`.
-
-## Citation
-
-If you use this package in your research, please cite it as:
-
-> Vincent Stimper, David Liu, Andrew Campbell, Vincent Berenz, Lukas Ryll, Bernhard Schölkopf, José Miguel 
-> Hernández-Lobato. normflows: A PyTorch Package for Normalizing Flows. arXiv preprint arXiv:2301.XXXXX, 2023.
-
-**Bibtex**
-
-```
-@article{Stimper2023,
-  title={normflows: A PyTorch Package for Normalizing Flows},
-  author={Vincent Stimper and David Liu and Andrew Campbell and Vincent Berenz and Lukas Ryll and Bernhard Sch\"olkopf and Jos\'e Miguel Hern\'andez-Lobato},
-  journal={arXiv preprint arXiv:2208.XXXXX},
-  year={2023}
-}
-```
 
 
 
