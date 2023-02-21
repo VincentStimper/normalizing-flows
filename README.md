@@ -190,6 +190,25 @@ The package has been used in several research papers, which are listed below.
 Moreover, the [`boltzgen`](https://github.com/VincentStimper/boltzmann-generators) package
 has been build upon `normflows`.
 
+## Citation
+
+If you use `normflows`, please consider citing it as follows.
+
+> Vincent Stimper, David Liu, Andrew Campbell, Vincent Berenz, Lukas Ryll, Bernhard Schölkopf, José Miguel Hernández-Lobato:
+> normflows: A PyTorch Package for Normalizing Flows, 
+> [https://github.com/VincentStimper/normalizing-flows](https://github.com/VincentStimper/normalizing-flows), 2023.
+
+**Bibtex**
+
+```
+@software{normflows,
+  author = {Vincent Stimper and David Liu and Andrew Campbell and Vincent Berenz and Lukas Ryll and Bernhard Sch{\"o}lkopf and Jos{\'e} Miguel Hern{\'a}ndez-Lobato},
+  title = {normflows: {A} {P}y{T}orch {P}ackage for {N}ormalizing {F}lows},
+  year = {2023},
+  url = {https://github.com/VincentStimper/normalizing-flows}
+}
+```
+
 
 
 
