@@ -4,18 +4,29 @@
 ![unit-tests](https://github.com/VincentStimper/normalizing-flows/actions/workflows/pytest.yaml/badge.svg)
 ![code coverage](https://raw.githubusercontent.com/VincentStimper/normalizing-flows/coverage-badge/coverage.svg?raw=true)
 [![License: MIT](https://img.shields.io/badge/Licence-MIT-lightgrey)](https://opensource.org/licenses/MIT)
-[![PyPI](https://img.shields.io/badge/PyPI-1.6-blue.svg)](https://pypi.org/project/normflows/)
+[![arXiv](https://img.shields.io/badge/arXiv-2302.12014-b31b1b.svg)](https://arxiv.org/abs/2302.12014) 
+[![PyPI](https://img.shields.io/badge/PyPI-1.6.1-blue.svg)](https://pypi.org/project/normflows/)
 [![Downloads](https://static.pepy.tech/personalized-badge/normflows?period=total&units=international_system&left_color=grey&right_color=orange&left_text=Downloads)](https://pepy.tech/project/normflows)
 
 
-This is a PyTorch implementation of normalizing flows. Many popular flow architectures are implemented,
+`normflows` is a PyTorch implementation of discrete normalizing flows. Many popular flow architectures are implemented,
 see the [list below](#implemented-flows). The package can be easily [installed via pip](#installation).
 The basic usage is described [here](#usage), and a [full documentation](https://vincentstimper.github.io/normalizing-flows/) 
-is available as well. There are several sample use cases implemented in the 
+is available as well. A more detailed description of this package is given in out accompanying 
+[paper](https://arxiv.org/abs/2302.12014).
+
+Several sample use cases are provided in the 
 [`examples` folder](https://github.com/VincentStimper/normalizing-flows/blob/master/examples), 
 including [Glow](https://github.com/VincentStimper/normalizing-flows/blob/master/examples/glow.ipynb),
 a [VAE](https://github.com/VincentStimper/normalizing-flows/blob/master/examples/vae.py), and
 a [Residual Flow](https://github.com/VincentStimper/normalizing-flows/blob/master/examples/residual.ipynb).
+Moreover, two simple applications are highlighed in the [examples section](#examples). You can run them 
+yourself in Google Colab using the links below to get a feeling for `normflows`.
+
+| Link                                                                                                                                                                                                                                         | Description                                                                   |
+|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------|
+| <a href="https://colab.research.google.com/github/VincentStimper/normalizing-flows/blob/master/examples/real_nvp_colab.ipynb" target="_parent"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a> | Real NVP applied to a 2D bimodal target distribution                          |
+| <a href="https://colab.research.google.com/github/VincentStimper/normalizing-flows/blob/master/examples/paper_example_nsf_colab.ipynb" target="_parent"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a> | Modeling a distribution on a cylinder surface with a neural spline flow |
 
 
 ## Implemented Flows
@@ -153,7 +164,7 @@ Note that there might be a density filament connecting the two modes, which is d
 of normalizing flows, especially prominent in Real NVP. You can find out more about it in 
 [this paper](https://proceedings.mlr.press/v151/stimper22a).
 
-### Distribution on a cylinder surface
+### Modeling a distribution on a cylinder surface with a neural spline flow
 
 <a href="https://colab.research.google.com/github/VincentStimper/normalizing-flows/blob/master/examples/paper_example_nsf_colab.ipynb" target="_parent"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a>
 
@@ -163,7 +174,7 @@ as well, we apply a Neural Spline Flow model to a distribution defined on a cyli
 
 ![Neural Spline Flow applied to target distribution on a cylinder](https://raw.githubusercontent.com/VincentStimper/normalizing-flows/master/figures/nsf_cylinder_3d.png)
 
-This example is considered in the [paper](https://github.com/VincentStimper/normalizing-flows/blob/master/paper/paper.md) accompanying this repository.
+This example is considered in the [paper](https://arxiv.org/abs/2302.12014) accompanying this repository.
 
 ## Used by
 
@@ -192,20 +203,19 @@ has been build upon `normflows`.
 
 ## Citation
 
-If you use `normflows`, please consider citing it as follows.
+If you use `normflows`, please consider citing the [corresponding paper](https://arxiv.org/abs/2302.12014) as follows.
 
-> Vincent Stimper, David Liu, Andrew Campbell, Vincent Berenz, Lukas Ryll, Bernhard Schölkopf, José Miguel Hernández-Lobato:
-> normflows: A PyTorch Package for Normalizing Flows, 
-> [https://github.com/VincentStimper/normalizing-flows](https://github.com/VincentStimper/normalizing-flows), 2023.
+> Vincent Stimper, David Liu, Andrew Campbell, Vincent Berenz, Lukas Ryll, Bernhard Schölkopf, José Miguel Hernández-Lobato.
+> normflows: A PyTorch Package for Normalizing Flows, arXiv preprint arXiv:2302.12014, 2023.
 
 **Bibtex**
 
 ```
-@software{normflows,
+@article{normflows,
   author = {Vincent Stimper and David Liu and Andrew Campbell and Vincent Berenz and Lukas Ryll and Bernhard Sch{\"o}lkopf and Jos{\'e} Miguel Hern{\'a}ndez-Lobato},
   title = {normflows: {A} {P}y{T}orch {P}ackage for {N}ormalizing {F}lows},
-  year = {2023},
-  url = {https://github.com/VincentStimper/normalizing-flows}
+  journal = {arXiv preprint arXiv:2302.12014},
+  year = {2023}
 }
 ```
 
