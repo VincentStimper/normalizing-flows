@@ -445,9 +445,6 @@ class AffineGaussian(BaseDistribution):
         else:
             z, log_det = self.transform(z)
         log_p -= log_det
-        print(y)
-        print(eps)
-        print(z)
         return z, log_p
 
     def log_prob(self, z, y=None):
@@ -477,8 +474,6 @@ class AffineGaussian(BaseDistribution):
             - 0.5 * self.d * np.log(2 * np.pi)
             - 0.5 * torch.sum(torch.pow(z, 2), dim=self.sum_dim)
         )
-        print(y)
-        print(z)
         return log_p
 
 
