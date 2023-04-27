@@ -24,8 +24,8 @@ class CoreTest(unittest.TestCase):
                 layers = []
                 for i in range(n_layers):
                     b = torch.Tensor([j if i % 2 == j % 2 else 0 for j in range(latent_size)])
-                    s = MLP([latent_size, 2 * latent_size, latent_size], init_zeros=True)
-                    t = MLP([latent_size, 2 * latent_size, latent_size], init_zeros=True)
+                    s = MLP([latent_size, 2 * latent_size, latent_size], init_zeros=False)
+                    t = MLP([latent_size, 2 * latent_size, latent_size], init_zeros=False)
                     layers.append(MaskedAffineFlow(b, t, s))
                 base = DiagGaussian(latent_size)
                 target = CircularGaussianMixture()
