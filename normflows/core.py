@@ -51,7 +51,7 @@ class NormalizingFlow(nn.Module):
         log_det = torch.zeros(len(z), device=z.device)
         for flow in self.flows:
             z, log_d = flow(z)
-            log_det -= log_d
+            log_det += log_d
         return z, log_det
 
     def inverse(self, x):
