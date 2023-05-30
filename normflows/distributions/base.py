@@ -102,6 +102,46 @@ class DiagGaussian(BaseDistribution):
         return log_p
 
 
+class Uniform(BaseDistribution):
+    """
+    Multivariate uniform distribution
+    """
+
+    def __init__(self, shape, low=-1.0, high=1.0):
+        """Constructor
+
+        Args:
+          shape: Tuple with shape of data, if int shape has one dimension
+          low: Lower bound of uniform distribution
+          high: Upper bound of uniform distribution
+        """
+        super().__init__()
+        if isinstance(shape, int):
+            shape = (shape,)
+        if isinstance(shape, list):
+            shape = tuple(shape)
+        self.shape = shape
+        self.d = np.prod(shape)
+        self.low = torch.tensor(low)
+        self.high = torch.tensor(high)
+        self.log_prob_val = -self.d * np.log(self.high - self.low)
+
+    def forward(self, num_samples=1):
+        eps = torch.rand(
+            (num_samples,) + self.shape, dtype=self.low.dtype, device=self.low.device
+        )
+        z = self.low + (self.high - self.low) * eps
+        log_p = self.log_prob_val * torch.ones(num_samples, device=self.low.device)
+        return z, log_p
+
+    def log_prob(self, z):
+        log_p = self.log_prob_val * torch.ones(z.shape[0], device=z.device)
+        out_range = torch.logical_or(z < self.low, z > self.high)
+        ind_inf = torch.any(torch.reshape(out_range, (z.shape[0], -1)), dim=-1)
+        log_p[ind_inf] = -np.inf
+        return log_p
+
+
 class UniformGaussian(BaseDistribution):
     """
     Distribution of a 1D random variable with some entries having a uniform and

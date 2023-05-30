@@ -4,7 +4,7 @@ import numpy as np
 
 from normflows.distributions.base import DiagGaussian, UniformGaussian, \
     ClassCondDiagGaussian, GlowBase, AffineGaussian, GaussianMixture, \
-    GaussianPCA
+    GaussianPCA, Uniform
 from normflows.distributions.distribution_test import DistributionTest
 
 
@@ -14,6 +14,14 @@ class BaseTest(DistributionTest):
             for num_samples in [1, 3]:
                 with self.subTest(shape=shape, num_samples=num_samples):
                     distribution = DiagGaussian(shape)
+                    self.checkForwardLogProb(distribution, num_samples)
+                    _ = self.checkSample(distribution, num_samples)
+
+    def test_uniform(self):
+        for shape in [1, (3,), [2, 3]]:
+            for num_samples in [1, 3]:
+                with self.subTest(shape=shape, num_samples=num_samples):
+                    distribution = Uniform(shape)
                     self.checkForwardLogProb(distribution, num_samples)
                     _ = self.checkSample(distribution, num_samples)
 
@@ -86,7 +94,7 @@ class BaseTest(DistributionTest):
         for dim, latent_dim in params:
             for num_samples in [1, 3]:
                 with self.subTest(dim=dim, latent_dim=latent_dim):
-                    distribution = GaussianMixture(dim, latent_dim)
+                    distribution = GaussianPCA(dim, latent_dim)
                     self.checkForwardLogProb(distribution, num_samples)
                     _ = self.checkSample(distribution, num_samples)
 
