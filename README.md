@@ -176,6 +176,30 @@ as well, we apply a Neural Spline Flow model to a distribution defined on a cyli
 
 This example is considered in the [paper](https://arxiv.org/abs/2302.12014) accompanying this repository.
 
+## Support
+
+If you have problems, please read the [package documentation](https://vincentstimper.github.io/normalizing-flows/)
+and check out the [examples section](#examples) above. You are also welcome to 
+[create issues on GitHub](https://github.com/VincentStimper/normalizing-flows/issues) to get help. Note that it is
+worthwhile browsing the existing [open](https://github.com/VincentStimper/normalizing-flows/issues?q=is%3Aopen+is%3Aissue) 
+and [closed](https://github.com/VincentStimper/normalizing-flows/issues?q=is%3Aissue+is%3Aclosed) issues, which might
+address the problem you are facing.
+
+## Contributing
+
+If you find a bug or have a feature request, please 
+[file an issue on GitHub](https://github.com/VincentStimper/normalizing-flows/issues).
+
+You are welcome to contribute to the package by fixing the bug or adding the feature yourself. If you want to 
+contribute, please add tests for the code you added or modified and ensure it passes successfully by running `pytest`.
+This can be done by simply executing
+```
+pytest
+```
+within your local version of the repository. Make sure you code is well documented, and we also encourage contributions
+to the existing documentation. Once you finished coding and testing, please 
+[create a pull request on GitHub](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request).
+
 ## Used by
 
 The package has been used in several research papers, which are listed below.
