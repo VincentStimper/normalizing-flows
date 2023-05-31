@@ -2,6 +2,8 @@ import numpy as np
 import torch
 from torch import nn
 
+from ..flows.reshape import Split
+
 
 class Target(nn.Module):
     """
@@ -69,6 +71,29 @@ class Target(nn.Module):
             ind = np.min([len(z_), num_samples - len(z)])
             z = torch.cat([z, z_[:ind, :]], 0)
         return z
+
+
+class TwoIndependent(Target):
+    """
+    Target distribution that combines two independent distributions of equal
+    size into one distribution. This is needed for Augmented Normalizing Flows,
+    see https://arxiv.org/abs/2002.07101
+    """
+
+    def __init__(self, target1, target2):
+        super().__init__()
+        self.target1 = target1
+        self.target2 = target2
+        self.split = Split(mode='channel')
+
+    def log_prob(self, z):
+        z1, z2 = self.split(z)[0]
+        return self.target1.log_prob(z1) + self.target2.log_prob(z2)
+
+    def sample(self, num_samples=1):
+        z1 = self.target1.sample(num_samples)
+        z2 = self.target2.sample(num_samples)
+        return self.split.inverse([z1, z2])[0]
 
 
 class TwoMoons(Target):

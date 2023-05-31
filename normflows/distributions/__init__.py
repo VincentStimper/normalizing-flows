@@ -8,7 +8,13 @@ from .base import (
     GaussianPCA,
     UniformGaussian,
 )
-from .target import Target, TwoMoons, CircularGaussianMixture, RingMixture
+from .target import (
+    Target,
+    TwoMoons,
+    CircularGaussianMixture,
+    RingMixture,
+    TwoIndependent
+)
 
 from .encoder import BaseEncoder, Dirac, Uniform, NNDiagGaussian
 from .decoder import BaseDecoder, NNDiagGaussianDecoder, NNBernoulliDecoder
