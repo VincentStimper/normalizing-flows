@@ -59,8 +59,8 @@ The package can be easily installed via `pip` and the code is publicly available
 normalizing flows [@Chen2018a; @papamakarios2021normalizing]. There are several other packages 
 implementing discrete normalizing flows, such as TensorFlow Probability [@dillon2017] for TensorFlow, 
 `distrax` [@deepmind2020jax] for JAX, and `nflows` [@nflows] and `FrEIA` [@freia] for PyTorch. 
-However, none of these packages support both residual and autoregressive flows, which are two popular 
-flow architectures that we implement. 
+However, none of them support the two popular flow architectures, residual and autoregressive flows, 
+within a single package, while we do so.
 
 Moreover, `normflows` stands out by providing tools that are often used when approximating Boltzmann 
 distributions. First, sampling layers needed for Stochastic Normalizing Flows 
