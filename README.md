@@ -23,10 +23,11 @@ a [Residual Flow](https://github.com/VincentStimper/normalizing-flows/blob/maste
 Moreover, two simple applications are highlighed in the [examples section](#examples). You can run them 
 yourself in Google Colab using the links below to get a feeling for `normflows`.
 
-| Link                                                                                                                                                                                                                                         | Description                                                                   |
-|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------|
-| <a href="https://colab.research.google.com/github/VincentStimper/normalizing-flows/blob/master/examples/real_nvp_colab.ipynb" target="_parent"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a> | Real NVP applied to a 2D bimodal target distribution                          |
+| Link                                                                                                                                                                                                                                                  | Description                                                             |
+|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------|
+| <a href="https://colab.research.google.com/github/VincentStimper/normalizing-flows/blob/master/examples/real_nvp_colab.ipynb" target="_parent"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a>          | Real NVP applied to a 2D bimodal target distribution                    |
 | <a href="https://colab.research.google.com/github/VincentStimper/normalizing-flows/blob/master/examples/paper_example_nsf_colab.ipynb" target="_parent"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a> | Modeling a distribution on a cylinder surface with a neural spline flow |
+| <a href="https://colab.research.google.com/github/VincentStimper/normalizing-flows/blob/master/examples/glow_colab.ipynb" target="_parent"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a>              | Modeling and generating CIFAR-10 images with Glow                       |
 
 
 ## Implemented Flows
