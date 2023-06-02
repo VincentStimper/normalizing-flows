@@ -131,6 +131,12 @@ class CoreTest(unittest.TestCase):
                 fwd = model.forward(x, y)
                 fwd_kld = model.forward_kld(x, y)
                 assert_close(torch.mean(fwd), fwd_kld)
+                z, log_det = model.inverse_and_log_det(x)
+                x_, log_det_ = model.forward_and_log_det(z)
+                assert len(z) == L
+                assert x_.shape == (batch_size,) + (input_shape)
+                assert_close(x_, x)
+                assert_close(log_det, -log_det_)
 
 
     def test_normalizing_flow_vae(self):
