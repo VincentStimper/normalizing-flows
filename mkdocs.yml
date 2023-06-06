@@ -5,6 +5,7 @@ site_url: https://github.com/VincentStimper/normalizing-flows
 plugins:
   - search
   - autorefs
+  - mkdocs-jupyter
   - mkdocstrings:
       handlers:
         python:
@@ -12,5 +13,18 @@ plugins:
             show_submodules: true
 
 nav:
-  - about: index.md
+  - About: index.md
   - API: references.md
+  - Examples:
+    - augmented_flow: notebooks/augmented_flow.ipynb
+    - change_base_distribution: notebooks/change_base_distribution.ipynb
+    - circular_nsf: notebooks/circular_nsf.ipynb
+    - comparison_plan_rad_aff: notebooks/comparison_plan_rad_aff.ipynb
+    - glow: notebooks/glow.ipynb
+    - image: notebooks/image.ipynb
+    - neural_spline_flow: notebooks/neural_spline_flow.ipynb
+    - paper_example_nsf: notebooks/paper_example_nsf.ipynb
+    - planar: notebooks/planar.ipynb
+    - real_nvp: notebooks/real_nvp.ipynb
+    - residual: notebooks/residual.ipynb
+    - vae: notebooks/vae.ipynb
