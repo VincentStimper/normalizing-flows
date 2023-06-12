@@ -19,6 +19,7 @@ authors:
   - name: Lukas Ryll
     affiliation: 1
   - name: Bernhard Schölkopf
+    orcid: 0000-0002-8177-0925
     affiliation: 2
   - name: José Miguel Hernández-Lobato
     affiliation: 1
