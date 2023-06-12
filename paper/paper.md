@@ -67,12 +67,12 @@ distributions. First, sampling layers needed for Stochastic Normalizing Flows
 [@wu2020stochasticNF; @nielsen2020] are included. Second, Neural Spline Flows on circular coordinates 
 are supported [@rezende2020], which can be combined with standard coordinates on bounded or unbounded 
 intervals. They are needed when modeling the internal coordinates of molecules consisting of angles 
-and lengths [@Midgley2022]. Furthermore, there is an extension for `normflows` that adds Boltzmann 
+and lengths [@Midgley2023]. Furthermore, there is an extension for `normflows` that adds Boltzmann 
 distributions as targets as well as flow layers converting between Cartesian and internal coordinates 
 [@boltzgen].
 
 Our package has already been used in several scientific projects and publications 
-[@campbell2021gradient; @stimper2021; @Midgley2022]. Due to its modular nature, `normflows` can be 
+[@campbell2021gradient; @stimper2021; @Midgley2023]. Due to its modular nature, `normflows` can be 
 easily extended to house new flow layers, base distributions, or other tools. For instance, 
 [@stimper2021] extends the package by adding resampled base distributions, which overcome an 
 architectural weakness of normalizing flows and make them more expressive.
