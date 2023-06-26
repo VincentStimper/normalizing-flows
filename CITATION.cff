@@ -1,0 +1,52 @@
+cff-version: "1.2.0"
+authors:
+- family-names: Stimper
+  given-names: Vincent
+  orcid: "https://orcid.org/0000-0002-4965-4297"
+- family-names: Liu
+  given-names: David
+- family-names: Campbell
+  given-names: Andrew
+- family-names: Berenz
+  given-names: Vincent
+- family-names: Ryll
+  given-names: Lukas
+- family-names: Schölkopf
+  given-names: Bernhard
+  orcid: "https://orcid.org/0000-0002-8177-0925"
+- family-names: Hernández-Lobato
+  given-names: José Miguel
+doi: 10.5281/zenodo.8027667
+message: If you use this software, please cite our article in the
+  Journal of Open Source Software.
+preferred-citation:
+  authors:
+  - family-names: Stimper
+    given-names: Vincent
+    orcid: "https://orcid.org/0000-0002-4965-4297"
+  - family-names: Liu
+    given-names: David
+  - family-names: Campbell
+    given-names: Andrew
+  - family-names: Berenz
+    given-names: Vincent
+  - family-names: Ryll
+    given-names: Lukas
+  - family-names: Schölkopf
+    given-names: Bernhard
+    orcid: "https://orcid.org/0000-0002-8177-0925"
+  - family-names: Hernández-Lobato
+    given-names: José Miguel
+  date-published: 2023-06-24
+  doi: 10.21105/joss.05361
+  issn: 2475-9066
+  issue: 86
+  journal: Journal of Open Source Software
+  publisher:
+    name: Open Journals
+  start: 5361
+  title: "normflows: A PyTorch Package for Normalizing Flows"
+  type: article
+  url: "https://joss.theoj.org/papers/10.21105/joss.05361"
+  volume: 8
+title: "normflows: A PyTorch Package for Normalizing Flows"

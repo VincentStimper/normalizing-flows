@@ -3,17 +3,17 @@
 [![documentation](https://github.com/VincentStimper/normalizing-flows/actions/workflows/mkdocs.yaml/badge.svg)](https://vincentstimper.github.io/normalizing-flows/)
 ![unit-tests](https://github.com/VincentStimper/normalizing-flows/actions/workflows/pytest.yaml/badge.svg)
 ![code coverage](https://raw.githubusercontent.com/VincentStimper/normalizing-flows/coverage-badge/coverage.svg?raw=true)
-[![License: MIT](https://img.shields.io/badge/Licence-MIT-lightgrey)](https://opensource.org/licenses/MIT)
-[![arXiv](https://img.shields.io/badge/arXiv-2302.12014-b31b1b.svg)](https://arxiv.org/abs/2302.12014) 
-[![PyPI](https://img.shields.io/badge/PyPI-1.7.0-blue.svg)](https://pypi.org/project/normflows/)
+[![License: MIT](https://img.shields.io/badge/Licence-MIT-b31b1b.svg)](https://opensource.org/licenses/MIT)
+[![DOI](https://joss.theoj.org/papers/10.21105/joss.05361/status.svg)](https://doi.org/10.21105/joss.05361)
+[![PyPI](https://img.shields.io/badge/PyPI-1.7.1-blue.svg)](https://pypi.org/project/normflows/)
 [![Downloads](https://static.pepy.tech/personalized-badge/normflows?period=total&units=international_system&left_color=grey&right_color=orange&left_text=Downloads)](https://pepy.tech/project/normflows)
 
 
 `normflows` is a PyTorch implementation of discrete normalizing flows. Many popular flow architectures are implemented,
 see the [list below](#implemented-flows). The package can be easily [installed via pip](#installation).
 The basic usage is described [here](#usage), and a [full documentation](https://vincentstimper.github.io/normalizing-flows/) 
-is available as well. A more detailed description of this package is given in out accompanying 
-[paper](https://arxiv.org/abs/2302.12014).
+is available as well. A more detailed description of this package is given in our
+[accompanying paper](https://joss.theoj.org/papers/10.21105/joss.05361).
 
 Several sample use cases are provided in the 
 [`examples` folder](https://github.com/VincentStimper/normalizing-flows/blob/master/examples), 
@@ -175,7 +175,7 @@ as well, we apply a Neural Spline Flow model to a distribution defined on a cyli
 
 ![Neural Spline Flow applied to target distribution on a cylinder](https://raw.githubusercontent.com/VincentStimper/normalizing-flows/master/figures/nsf_cylinder_3d.png)
 
-This example is considered in the [paper](https://arxiv.org/abs/2302.12014) accompanying this repository.
+This example is considered in the [paper](https://joss.theoj.org/papers/10.21105/joss.05361) accompanying this repository.
 
 ## Support
 
@@ -228,20 +228,27 @@ has been build upon `normflows`.
 
 ## Citation
 
-If you use `normflows`, please consider citing the [corresponding paper](https://arxiv.org/abs/2302.12014) as follows.
+If you use `normflows`, please cite the 
+[corresponding paper](https://joss.theoj.org/papers/10.21105/joss.05361) as follows.
 
-> Vincent Stimper, David Liu, Andrew Campbell, Vincent Berenz, Lukas Ryll, Bernhard Schölkopf, José Miguel Hernández-Lobato.
-> normflows: A PyTorch Package for Normalizing Flows, arXiv preprint arXiv:2302.12014, 2023.
+> Stimper et al., (2023). normflows: A PyTorch Package for Normalizing Flows. 
+> Journal of Open Source Software, 8(86), 5361, https://doi.org/10.21105/joss.05361
 
 **Bibtex**
 
 ```
-@article{normflows,
-  author = {Vincent Stimper and David Liu and Andrew Campbell and Vincent Berenz and Lukas Ryll and Bernhard Sch{\"o}lkopf and Jos{\'e} Miguel Hern{\'a}ndez-Lobato},
-  title = {normflows: {A} {P}y{T}orch {P}ackage for {N}ormalizing {F}lows},
-  journal = {arXiv preprint arXiv:2302.12014},
+@article{Stimper2023, 
+  author = {Vincent Stimper and David Liu and Andrew Campbell and Vincent Berenz and Lukas Ryll and Bernhard Schölkopf and José Miguel Hernández-Lobato}, 
+  title = {normflows: A PyTorch Package for Normalizing Flows}, 
+  journal = {Journal of Open Source Software}, 
+  volume = {8},
+  number = {86}, 
+  pages = {5361}, 
+  publisher = {The Open Journal}, 
+  doi = {10.21105/joss.05361}, 
+  url = {https://doi.org/10.21105/joss.05361}, 
   year = {2023}
-}
+} 
 ```
 
 
