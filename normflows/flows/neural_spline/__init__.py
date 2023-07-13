@@ -1,5 +1,8 @@
-from . import autoregressive
-from . import coupling
+from . import (
+    autoregressive,
+    coupling,
+    wrapper,
+)
 
 from .wrapper import (
     CoupledRationalQuadraticSpline,
