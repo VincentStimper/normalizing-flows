@@ -1,8 +1,8 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from . import core
 from .core import *
+from . import core
 from . import flows
 from . import distributions
 from . import transforms
