@@ -8,7 +8,7 @@ import torch
 from torch import nn
 from torch.nn import functional as F, init
 
-from ..utils import tile
+from ..utils.nn import tile
 
 
 def _get_input_degrees(in_features):

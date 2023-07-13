@@ -213,9 +213,164 @@ class NormalizingFlow(nn.Module):
         self.load_state_dict(torch.load(path))
 
 
+class ConditionalNormalizingFlow(NormalizingFlow):
+    """
+    Conditional normalizing flow model, providing condition,
+    which is also called context, to both the base distribution
+    and the flow layers
+    """
+    def forward(self, z, context=None):
+        """Transforms latent variable z to the flow variable x
+
+        Args:
+          z: Batch in the latent space
+          context: Batch of conditions/context
+
+        Returns:
+          Batch in the space of the target distribution
+        """
+        for flow in self.flows:
+            z, _ = flow(z, context=context)
+        return z
+
+    def forward_and_log_det(self, z, context=None):
+        """Transforms latent variable z to the flow variable x and
+        computes log determinant of the Jacobian
+
+        Args:
+          z: Batch in the latent space
+          context: Batch of conditions/context
+
+        Returns:
+          Batch in the space of the target distribution,
+          log determinant of the Jacobian
+        """
+        log_det = torch.zeros(len(z), device=z.device)
+        for flow in self.flows:
+            z, log_d = flow(z, context=context)
+            log_det += log_d
+        return z, log_det
+
+    def inverse(self, x, context=None):
+        """Transforms flow variable x to the latent variable z
+
+        Args:
+          x: Batch in the space of the target distribution
+          context: Batch of conditions/context
+
+        Returns:
+          Batch in the latent space
+        """
+        for i in range(len(self.flows) - 1, -1, -1):
+            x, _ = self.flows[i].inverse(x, context=context)
+        return x
+
+    def inverse_and_log_det(self, x, context=None):
+        """Transforms flow variable x to the latent variable z and
+        computes log determinant of the Jacobian
+
+        Args:
+          x: Batch in the space of the target distribution
+          context: Batch of conditions/context
+
+        Returns:
+          Batch in the latent space, log determinant of the
+          Jacobian
+        """
+        log_det = torch.zeros(len(x), device=x.device)
+        for i in range(len(self.flows) - 1, -1, -1):
+            x, log_d = self.flows[i].inverse(x, context=context)
+            log_det += log_d
+        return x, log_det
+
+    def sample(self, num_samples=1, context=None):
+        """Samples from flow-based approximate distribution
+
+        Args:
+          num_samples: Number of samples to draw
+          context: Batch of conditions/context
+
+        Returns:
+          Samples, log probability
+        """
+        z, log_q = self.q0(num_samples, context=context)
+        for flow in self.flows:
+            z, log_det = flow(z, context=context)
+            log_q -= log_det
+        return z, log_q
+
+    def log_prob(self, x, context=None):
+        """Get log probability for batch
+
+        Args:
+          x: Batch
+          context: Batch of conditions/context
+
+        Returns:
+          log probability
+        """
+        log_q = torch.zeros(len(x), dtype=x.dtype, device=x.device)
+        z = x
+        for i in range(len(self.flows) - 1, -1, -1):
+            z, log_det = self.flows[i].inverse(z, context=context)
+            log_q += log_det
+        log_q += self.q0.log_prob(z, context=context)
+        return log_q
+
+    def forward_kld(self, x, context=None):
+        """Estimates forward KL divergence, see [arXiv 1912.02762](https://arxiv.org/abs/1912.02762)
+
+        Args:
+          x: Batch sampled from target distribution
+          context: Batch of conditions/context
+
+        Returns:
+          Estimate of forward KL divergence averaged over batch
+        """
+        log_q = torch.zeros(len(x), device=x.device)
+        z = x
+        for i in range(len(self.flows) - 1, -1, -1):
+            z, log_det = self.flows[i].inverse(z, context=context)
+            log_q += log_det
+        log_q += self.q0.log_prob(z, context=context)
+        return -torch.mean(log_q)
+
+    def reverse_kld(self, num_samples=1, context=None, beta=1.0, score_fn=True):
+        """Estimates reverse KL divergence, see [arXiv 1912.02762](https://arxiv.org/abs/1912.02762)
+
+        Args:
+          num_samples: Number of samples to draw from base distribution
+          context: Batch of conditions/context
+          beta: Annealing parameter, see [arXiv 1505.05770](https://arxiv.org/abs/1505.05770)
+          score_fn: Flag whether to include score function in gradient, see [arXiv 1703.09194](https://arxiv.org/abs/1703.09194)
+
+        Returns:
+          Estimate of the reverse KL divergence averaged over latent samples
+        """
+        z, log_q_ = self.q0(num_samples, context=context)
+        log_q = torch.zeros_like(log_q_)
+        log_q += log_q_
+        for flow in self.flows:
+            z, log_det = flow(z, context=context)
+            log_q -= log_det
+        if not score_fn:
+            z_ = z
+            log_q = torch.zeros(len(z_), device=z_.device)
+            utils.set_requires_grad(self, False)
+            for i in range(len(self.flows) - 1, -1, -1):
+                z_, log_det = self.flows[i].inverse(z_, context=context)
+                log_q += log_det
+            log_q += self.q0.log_prob(z_, context=context)
+            utils.set_requires_grad(self, True)
+        log_p = self.p.log_prob(z, context=context)
+        return torch.mean(log_q) - beta * torch.mean(log_p)
+
+
 class ClassCondFlow(nn.Module):
     """
-    Class conditional normalizing Flow model
+    Class conditional normalizing Flow model, providing the
+    class to be conditioned on only to the base distribution,
+    as done e.g. in [Glow](https://arxiv.org/abs/1807.03039)
     """
 
     def __init__(self, q0, flows):

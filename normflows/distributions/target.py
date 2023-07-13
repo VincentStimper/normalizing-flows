@@ -193,3 +193,33 @@ class RingMixture(Target):
             )
             d = torch.cat((d, d_[:, None]), 1)
         return torch.logsumexp(-d, 1)
+
+
+class ConditionalDiagGaussian(Target):
+    """
+    Gaussian distribution conditioned on its mean and standard
+    deviation
+
+    The first half of the entries of the condition, also called context,
+    are the mean, while the second half are the standard deviation.
+    """
+    def log_prob(self, z, context=None):
+        d = z.shape[-1]
+        loc = context[:, :d]
+        scale = context[:, d:]
+        log_p = -0.5 * d * np.log(2 * np.pi) - torch.sum(
+            torch.log(scale) + 0.5 * torch.pow((z - loc) / scale, 2),
+            dim=-1
+        )
+        return log_p
+
+    def sample(self, num_samples=1, context=None):
+        d = context.shape[-1] // 2
+        loc = context[:, :d]
+        scale = context[:, d:]
+        eps = torch.randn(
+            (num_samples, d), dtype=context.dtype, device=context.device
+        )
+        z = loc + scale * eps
+        return z
+

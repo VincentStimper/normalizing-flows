@@ -48,6 +48,10 @@ class Autoregressive(Flow):
 
 
 class MaskedAffineAutoregressive(Autoregressive):
+    """ Masked affine autoregressive flow, mostly referred to as
+    Masked Autoregressive Flow (MAF), see
+    [arXiv 1705.07057](https://arxiv.org/abs/1705.07057).
+    """
     def __init__(
         self,
         features,
@@ -60,6 +64,19 @@ class MaskedAffineAutoregressive(Autoregressive):
         dropout_probability=0.0,
         use_batch_norm=False,
     ):
+        """Constructor
+
+        Args:
+          features: Number of features/input dimensions
+          hidden_features: Number of hidden units in the MADE network
+          context_features: Number of context/conditional features
+          num_blocks: Number of blocks in the MADE network
+          use_residual_blocks: Flag whether residual blocks should be used
+          random_mask: Flag whether to use random masks
+          activation: Activation function to be used in the MADE network
+          dropout_probability: Dropout probability in the MADE network
+          use_batch_norm: Flag whether batch normalization should be used
+        """
         self.features = features
         made = made_module.MADE(
             features=features,

@@ -182,6 +182,7 @@ class AutoregressiveRationalQuadraticSpline(Flow):
         num_input_channels,
         num_blocks,
         num_hidden_channels,
+        num_context_channels=None,
         num_bins=8,
         tail_bound=3,
         activation=nn.ReLU,
@@ -195,9 +196,10 @@ class AutoregressiveRationalQuadraticSpline(Flow):
           num_input_channels (int): Flow dimension
           num_blocks (int): Number of residual blocks of the parameter NN
           num_hidden_channels (int): Number of hidden units of the NN
+          num_context_channels (int): Number of context/conditional channels
           num_bins (int): Number of bins
           tail_bound (int): Bound of the spline tails
-          activation (torch module): Activation function
+          activation (torch.nn.Module): Activation function
           dropout_probability (float): Dropout probability of the NN
           permute_mask (bool): Flag, permutes the mask of the NN
           init_identity (bool): Flag, initialize transform as identity
@@ -207,7 +209,7 @@ class AutoregressiveRationalQuadraticSpline(Flow):
         self.mprqat = MaskedPiecewiseRationalQuadraticAutoregressive(
             features=num_input_channels,
             hidden_features=num_hidden_channels,
-            context_features=None,
+            context_features=num_context_channels,
             num_bins=num_bins,
             tails="linear",
             tail_bound=tail_bound,
@@ -221,12 +223,12 @@ class AutoregressiveRationalQuadraticSpline(Flow):
             init_identity=init_identity,
         )
 
-    def forward(self, z):
-        z, log_det = self.mprqat.inverse(z)
+    def forward(self, z, context=None):
+        z, log_det = self.mprqat.inverse(z, context=context)
         return z, log_det.view(-1)
 
-    def inverse(self, z):
-        z, log_det = self.mprqat(z)
+    def inverse(self, z, context=None):
+        z, log_det = self.mprqat(z, context=context)
         return z, log_det.view(-1)
 
 
@@ -242,6 +244,7 @@ class CircularAutoregressiveRationalQuadraticSpline(Flow):
         num_blocks,
         num_hidden_channels,
         ind_circ,
+        num_context_channels=None,
         num_bins=8,
         tail_bound=3,
         activation=nn.ReLU,
@@ -256,6 +259,7 @@ class CircularAutoregressiveRationalQuadraticSpline(Flow):
           num_blocks (int): Number of residual blocks of the parameter NN
           num_hidden_channels (int): Number of hidden units of the NN
           ind_circ (Iterable): Indices of the circular coordinates
+          num_context_channels (int): Number of context/conditional channels
           num_bins (int): Number of bins
           tail_bound (int): Bound of the spline tails
           activation (torch module): Activation function
@@ -272,7 +276,7 @@ class CircularAutoregressiveRationalQuadraticSpline(Flow):
         self.mprqat = MaskedPiecewiseRationalQuadraticAutoregressive(
             features=num_input_channels,
             hidden_features=num_hidden_channels,
-            context_features=None,
+            context_features=num_context_channels,
             num_bins=num_bins,
             tails=tails,
             tail_bound=tail_bound,
@@ -286,10 +290,10 @@ class CircularAutoregressiveRationalQuadraticSpline(Flow):
             init_identity=init_identity,
         )
 
-    def forward(self, z):
-        z, log_det = self.mprqat.inverse(z)
+    def forward(self, z, context=None):
+        z, log_det = self.mprqat.inverse(z, context=context)
         return z, log_det.view(-1)
 
-    def inverse(self, z):
-        z, log_det = self.mprqat(z)
+    def inverse(self, z, context=None):
+        z, log_det = self.mprqat(z, context=context)
         return z, log_det.view(-1)
