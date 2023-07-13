@@ -29,7 +29,7 @@ class Permute(Flow):
             self.register_buffer("perm", perm)
             self.register_buffer("inv_perm", inv_perm)
 
-    def forward(self, z):
+    def forward(self, z, context=None):
         if self.mode == "shuffle":
             z = z[:, self.perm, ...]
         elif self.mode == "swap":
@@ -41,7 +41,7 @@ class Permute(Flow):
         log_det = torch.zeros(len(z), device=z.device)
         return z, log_det
 
-    def inverse(self, z):
+    def inverse(self, z, context=None):
         if self.mode == "shuffle":
             z = z[:, self.inv_perm, ...]
         elif self.mode == "swap":
@@ -182,7 +182,7 @@ class InvertibleAffine(Flow):
             W = self.P @ L @ U
         return W
 
-    def forward(self, z):
+    def forward(self, z, context=None):
         if self.use_lu:
             W = self._assemble_W(inverse=True)
             log_det = -torch.sum(self.log_S)
@@ -196,7 +196,7 @@ class InvertibleAffine(Flow):
         z_ = z @ W
         return z_, log_det
 
-    def inverse(self, z):
+    def inverse(self, z, context=None):
         if self.use_lu:
             W = self._assemble_W()
             log_det = torch.sum(self.log_S)
@@ -552,12 +552,12 @@ class LULinearPermute(Flow):
         self.permutation = _RandomPermutation(num_channels)
         self.linear = _LULinear(num_channels, identity_init=identity_init)
 
-    def forward(self, z):
-        z, log_det = self.linear.inverse(z)
-        z, _ = self.permutation.inverse(z)
+    def forward(self, z, context=None):
+        z, log_det = self.linear.inverse(z, context=context)
+        z, _ = self.permutation.inverse(z, context=context)
         return z, log_det.view(-1)
 
-    def inverse(self, z):
-        z, _ = self.permutation(z)
-        z, log_det = self.linear(z)
+    def inverse(self, z, context=None):
+        z, _ = self.permutation(z, context=context)
+        z, log_det = self.linear(z, context=context)
         return z, log_det.view(-1)
