@@ -103,6 +103,58 @@ class DiagGaussian(BaseDistribution):
         return log_p
 
 
+class ConditionalDiagGaussian(BaseDistribution):
+    """
+    Conditional multivariate Gaussian distribution with diagonal
+    covariance matrix, parameters are obtained by a context encoder,
+    context meaning the variable to condition on
+    """
+    def __init__(self, shape, context_encoder):
+        """Constructor
+
+        Args:
+          shape: Tuple with shape of data, if int shape has one dimension
+          context_encoder: Computes mean and log of the standard deviation
+          of the Gaussian, mean is the first half of the last dimension
+          of the encoder output, log of the standard deviation the second
+          half
+        """
+        super().__init__()
+        if isinstance(shape, int):
+            shape = (shape,)
+        if isinstance(shape, list):
+            shape = tuple(shape)
+        self.shape = shape
+        self.n_dim = len(shape)
+        self.d = np.prod(shape)
+        self.context_encoder = context_encoder
+
+    def forward(self, num_samples=1, context=None):
+        encoder_output = self.context_encoder(context)
+        split_ind = encoder_output.shape[-1] // 2
+        mean = encoder_output[..., :split_ind]
+        log_scale = encoder_output[..., split_ind:]
+        eps = torch.randn(
+            (num_samples,) + self.shape, dtype=mean.dtype, device=mean.device
+        )
+        z = mean + torch.exp(log_scale) * eps
+        log_p = -0.5 * self.d * np.log(2 * np.pi) - torch.sum(
+            log_scale + 0.5 * torch.pow(eps, 2), list(range(1, self.n_dim + 1))
+        )
+        return z, log_p
+
+    def log_prob(self, z, context=None):
+        encoder_output = self.context_encoder(context)
+        split_ind = encoder_output.shape[-1] // 2
+        mean = encoder_output[..., :split_ind]
+        log_scale = encoder_output[..., split_ind:]
+        log_p = -0.5 * self.d * np.log(2 * np.pi) - torch.sum(
+            log_scale + 0.5 * torch.pow((z - mean) / torch.exp(log_scale), 2),
+            list(range(1, self.n_dim + 1)),
+        )
+        return log_p
+
+
 class Uniform(BaseDistribution):
     """
     Multivariate uniform distribution

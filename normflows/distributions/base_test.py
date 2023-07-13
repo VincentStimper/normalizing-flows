@@ -4,8 +4,9 @@ import numpy as np
 
 from normflows.distributions.base import DiagGaussian, UniformGaussian, \
     ClassCondDiagGaussian, GlowBase, AffineGaussian, GaussianMixture, \
-    GaussianPCA, Uniform
+    GaussianPCA, Uniform, ConditionalDiagGaussian
 from normflows.distributions.distribution_test import DistributionTest
+from normflows.nets.mlp import MLP
 
 
 class BaseTest(DistributionTest):
@@ -16,6 +17,22 @@ class BaseTest(DistributionTest):
                     distribution = DiagGaussian(shape)
                     self.checkForwardLogProb(distribution, num_samples)
                     _ = self.checkSample(distribution, num_samples)
+
+    def test_conditional_diag_gaussian(self):
+        context_size = 5
+        hidden_units = 16
+        for shape, base_param_size in [(1, 2), ([3], 6)]:
+            for num_samples in [1, 3]:
+                with self.subTest(shape=shape, base_param_size=base_param_size,
+                                  num_samples=num_samples):
+                    context_encoder = MLP([context_size, hidden_units,
+                                           base_param_size])
+                    distribution = ConditionalDiagGaussian(shape, context_encoder)
+                    context = torch.randn(num_samples, context_size)
+                    self.checkForwardLogProb(distribution, num_samples,
+                                             context=context)
+                    _ = self.checkSample(distribution, num_samples,
+                                         context=context)
 
     def test_uniform(self):
         for shape in [1, (3,), [2, 3]]:
