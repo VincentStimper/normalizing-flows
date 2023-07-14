@@ -20,6 +20,7 @@ nav:
     - change_base_distribution: examples/change_base_distribution.ipynb
     - circular_nsf: examples/circular_nsf.ipynb
     - comparison_plan_rad_aff: examples/comparison_plan_rad_aff.ipynb
+    - conditional_flow: examples/conditional_flow.ipynb
     - glow: examples/glow.ipynb
     - image: examples/image.ipynb
     - neural_spline_flow: examples/neural_spline_flow.ipynb
