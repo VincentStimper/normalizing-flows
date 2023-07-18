@@ -197,12 +197,12 @@ class MaskedAffineFlow(Flow):
         self.register_buffer("b", self.b_cpu)
 
         if s is None:
-            self.s = lambda x: torch.zeros_like(x)
+            self.s = torch.zeros_like
         else:
             self.add_module("s", s)
 
         if t is None:
-            self.t = lambda x: torch.zeros_like(x)
+            self.t = torch.zeros_like
         else:
             self.add_module("t", t)
 

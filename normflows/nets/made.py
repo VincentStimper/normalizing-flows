@@ -242,7 +242,7 @@ class MADE(nn.Module):
 
         # Preprocessing
         if preprocessing is None:
-            self.preprocessing = lambda inputs: inputs
+            self.preprocessing = torch.nn.Identity()
         else:
             self.preprocessing = preprocessing
 

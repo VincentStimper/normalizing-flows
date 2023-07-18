@@ -113,7 +113,7 @@ class PeriodicFeaturesElementwise(nn.Module):
             self.bias = nn.Parameter(torch.zeros(len(self.ind)))
 
         if activation is None:
-            self.activation = lambda input: input
+            self.activation = torch.nn.Identity()
         else:
             self.activation = activation
 
