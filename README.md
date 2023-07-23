@@ -5,7 +5,7 @@
 ![code coverage](https://raw.githubusercontent.com/VincentStimper/normalizing-flows/coverage-badge/coverage.svg?raw=true)
 [![License: MIT](https://img.shields.io/badge/Licence-MIT-b31b1b.svg)](https://opensource.org/licenses/MIT)
 [![DOI](https://joss.theoj.org/papers/10.21105/joss.05361/status.svg)](https://doi.org/10.21105/joss.05361)
-[![PyPI](https://img.shields.io/badge/PyPI-1.7.1-blue.svg)](https://pypi.org/project/normflows/)
+[![PyPI](https://img.shields.io/badge/PyPI-1.7.2-blue.svg)](https://pypi.org/project/normflows/)
 [![Downloads](https://static.pepy.tech/personalized-badge/normflows?period=total&units=international_system&left_color=grey&right_color=orange&left_text=Downloads)](https://pepy.tech/project/normflows)
 
 
@@ -138,7 +138,7 @@ optimizer.step()
 
 We provide several illustrative examples of how to use the package in the
 [`examples`](https://github.com/VincentStimper/normalizing-flows/blob/master/examples)
-directory. Amoung them are implementations of 
+directory. Among them are implementations of 
 [Glow](https://github.com/VincentStimper/normalizing-flows/blob/master/examples/glow.ipynb),
 a [VAE](https://github.com/VincentStimper/normalizing-flows/blob/master/examples/vae.py), and
 a [Residual Flow](https://github.com/VincentStimper/normalizing-flows/blob/master/examples/residual.ipynb). 
