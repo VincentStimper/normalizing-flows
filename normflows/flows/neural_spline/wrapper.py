@@ -22,6 +22,7 @@ class CoupledRationalQuadraticSpline(Flow):
         num_input_channels,
         num_blocks,
         num_hidden_channels,
+        num_context_channels=None,
         num_bins=8,
         tails="linear",
         tail_bound=3.0,
@@ -35,6 +36,7 @@ class CoupledRationalQuadraticSpline(Flow):
           num_input_channels (int): Flow dimension
           num_blocks (int): Number of residual blocks of the parameter NN
           num_hidden_channels (int): Number of hidden units of the NN
+          num_context_channels (int): Number of context/conditional channels
           num_bins (int): Number of bins
           tails (str): Behaviour of the tails of the distribution, can be linear, circular for periodic distribution, or None for distribution on the compact interval
           tail_bound (float): Bound of the spline tails
@@ -48,7 +50,7 @@ class CoupledRationalQuadraticSpline(Flow):
             return ResidualNet(
                 in_features=in_features,
                 out_features=out_features,
-                context_features=None,
+                context_features=num_context_channels,
                 hidden_features=num_hidden_channels,
                 num_blocks=num_blocks,
                 activation=activation(),
@@ -66,12 +68,12 @@ class CoupledRationalQuadraticSpline(Flow):
             apply_unconditional_transform=True,
         )
 
-    def forward(self, z):
-        z, log_det = self.prqct.inverse(z)
+    def forward(self, z, context=None):
+        z, log_det = self.prqct.inverse(z, context)
         return z, log_det.view(-1)
 
-    def inverse(self, z):
-        z, log_det = self.prqct(z)
+    def inverse(self, z, context=None):
+        z, log_det = self.prqct(z, context)
         return z, log_det.view(-1)
 
 
@@ -86,6 +88,7 @@ class CircularCoupledRationalQuadraticSpline(Flow):
         num_blocks,
         num_hidden_channels,
         ind_circ,
+        num_context_channels=None,
         num_bins=8,
         tail_bound=3.0,
         activation=nn.ReLU,
@@ -100,6 +103,7 @@ class CircularCoupledRationalQuadraticSpline(Flow):
           num_input_channels (int): Flow dimension
           num_blocks (int): Number of residual blocks of the parameter NN
           num_hidden_channels (int): Number of hidden units of the NN
+          num_context_channels (int): Number of context/conditional channels
           ind_circ (Iterable): Indices of the circular coordinates
           num_bins (int): Number of bins
           tail_bound (float or Iterable): Bound of the spline tails
@@ -134,7 +138,7 @@ class CircularCoupledRationalQuadraticSpline(Flow):
             net = ResidualNet(
                 in_features=in_features,
                 out_features=out_features,
-                context_features=None,
+                context_features=num_context_channels,
                 hidden_features=num_hidden_channels,
                 num_blocks=num_blocks,
                 activation=activation(),
@@ -162,12 +166,12 @@ class CircularCoupledRationalQuadraticSpline(Flow):
             apply_unconditional_transform=True,
         )
 
-    def forward(self, z):
-        z, log_det = self.prqct.inverse(z)
+    def forward(self, z, context=None):
+        z, log_det = self.prqct.inverse(z, context)
         return z, log_det.view(-1)
 
-    def inverse(self, z):
-        z, log_det = self.prqct(z)
+    def inverse(self, z, context=None):
+        z, log_det = self.prqct(z, context)
         return z, log_det.view(-1)
 
 
