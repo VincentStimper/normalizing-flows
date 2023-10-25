@@ -203,7 +203,7 @@ to the existing documentation. Once you finished coding and testing, please
 
 ## Used by
 
-The package has been used in several research papers, which are listed below.
+The package has been used in several research papers. Some of them are listed below.
 
 > Andrew Campbell, Wenlong Chen, Vincent Stimper, José Miguel Hernández-Lobato, and Yichuan Zhang. 
 > [A gradient based strategy for Hamiltonian Monte Carlo hyperparameter optimization](https://proceedings.mlr.press/v139/campbell21a.html). 
