@@ -203,7 +203,7 @@ to the existing documentation. Once you finished coding and testing, please
 
 ## Used by
 
-The package has been used in several research papers, which are listed below.
+The package has been used in several research papers. Some of them are listed below.
 
 > Andrew Campbell, Wenlong Chen, Vincent Stimper, José Miguel Hernández-Lobato, and Yichuan Zhang. 
 > [A gradient based strategy for Hamiltonian Monte Carlo hyperparameter optimization](https://proceedings.mlr.press/v139/campbell21a.html). 
@@ -219,7 +219,7 @@ The package has been used in several research papers, which are listed below.
 
 > Laurence I. Midgley, Vincent Stimper, Gregor N. C. Simm, Bernhard Schölkopf, José Miguel Hernández-Lobato. 
 > [Flow Annealed Importance Sampling Bootstrap](https://arxiv.org/abs/2208.01893). 
-> arXiv preprint arXiv:2208.01893, 2022.
+> The Eleventh International Conference on Learning Representations, 2023.
 > 
 > [Code available on GitHub.](https://github.com/lollcat/fab-torch)
 
