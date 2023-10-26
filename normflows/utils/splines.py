@@ -87,8 +87,12 @@ def unconstrained_rational_quadratic_spline(
         min_bin_height=min_bin_height,
         min_derivative=min_derivative,
     )
-    outputs[inside_interval_mask] = outputs_masked.to(outputs.dtype)
-    logabsdet[inside_interval_mask] = logabsdet_masked.to(logabsdet.dtype)
+    if outputs.dtype == outputs_masked.dtype and logabsdet.dtype == logabsdet_masked.dtype:
+        outputs[inside_interval_mask] = outputs_masked
+        logabsdet[inside_interval_mask] = logabsdet_masked
+    else:
+        outputs[inside_interval_mask] = outputs_masked.to(outputs.dtype)
+        logabsdet[inside_interval_mask] = logabsdet_masked.to(logabsdet.dtype)
 
     return outputs, logabsdet
 
