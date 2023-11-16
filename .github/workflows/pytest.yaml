@@ -2,7 +2,7 @@ name: Unit tests
 
 on:
   push:
-    branches: ["master", "vberenz-ci"]
+    branches: ["master"]
   pull_request:
 
 jobs:
