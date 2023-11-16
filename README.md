@@ -5,7 +5,7 @@
 ![code coverage](https://raw.githubusercontent.com/VincentStimper/normalizing-flows/coverage-badge/coverage.svg?raw=true)
 [![License: MIT](https://img.shields.io/badge/Licence-MIT-b31b1b.svg)](https://opensource.org/licenses/MIT)
 [![DOI](https://joss.theoj.org/papers/10.21105/joss.05361/status.svg)](https://doi.org/10.21105/joss.05361)
-[![PyPI](https://img.shields.io/badge/PyPI-1.7.2-blue.svg)](https://pypi.org/project/normflows/)
+[![PyPI](https://img.shields.io/badge/PyPI-1.7.3-blue.svg)](https://pypi.org/project/normflows/)
 [![Downloads](https://static.pepy.tech/personalized-badge/normflows?period=total&units=international_system&left_color=grey&right_color=orange&left_text=Downloads)](https://pepy.tech/project/normflows)
 
 
@@ -211,17 +211,23 @@ The package has been used in several research papers. Some of them are listed be
 > 
 > [Code available on GitHub.](https://github.com/VincentStimper/hmc-hyperparameter-tuning)
 
-> Vincent Stimper, Bernhard Schölkopf, José Miguel Hernández-Lobato. 
+> Vincent Stimper, Bernhard Schölkopf, and José Miguel Hernández-Lobato. 
 > [Resampling Base Distributions of Normalizing Flows](https://proceedings.mlr.press/v151/stimper22a). 
 > In Proceedings of The 25th International Conference on Artificial Intelligence and Statistics, volume 151, pp. 4915–4936, 2022.
 > 
 > [Code available on GitHub.](https://github.com/VincentStimper/resampled-base-flows)
 
-> Laurence I. Midgley, Vincent Stimper, Gregor N. C. Simm, Bernhard Schölkopf, José Miguel Hernández-Lobato. 
+> Laurence I. Midgley, Vincent Stimper, Gregor N. C. Simm, Bernhard Schölkopf, and José Miguel Hernández-Lobato. 
 > [Flow Annealed Importance Sampling Bootstrap](https://arxiv.org/abs/2208.01893). 
 > The Eleventh International Conference on Learning Representations, 2023.
 > 
 > [Code available on GitHub.](https://github.com/lollcat/fab-torch)
+
+> Arnau Quera-Bofarull, Joel Dyer, Anisoara Calinescu, J. Doyne Farmer, and Michael Wooldridge.
+> [BlackBIRDS: Black-Box Inference foR Differentiable Simulators](https://joss.theoj.org/papers/10.21105/joss.05776).
+> Journal of Open Source Software, 8(89), 5776, 2023.
+> 
+> [Code available on GitHub.](https://github.com/arnauqb/blackbirds)
 
 Moreover, the [`boltzgen`](https://github.com/VincentStimper/boltzmann-generators) package
 has been build upon `normflows`.
