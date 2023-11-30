@@ -60,8 +60,8 @@ class CoupledRationalQuadraticSpline(Flow):
                 use_batch_norm=False,
             )
             if init_identity:
-                nn.init.constant_(net.final_layer.weight, 0.0)
-                nn.init.constant_(
+                torch.nn.init.constant_(net.final_layer.weight, 0.0)
+                torch.nn.init.constant_(
                     net.final_layer.bias, np.log(np.exp(1 - DEFAULT_MIN_DERIVATIVE) - 1)
                 )
             return net
