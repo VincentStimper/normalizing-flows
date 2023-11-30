@@ -29,6 +29,7 @@ class CoupledRationalQuadraticSpline(Flow):
         activation=nn.ReLU,
         dropout_probability=0.0,
         reverse_mask=False,
+        init_identity=True,
     ):
         """Constructor
 
@@ -43,11 +44,12 @@ class CoupledRationalQuadraticSpline(Flow):
           activation (torch module): Activation function
           dropout_probability (float): Dropout probability of the NN
           reverse_mask (bool): Flag whether the reverse mask should be used
+          init_identity (bool): Flag, initialize transform as identity
         """
         super().__init__()
 
         def transform_net_create_fn(in_features, out_features):
-            return ResidualNet(
+            net = ResidualNet(
                 in_features=in_features,
                 out_features=out_features,
                 context_features=num_context_channels,
@@ -57,6 +59,12 @@ class CoupledRationalQuadraticSpline(Flow):
                 dropout_probability=dropout_probability,
                 use_batch_norm=False,
             )
+            if init_identity:
+                nn.init.constant_(net.final_layer.weight, 0.0)
+                nn.init.constant_(
+                    net.final_layer.bias, np.log(np.exp(1 - DEFAULT_MIN_DERIVATIVE) - 1)
+                )
+            return net
 
         self.prqct = PiecewiseRationalQuadraticCoupling(
             mask=create_alternating_binary_mask(num_input_channels, even=reverse_mask),
