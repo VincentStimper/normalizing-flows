@@ -229,6 +229,18 @@ The package has been used in several research papers. Some of them are listed be
 > 
 > [Code available on GitHub.](https://github.com/arnauqb/blackbirds)
 
+> Utkarsh Singhal, Carlos Esteves, Ameesh Makadia, and Stella X. Yu.
+> [Learning to Transform for Generalizable Instance-wise Invariance](https://openaccess.thecvf.com/content/ICCV2023/html/Singhal_Learning_to_Transform_for_Generalizable_Instance-wise_Invariance_ICCV_2023_paper.html).
+> Proceedings of the IEEE/CVF International Conference on Computer Vision (ICCV), pp. 6211-6221, 2023.
+> 
+> [Code available on GitHub.](https://github.com/sutkarsh/flow_inv)
+
+> Ba-Hien Tran, Giulio Franzese, Pietro Michiardi, and Maurizio Filippone.
+> [One-Line-of-Code Data Mollification Improves Optimization of Likelihood-based Generative Models](https://proceedings.neurips.cc/paper_files/paper/2023/hash/1516a7f7507d5550db5c7f29e995ec8c-Abstract-Conference.html).
+>  Advances in Neural Information Processing Systems 36, pp. 6545–6567, 2023.
+> 
+> [Code available on GitHub.](https://github.com/tranbahien/data-mollification)
+
 Moreover, the [`boltzgen`](https://github.com/VincentStimper/boltzmann-generators) package
 has been build upon `normflows`.
 
