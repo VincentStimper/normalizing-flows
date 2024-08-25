@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description" content="None">
+        
+        <link rel="canonical" href="https://github.com/VincentStimper/normalizing-flows/">
+        <link rel="shortcut icon" href="img/favicon.ico">
+        <title>Normalizing Flows</title>
+        <link href="css/bootstrap.min.css" rel="stylesheet">
+        <link href="css/fontawesome.min.css" rel="stylesheet">
+        <link href="css/brands.min.css" rel="stylesheet">
+        <link href="css/solid.min.css" rel="stylesheet">
+        <link href="css/v4-font-face.min.css" rel="stylesheet">
+        <link href="css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <link href="assets/_mkdocstrings.css" rel="stylesheet">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body class="homepage">
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href=".">Normalizing Flows</a>
+                <!-- Expander button -->
+                <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar-collapse" aria-controls="navbar-collapse" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+                        <!-- Main navigation -->
+                        <ul class="nav navbar-nav">
+                            <li class="nav-item">
+                                <a href="." class="nav-link active" aria-current="page">About</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="references/" class="nav-link">API</a>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Examples</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="examples/augmented_flow/" class="dropdown-item">Augmented Normalizing Flow based on Real NVP</a>
+</li>
+                                    
+<li>
+    <a href="examples/change_base_distribution/" class="dropdown-item">Changing the base distribution of a flow model</a>
+</li>
+                                    
+<li>
+    <a href="examples/circular_nsf/" class="dropdown-item">Mixed Circular and Normal Neural Spline Flow</a>
+</li>
+                                    
+<li>
+    <a href="examples/comparison_plan_rad_aff/" class="dropdown-item">Comparison of Planar, Radial, and Affine Coupling Flows</a>
+</li>
+                                    
+<li>
+    <a href="examples/conditional_flow/" class="dropdown-item">Conditional Normalizing Flow Model</a>
+</li>
+                                    
+<li>
+    <a href="examples/glow/" class="dropdown-item">Glow</a>
+</li>
+                                    
+<li>
+    <a href="examples/image/" class="dropdown-item">Learn Distribution given by an Image using Real NVP</a>
+</li>
+                                    
+<li>
+    <a href="examples/neural_spline_flow/" class="dropdown-item">Neural Spline Flow</a>
+</li>
+                                    
+<li>
+    <a href="examples/paper_example_nsf/" class="dropdown-item">Neural Spline Flow on a Circular and a Normal Coordinate</a>
+</li>
+                                    
+<li>
+    <a href="examples/planar/" class="dropdown-item">Planar flow</a>
+</li>
+                                    
+<li>
+    <a href="examples/real_nvp/" class="dropdown-item">Real NVP</a>
+</li>
+                                    
+<li>
+    <a href="examples/residual/" class="dropdown-item">Residual Flow</a>
+</li>
+                                    
+<li>
+    <a href="examples/vae/" class="dropdown-item">Variational Autoencoder with Normalizing Flows</a>
+</li>
+                                </ul>
+                            </li>
+                        </ul>
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                            <li class="nav-item">
+                                <a rel="prev" class="nav-link disabled">
+                                    <i class="fa fa-arrow-left"></i> Previous
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a rel="next" href="references/" class="nav-link">
+                                    Next <i class="fa fa-arrow-right"></i>
+                                </a>
+                            </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#normflows-a-pytorch-package-for-normalizing-flows" class="nav-link">normflows: A PyTorch Package for Normalizing Flows</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#implemented-flows" class="nav-link">Implemented Flows</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#installation" class="nav-link">Installation</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#usage" class="nav-link">Usage</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#examples" class="nav-link">Examples</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#support" class="nav-link">Support</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#contributing" class="nav-link">Contributing</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#used-by" class="nav-link">Used by</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#citation" class="nav-link">Citation</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="normflows-a-pytorch-package-for-normalizing-flows"><code>normflows</code>: A PyTorch Package for Normalizing Flows</h1>
+<p><a href="https://vincentstimper.github.io/normalizing-flows/"><img alt="documentation" src="https://github.com/VincentStimper/normalizing-flows/actions/workflows/mkdocs.yaml/badge.svg" /></a>
+<img alt="unit-tests" src="https://github.com/VincentStimper/normalizing-flows/actions/workflows/pytest.yaml/badge.svg" />
+<img alt="code coverage" src="https://raw.githubusercontent.com/VincentStimper/normalizing-flows/coverage-badge/coverage.svg?raw=true" />
+<a href="https://opensource.org/licenses/MIT"><img alt="License: MIT" src="https://img.shields.io/badge/Licence-MIT-b31b1b.svg" /></a>
+<a href="https://doi.org/10.21105/joss.05361"><img alt="DOI" src="https://joss.theoj.org/papers/10.21105/joss.05361/status.svg" /></a>
+<a href="https://pypi.org/project/normflows/"><img alt="PyPI" src="https://img.shields.io/badge/PyPI-1.7.3-blue.svg" /></a>
+<a href="https://pepy.tech/project/normflows"><img alt="Downloads" src="https://static.pepy.tech/personalized-badge/normflows?period=total&amp;units=international_system&amp;left_color=grey&amp;right_color=orange&amp;left_text=Downloads" /></a></p>
+<p><code>normflows</code> is a PyTorch implementation of discrete normalizing flows. Many popular flow architectures are implemented,
+see the <a href="#implemented-flows">list below</a>. The package can be easily <a href="#installation">installed via pip</a>.
+The basic usage is described <a href="#usage">here</a>, and a <a href="https://vincentstimper.github.io/normalizing-flows/">full documentation</a> 
+is available as well. A more detailed description of this package is given in our
+<a href="https://joss.theoj.org/papers/10.21105/joss.05361">accompanying paper</a>.</p>
+<p>Several sample use cases are provided in the 
+<a href="https://github.com/VincentStimper/normalizing-flows/blob/master/examples"><code>examples</code> folder</a>, 
+including <a href="https://github.com/VincentStimper/normalizing-flows/blob/master/examples/glow.ipynb">Glow</a>,
+a <a href="https://github.com/VincentStimper/normalizing-flows/blob/master/examples/vae.py">VAE</a>, and
+a <a href="https://github.com/VincentStimper/normalizing-flows/blob/master/examples/residual.ipynb">Residual Flow</a>.
+Moreover, two simple applications are highlighed in the <a href="#examples">examples section</a>. You can run them 
+yourself in Google Colab using the links below to get a feeling for <code>normflows</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Link</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://colab.research.google.com/github/VincentStimper/normalizing-flows/blob/master/examples/real_nvp_colab.ipynb" target="_parent"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a></td>
+<td>Real NVP applied to a 2D bimodal target distribution</td>
+</tr>
+<tr>
+<td><a href="https://colab.research.google.com/github/VincentStimper/normalizing-flows/blob/master/examples/paper_example_nsf_colab.ipynb" target="_parent"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a></td>
+<td>Modeling a distribution on a cylinder surface with a neural spline flow</td>
+</tr>
+<tr>
+<td><a href="https://colab.research.google.com/github/VincentStimper/normalizing-flows/blob/master/examples/glow_colab.ipynb" target="_parent"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a></td>
+<td>Modeling and generating CIFAR-10 images with Glow</td>
+</tr>
+</tbody>
+</table>
+<h2 id="implemented-flows">Implemented Flows</h2>
+<table>
+<thead>
+<tr>
+<th>Architecture</th>
+<th>Reference</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Planar Flow</td>
+<td><a href="http://proceedings.mlr.press/v37/rezende15.html">Rezende &amp; Mohamed, 2015</a></td>
+</tr>
+<tr>
+<td>Radial Flow</td>
+<td><a href="http://proceedings.mlr.press/v37/rezende15.html">Rezende &amp; Mohamed, 2015</a></td>
+</tr>
+<tr>
+<td>NICE</td>
+<td><a href="https://arxiv.org/abs/1410.8516">Dinh et al., 2014</a></td>
+</tr>
+<tr>
+<td>Real NVP</td>
+<td><a href="https://openreview.net/forum?id=HkpbnH9lx">Dinh et al., 2017</a></td>
+</tr>
+<tr>
+<td>Glow</td>
+<td><a href="https://proceedings.neurips.cc/paper/2018/hash/d139db6a236200b21cc7f752979132d0-Abstract.html">Kingma et al., 2018</a></td>
+</tr>
+<tr>
+<td>Masked Autoregressive Flow</td>
+<td><a href="https://proceedings.neurips.cc/paper/2017/hash/6c1da886822c67822bcf3679d04369fa-Abstract.html">Papamakarios et al., 2017</a></td>
+</tr>
+<tr>
+<td>Neural Spline Flow</td>
+<td><a href="https://proceedings.neurips.cc/paper/2019/hash/7ac71d433f282034e088473244df8c02-Abstract.html">Durkan et al., 2019</a></td>
+</tr>
+<tr>
+<td>Circular Neural Spline Flow</td>
+<td><a href="http://proceedings.mlr.press/v119/rezende20a.html">Rezende et al., 2020</a></td>
+</tr>
+<tr>
+<td>Residual Flow</td>
+<td><a href="https://proceedings.neurips.cc/paper/2019/hash/5d0d5594d24f0f955548f0fc0ff83d10-Abstract.html">Chen et al., 2019</a></td>
+</tr>
+<tr>
+<td>Stochastic Normalizing Flow</td>
+<td><a href="https://proceedings.neurips.cc/paper/2020/hash/41d80bfc327ef980528426fc810a6d7a-Abstract.html">Wu et al., 2020</a></td>
+</tr>
+</tbody>
+</table>
+<p>Note that Neural Spline Flows with circular and non-circular coordinates
+are supported as well.</p>
+<h2 id="installation">Installation</h2>
+<p>The latest version of the package can be installed via pip</p>
+<pre><code>pip install normflows
+</code></pre>
+<p>At least Python 3.7 is required. If you want to use a GPU, make sure that
+PyTorch is set up correctly by following the instructions at the
+<a href="https://pytorch.org/get-started/locally/">PyTorch website</a>.</p>
+<p>To run the example notebooks clone the repository first</p>
+<pre><code>git clone https://github.com/VincentStimper/normalizing-flows.git
+</code></pre>
+<p>and then install the dependencies.</p>
+<pre><code>pip install -r requirements_examples.txt
+</code></pre>
+<h2 id="usage">Usage</h2>
+<p>A normalizing flow consists of a base distribution, defined in 
+<a href="https://github.com/VincentStimper/normalizing-flows/blob/master/normflows/distributions/base.py"><code>nf.distributions.base</code></a>,
+and a list of flows, given in
+<a href="https://github.com/VincentStimper/normalizing-flows/blob/master/normflows/flows"><code>nf.flows</code></a>.
+Let's assume our target is a 2D distribution. We pick a diagonal Gaussian
+base distribution, which is the most popular choice. Our flow shall be a
+<a href="https://openreview.net/forum?id=HkpbnH9lx">Real NVP model</a> and, therefore, we need
+to define a neural network for computing the parameters of the affine coupling
+map. One dimension is used to compute the scale and shift parameter for the
+other dimension. After each coupling layer we swap their roles.</p>
+<pre><code class="language-python">import normflows as nf
+
+# Define 2D Gaussian base distribution
+base = nf.distributions.base.DiagGaussian(2)
+
+# Define list of flows
+num_layers = 32
+flows = []
+for i in range(num_layers):
+    # Neural network with two hidden layers having 64 units each
+    # Last layer is initialized by zeros making training more stable
+    param_map = nf.nets.MLP([1, 64, 64, 2], init_zeros=True)
+    # Add flow layer
+    flows.append(nf.flows.AffineCouplingBlock(param_map))
+    # Swap dimensions
+    flows.append(nf.flows.Permute(2, mode='swap'))
+</code></pre>
+<p>Once they are set up, we can define a
+<a href="https://github.com/VincentStimper/normalizing-flows/blob/master/normflows/core.py#L9"><code>nf.NormalizingFlow</code></a>
+model. If the target density is available, it can be added to the model
+to be used during training. Sample target distributions are given in
+<a href="https://github.com/VincentStimper/normalizing-flows/blob/master/normflows/distributions/target.py"><code>nf.distributions.target</code></a>.</p>
+<pre><code class="language-python"># If the target density is not given
+model = nf.NormalizingFlow(base, flows)
+
+# If the target density is given
+target = nf.distributions.target.TwoMoons()
+model = nf.NormalizingFlow(base, flows, target)
+</code></pre>
+<p>The loss can be computed with the methods of the model and minimized.</p>
+<pre><code class="language-python"># When doing maximum likelihood learning, i.e. minimizing the forward KLD
+# with no target distribution given
+loss = model.forward_kld(x)
+
+# When minimizing the reverse KLD based on the given target distribution
+loss = model.reverse_kld(num_samples=512)
+
+# Optimization as usual
+loss.backward()
+optimizer.step()
+</code></pre>
+<h2 id="examples">Examples</h2>
+<p>We provide several illustrative examples of how to use the package in the
+<a href="https://github.com/VincentStimper/normalizing-flows/blob/master/examples"><code>examples</code></a>
+directory. Among them are implementations of 
+<a href="https://github.com/VincentStimper/normalizing-flows/blob/master/examples/glow.ipynb">Glow</a>,
+a <a href="https://github.com/VincentStimper/normalizing-flows/blob/master/examples/vae.py">VAE</a>, and
+a <a href="https://github.com/VincentStimper/normalizing-flows/blob/master/examples/residual.ipynb">Residual Flow</a>. 
+More advanced experiments can be done with the scripts listed in the
+<a href="https://github.com/VincentStimper/resampled-base-flows">repository about resampled base distributions</a>,
+see its <a href="https://github.com/VincentStimper/resampled-base-flows/tree/master/experiments"><code>experiments</code></a>
+folder.</p>
+<p>Below, we consider two simple 2D examples.</p>
+<h3 id="real-nvp-applied-to-a-2d-bimodal-target-distribution">Real NVP applied to a 2D bimodal target distribution</h3>
+<p><a href="https://colab.research.google.com/github/VincentStimper/normalizing-flows/blob/master/examples/real_nvp_colab.ipynb" target="_parent"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a></p>
+<p>In <a href="https://github.com/VincentStimper/normalizing-flows/blob/master/examples/real_nvp_colab.ipynb">this notebook</a>, 
+which can directly be opened in 
+<a href="https://colab.research.google.com/github/VincentStimper/normalizing-flows/blob/master/examples/real_nvp_colab.ipynb">Colab</a>,
+we consider a 2D distribution with two half-moon-shaped modes as a target. We approximate it with a Real NVP model
+and obtain the following results.</p>
+<p><img alt="2D target distribution and Real NVP model" src="https://raw.githubusercontent.com/VincentStimper/normalizing-flows/master/figures/real_nvp.png" /></p>
+<p>Note that there might be a density filament connecting the two modes, which is due to an architectural limitation 
+of normalizing flows, especially prominent in Real NVP. You can find out more about it in 
+<a href="https://proceedings.mlr.press/v151/stimper22a">this paper</a>.</p>
+<h3 id="modeling-a-distribution-on-a-cylinder-surface-with-a-neural-spline-flow">Modeling a distribution on a cylinder surface with a neural spline flow</h3>
+<p><a href="https://colab.research.google.com/github/VincentStimper/normalizing-flows/blob/master/examples/paper_example_nsf_colab.ipynb" target="_parent"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a></p>
+<p>In <a href="https://github.com/VincentStimper/normalizing-flows/blob/master/examples/paper_example_nsf_colab.ipynb">another example</a>,
+which is available in <a href="https://colab.research.google.com/github/VincentStimper/normalizing-flows/blob/master/examples/paper_example_nsf_colab.ipynb">Colab</a>
+as well, we apply a Neural Spline Flow model to a distribution defined on a cylinder. The resulting density is visualized below.</p>
+<p><img alt="Neural Spline Flow applied to target distribution on a cylinder" src="https://raw.githubusercontent.com/VincentStimper/normalizing-flows/master/figures/nsf_cylinder_3d.png" /></p>
+<p>This example is considered in the <a href="https://joss.theoj.org/papers/10.21105/joss.05361">paper</a> accompanying this repository.</p>
+<h2 id="support">Support</h2>
+<p>If you have problems, please read the <a href="https://vincentstimper.github.io/normalizing-flows/">package documentation</a>
+and check out the <a href="#examples">examples section</a> above. You are also welcome to 
+<a href="https://github.com/VincentStimper/normalizing-flows/issues">create issues on GitHub</a> to get help. Note that it is
+worthwhile browsing the existing <a href="https://github.com/VincentStimper/normalizing-flows/issues?q=is%3Aopen+is%3Aissue">open</a> 
+and <a href="https://github.com/VincentStimper/normalizing-flows/issues?q=is%3Aissue+is%3Aclosed">closed</a> issues, which might
+address the problem you are facing.</p>
+<h2 id="contributing">Contributing</h2>
+<p>If you find a bug or have a feature request, please 
+<a href="https://github.com/VincentStimper/normalizing-flows/issues">file an issue on GitHub</a>.</p>
+<p>You are welcome to contribute to the package by fixing the bug or adding the feature yourself. If you want to 
+contribute, please add tests for the code you added or modified and ensure it passes successfully by running <code>pytest</code>.
+This can be done by simply executing</p>
+<pre><code>pytest
+</code></pre>
+<p>within your local version of the repository. Make sure you code is well documented, and we also encourage contributions
+to the existing documentation. Once you finished coding and testing, please 
+<a href="https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request">create a pull request on GitHub</a>.</p>
+<h2 id="used-by">Used by</h2>
+<p>The package has been used in several research papers. Some of them are listed below.</p>
+<blockquote>
+<p>Andrew Campbell, Wenlong Chen, Vincent Stimper, José Miguel Hernández-Lobato, and Yichuan Zhang. 
+<a href="https://proceedings.mlr.press/v139/campbell21a.html">A gradient based strategy for Hamiltonian Monte Carlo hyperparameter optimization</a>. 
+In Proceedings of the 38th International Conference on Machine Learning, pp. 1238–1248. PMLR, 2021.</p>
+<p><a href="https://github.com/VincentStimper/hmc-hyperparameter-tuning">Code available on GitHub.</a></p>
+<p>Vincent Stimper, Bernhard Schölkopf, and José Miguel Hernández-Lobato. 
+<a href="https://proceedings.mlr.press/v151/stimper22a">Resampling Base Distributions of Normalizing Flows</a>. 
+In Proceedings of The 25th International Conference on Artificial Intelligence and Statistics, volume 151, pp. 4915–4936, 2022.</p>
+<p><a href="https://github.com/VincentStimper/resampled-base-flows">Code available on GitHub.</a></p>
+<p>Laurence I. Midgley, Vincent Stimper, Gregor N. C. Simm, Bernhard Schölkopf, and José Miguel Hernández-Lobato. 
+<a href="https://arxiv.org/abs/2208.01893">Flow Annealed Importance Sampling Bootstrap</a>. 
+The Eleventh International Conference on Learning Representations, 2023.</p>
+<p><a href="https://github.com/lollcat/fab-torch">Code available on GitHub.</a></p>
+<p>Arnau Quera-Bofarull, Joel Dyer, Anisoara Calinescu, J. Doyne Farmer, and Michael Wooldridge.
+<a href="https://joss.theoj.org/papers/10.21105/joss.05776">BlackBIRDS: Black-Box Inference foR Differentiable Simulators</a>.
+Journal of Open Source Software, 8(89), 5776, 2023.</p>
+<p><a href="https://github.com/arnauqb/blackbirds">Code available on GitHub.</a></p>
+<p>Utkarsh Singhal, Carlos Esteves, Ameesh Makadia, and Stella X. Yu.
+<a href="https://openaccess.thecvf.com/content/ICCV2023/html/Singhal_Learning_to_Transform_for_Generalizable_Instance-wise_Invariance_ICCV_2023_paper.html">Learning to Transform for Generalizable Instance-wise Invariance</a>.
+Proceedings of the IEEE/CVF International Conference on Computer Vision (ICCV), pp. 6211-6221, 2023.</p>
+<p><a href="https://github.com/sutkarsh/flow_inv">Code available on GitHub.</a></p>
+<p>Ba-Hien Tran, Giulio Franzese, Pietro Michiardi, and Maurizio Filippone.
+<a href="https://proceedings.neurips.cc/paper_files/paper/2023/hash/1516a7f7507d5550db5c7f29e995ec8c-Abstract-Conference.html">One-Line-of-Code Data Mollification Improves Optimization of Likelihood-based Generative Models</a>.
+ Advances in Neural Information Processing Systems 36, pp. 6545–6567, 2023.</p>
+<p><a href="https://github.com/tranbahien/data-mollification">Code available on GitHub.</a></p>
+</blockquote>
+<p>Moreover, the <a href="https://github.com/VincentStimper/boltzmann-generators"><code>boltzgen</code></a> package
+has been build upon <code>normflows</code>.</p>
+<h2 id="citation">Citation</h2>
+<p>If you use <code>normflows</code>, please cite the 
+<a href="https://joss.theoj.org/papers/10.21105/joss.05361">corresponding paper</a> as follows.</p>
+<blockquote>
+<p>Stimper et al., (2023). normflows: A PyTorch Package for Normalizing Flows. 
+Journal of Open Source Software, 8(86), 5361, https://doi.org/10.21105/joss.05361</p>
+</blockquote>
+<p><strong>Bibtex</strong></p>
+<pre><code>@article{Stimper2023, 
+  author = {Vincent Stimper and David Liu and Andrew Campbell and Vincent Berenz and Lukas Ryll and Bernhard Schölkopf and José Miguel Hernández-Lobato}, 
+  title = {normflows: A PyTorch Package for Normalizing Flows}, 
+  journal = {Journal of Open Source Software}, 
+  volume = {8},
+  number = {86}, 
+  pages = {5361}, 
+  publisher = {The Open Journal}, 
+  doi = {10.21105/joss.05361}, 
+  url = {https://doi.org/10.21105/joss.05361}, 
+  year = {2023}
+} 
+</code></pre></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = ".",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="js/base.js"></script>
+        <script src="search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>
+
+<!--
+MkDocs version : 1.6.0
+Build Date UTC : 2024-08-25 09:44:02.794573+00:00
+-->
