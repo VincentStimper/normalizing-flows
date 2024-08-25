@@ -585,12 +585,12 @@ class MultiscaleFlow(nn.Module):
             self.reset_temperature()
         return z, log_q
 
-    def log_prob(self, x, y):
+    def log_prob(self, x, y=None):
         """Get log probability for batch
 
         Args:
           x: Batch
-          y: Classes of x
+          y: Classes of x. Must be passed in if `class_cond` is True.
 
         Returns:
           log probability
