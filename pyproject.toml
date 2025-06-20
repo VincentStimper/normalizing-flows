@@ -1,0 +1,108 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "normflows"
+version = "1.7.3"
+description = "Pytorch implementation of normalizing flows"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "MIT"}
+authors = [
+    {name = "Vincent Stimper", email = "vincent.stimper@tuebingen.mpg.de"}
+]
+maintainers = [
+    {name = "Vincent Stimper", email = "vincent.stimper@tuebingen.mpg.de"}
+]
+keywords = ["pytorch", "normalizing flows", "machine learning", "deep learning"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+dependencies = [
+    "numpy",
+    "torch",
+]
+
+[project.optional-dependencies]
+docs = [
+    "mkdocs",
+    "mkdocstrings[python]",
+    "mkdocs-jupyter",
+]
+dev = [
+    "pytest",
+    "pytest-cov",
+    "black",
+    "flake8",
+    "isort",
+]
+examples = [
+    "matplotlib",
+    "jupyterlab",
+    "tqdm",
+    "scikit-learn",
+    "ipywidgets",
+    "pandas"
+]
+
+[project.urls]
+Homepage = "https://github.com/VincentStimper/normalizing-flows"
+Documentation = "https://vincentstimper.github.io/normalizing-flows/"
+Repository = "https://github.com/VincentStimper/normalizing-flows"
+Download = "https://github.com/VincentStimper/normalizing-flows/archive/refs/heads/master.zip"
+"Bug Reports" = "https://github.com/VincentStimper/normalizing-flows/issues"
+"Paper" = "https://doi.org/10.21105/joss.05361"
+
+[tool.setuptools]
+packages = ["normflows"]
+include-package-data = true
+
+[tool.setuptools.package-dir]
+"" = "."
+
+[tool.setuptools.exclude-package-data]
+"*" = ["docs/*", "tests/*"]
+
+[tool.black]
+line-length = 88
+target-version = ['py38']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | build
+  | dist
+)/
+'''
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+line_length = 88
+known_first_party = ["normflows"]
+
+[tool.pytest.ini_options]
+testpaths = ["normflows"]
+python_files = ["*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "--cov=normflows --cov-report=term-missing --cov-report=xml"
