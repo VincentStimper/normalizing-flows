@@ -68,8 +68,8 @@ git clone https://github.com/VincentStimper/normalizing-flows.git
 
 and then install the dependencies.
 
-```
-pip install -r requirements_examples.txt
+```bash
+pip install -e ".[examples]"
 ```
 
 ## Usage
