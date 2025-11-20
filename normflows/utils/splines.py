@@ -26,25 +26,21 @@ def unconstrained_rational_quadratic_spline(
     min_derivative=DEFAULT_MIN_DERIVATIVE,
 ):
     inside_interval_mask = (inputs >= -tail_bound) & (inputs <= tail_bound)
-    outside_interval_mask = ~inside_interval_mask
-
-    outputs = torch.zeros_like(inputs)
-    logabsdet = torch.zeros_like(inputs)
 
     if tails == "linear":
-        unnormalized_derivatives_ = F.pad(unnormalized_derivatives, pad=(1, 1))
+        unnormalized_derivatives = F.pad(unnormalized_derivatives, pad=(1, 1))
         constant = np.log(np.exp(1 - min_derivative) - 1)
-        unnormalized_derivatives_[..., 0] = constant
-        unnormalized_derivatives_[..., -1] = constant
-
-        outputs[outside_interval_mask] = inputs[outside_interval_mask]
-        logabsdet[outside_interval_mask] = 0
+        unnormalized_derivatives[..., 0] = constant
+        unnormalized_derivatives[..., -1] = constant
+        
+        outputs_outside = inputs
+        logabsdet_outside = torch.zeros_like(inputs)
     elif tails == "circular":
-        unnormalized_derivatives_ = F.pad(unnormalized_derivatives, pad=(0, 1))
-        unnormalized_derivatives_[..., -1] = unnormalized_derivatives_[..., 0]
+        unnormalized_derivatives = F.pad(unnormalized_derivatives, pad=(0, 1))
+        unnormalized_derivatives[..., -1] = unnormalized_derivatives[..., 0]
 
-        outputs[outside_interval_mask] = inputs[outside_interval_mask]
-        logabsdet[outside_interval_mask] = 0
+        outputs_outside = inputs
+        logabsdet_outside = torch.zeros_like(inputs)
     elif isinstance(tails, list) or isinstance(tails, tuple):
         unnormalized_derivatives_ = unnormalized_derivatives.clone()
         ind_lin = [t == "linear" for t in tails]
@@ -55,29 +51,39 @@ def unconstrained_rational_quadratic_spline(
         unnormalized_derivatives_[..., ind_circ, -1] = unnormalized_derivatives_[
             ..., ind_circ, 0
         ]
+        unnormalized_derivatives = unnormalized_derivatives_
+        
+        outputs_outside = inputs
+        logabsdet_outside = torch.zeros_like(inputs)
     else:
         raise RuntimeError("{} tails are not implemented.".format(tails))
 
     if torch.is_tensor(tail_bound):
         tail_bound_ = torch.broadcast_to(tail_bound, inputs.shape)
-        left = -tail_bound_[inside_interval_mask]
-        right = tail_bound_[inside_interval_mask]
-        bottom = -tail_bound_[inside_interval_mask]
-        top = tail_bound_[inside_interval_mask]
+        left = -tail_bound_
+        right = tail_bound_
+        bottom = -tail_bound_
+        top = tail_bound_
+        
+        # Specific bounds for clamping
+        clamp_min = -tail_bound_
+        clamp_max = tail_bound_
     else:
         left = -tail_bound
         right = tail_bound
         bottom = -tail_bound
         top = tail_bound
+        
+        clamp_min = -tail_bound
+        clamp_max = tail_bound
 
-    (
-        outputs_masked,
-        logabsdet_masked
-    ) = rational_quadratic_spline(
-        inputs=inputs[inside_interval_mask],
-        unnormalized_widths=unnormalized_widths[inside_interval_mask, :],
-        unnormalized_heights=unnormalized_heights[inside_interval_mask, :],
-        unnormalized_derivatives=unnormalized_derivatives_[inside_interval_mask, :],
+    inputs_clamped = torch.clamp(inputs, min=clamp_min, max=clamp_max)
+
+    outputs_spline, logabsdet_spline = rational_quadratic_spline(
+        inputs=inputs_clamped,
+        unnormalized_widths=unnormalized_widths,
+        unnormalized_heights=unnormalized_heights,
+        unnormalized_derivatives=unnormalized_derivatives,
         inverse=inverse,
         left=left,
         right=right,
@@ -87,12 +93,9 @@ def unconstrained_rational_quadratic_spline(
         min_bin_height=min_bin_height,
         min_derivative=min_derivative,
     )
-    if outputs.dtype == outputs_masked.dtype and logabsdet.dtype == logabsdet_masked.dtype:
-        outputs[inside_interval_mask] = outputs_masked
-        logabsdet[inside_interval_mask] = logabsdet_masked
-    else:
-        outputs[inside_interval_mask] = outputs_masked.to(outputs.dtype)
-        logabsdet[inside_interval_mask] = logabsdet_masked.to(logabsdet.dtype)
+
+    outputs = torch.where(inside_interval_mask, outputs_spline, outputs_outside)
+    logabsdet = torch.where(inside_interval_mask, logabsdet_spline, logabsdet_outside)
 
     return outputs, logabsdet
 

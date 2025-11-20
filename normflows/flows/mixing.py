@@ -449,27 +449,9 @@ class _LULinear(_Linear):
             N = num of inputs
         ```
         """
-        lower, upper = self._create_lower_upper()
-        outputs = inputs - self.bias
-        try:
-            outputs = torch.linalg.solve_triangular(
-                lower, outputs.t(), upper=False, unitriangular=True
-            )
-            outputs = torch.linalg.solve_triangular(
-                upper, outputs, upper=True, unitriangular=False
-            )
-        except:
-            outputs, _ = torch.triangular_solve(
-                outputs.t(), lower, upper=False, unitriangular=True
-            )
-            outputs, _ = torch.triangular_solve(
-                outputs, upper, upper=True, unitriangular=False
-            )
-        outputs = outputs.t()
-
-        logabsdet = -self.logabsdet()
-        logabsdet = logabsdet * inputs.new_ones(outputs.shape[0])
-
+        W_inv = self.weight_inverse()
+        outputs = torch.matmul(inputs - self.bias, W_inv.t())
+        logabsdet = -self.logabsdet() * inputs.new_ones(outputs.shape[0])
         return outputs, logabsdet
 
     def weight(self):
@@ -503,13 +485,7 @@ class _LULinear(_Linear):
             D = num of features
         ```
         """
-        lower, upper = self._create_lower_upper()
-        identity = torch.eye(self.features, self.features)
-        lower_inverse = torch.linalg.solve_triangular(lower, identity, upper=False, unitriangular=True)
-        weight_inverse = torch.linalg.solve_triangular(
-            upper, lower_inverse, upper=True, unitriangular=False
-        )
-        return weight_inverse
+        return torch.inverse(self.weight())
 
     @property
     def upper_diag(self):
